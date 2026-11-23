@@ -109,7 +109,7 @@ export function CourbeFlux({ serie, prudent, median, choc = 0, debut, hauteur = 
         ))}
         {dense && (
           <>
-            <text x={L - droite + 6} y={yP + 4} fontSize="11" fill="var(--feuille)" className="chiffres">{Math.round((prudent * f) / 1000)} k</text>
+            <text x={L - droite + 6} y={Math.max(yP + 4, yM + 17)} fontSize="11" fill="var(--feuille)" className="chiffres">{Math.round((prudent * f) / 1000)} k</text>
             <text x={L - droite + 6} y={yM + 4} fontSize="11" fill="var(--encre-2)" className="chiffres">{Math.round((median * f) / 1000)} k</text>
           </>
         )}

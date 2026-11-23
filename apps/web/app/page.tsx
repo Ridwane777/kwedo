@@ -20,9 +20,9 @@ export default function Accueil() {
       <header className="flex items-center justify-between py-5">
         <Marque />
         <nav className="flex gap-1 text-sm sm:gap-4" aria-label="Accès">
-          <Link href="/app" className="rounded-lg px-2 py-2 hover:bg-papier-2">Commerçant</Link>
-          <Link href="/console" className="rounded-lg px-2 py-2 hover:bg-papier-2">Prêteur</Link>
-          <Link href="/demo" className="rounded-lg bg-indigo px-3 py-2 font-medium text-papier">Démo guidée</Link>
+          <Link href="/app" className="hidden rounded-lg px-2 py-2 hover:bg-papier-2 sm:block">Commerçant</Link>
+          <Link href="/console" className="hidden rounded-lg px-2 py-2 hover:bg-papier-2 sm:block">Prêteur</Link>
+          <Link href="/demo" className="whitespace-nowrap rounded-lg bg-indigo px-3 py-2 font-medium text-papier">Démo guidée</Link>
         </nav>
       </header>
       <Lisiere />
@@ -42,7 +42,7 @@ export default function Accueil() {
         </div>
         <figure className="space-y-3">
           <CourbeFlux serie={EXEMPLE} prudent={210000} median={247000} debut="2026-05-25" />
-          <p className="text-xs text-encre-2">La courbe d'encaissements d'une vendeuse de tissus fictive. La bande hachurée : ce sur quoi on peut compter, même une mauvaise semaine.</p>
+          <p className="text-xs text-encre-2">Courbe d'encaissements d'illustration, simulée. La bande hachurée : ce sur quoi on peut compter, même une mauvaise semaine.</p>
         </figure>
       </section>
 

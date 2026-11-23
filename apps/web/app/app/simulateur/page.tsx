@@ -54,6 +54,7 @@ export default function Simulateur() {
         <span id="aide-montant" className="mt-1 block text-sm text-encre-2">Votre plafond actuel : {fcfa(base?.plafond)}</span>
       </label>
 
+      {!s && <p role="status" className="chargement h-24 rounded-2xl"><span className="sr-only">Calcul en cours</span></p>}
       {s && (
         <div aria-live="polite" className={`apparait rounded-2xl p-5 ${s.atteignable ? "bg-feuille-doux" : "bg-papier-2"}`}>
           {s.atteignable ? (

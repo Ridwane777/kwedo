@@ -24,7 +24,7 @@ export function NavConsole() {
           <Link key={l.href} href={l.href} aria-current={actif ? "page" : undefined}
             className={`flex items-center justify-between rounded-lg px-3 py-2 ${actif ? "bg-indigo text-papier" : "text-encre hover:bg-papier-3"}`}>
             {l.label}
-            <kbd className={`rounded border px-1 text-[11px] ${actif ? "border-papier/40" : "border-trait text-encre-2"}`}>{l.touche}</kbd>
+            <kbd title={`Raccourci clavier : ${l.touche}`} className={`text-[11px] ${actif ? "text-papier" : "text-encre-2"}`}>{l.touche}</kbd>
           </Link>
         );
       })}

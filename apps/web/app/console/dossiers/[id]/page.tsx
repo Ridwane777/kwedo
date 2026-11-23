@@ -23,6 +23,14 @@ function Ligne({ l, v, aide }: { l: string; v: string; aide?: string }) {
   );
 }
 
+// Le moteur rédige ses raisons pour le commerçant ; l'agent les lit à la troisième personne.
+const pourAgent = (t: string) => t
+  .replace(/vous encaissez/g, "le commerçant encaisse")
+  .replace(/Vos encaissements/g, "Ses encaissements")
+  .replace(/Votre activité/g, "Son activité")
+  .replace(/Votre historique/g, "Son historique");
+const decimales = (t: string) => t.replace(/(\d)\.(\d)/g, "$1,$2");
+
 export default function Fiche() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
@@ -133,7 +141,12 @@ export default function Fiche() {
             <ol className="space-y-1.5">
               {a.raisons.map((r) => (
                 <li key={r.code} className="flex justify-between gap-4 border-b border-trait pb-1.5">
-                  <span>{r.texte}</span>
+                  <span>
+                    {pourAgent(r.texte)}
+                    {r.code === "tendance" && r.effet < 0 && !!a.alertes?.length && (
+                      <span className="mt-0.5 block text-safran-encre">Cette hausse coïncide avec une alerte : à vérifier avant de la retenir.</span>
+                    )}
+                  </span>
                   <span className="chiffres shrink-0 text-encre-2">{r.effet ? `${r.effet > 0 ? "−" : "+"}${fcfa(Math.abs(r.effet))}` : ""}</span>
                 </li>
               ))}
@@ -141,8 +154,8 @@ export default function Fiche() {
           </div>
           <div>
             <h3 className="mb-1 text-xs font-medium uppercase tracking-wide text-encre-2">Chaîne de calcul</h3>
-            <ol className="list-decimal space-y-0.5 pl-5 text-encre-2">{a.chaine_calcul.map((l) => <li key={l}>{l}</li>)}</ol>
-            <p className="mt-1 text-[11px] text-encre-2">Moteur {d.version_moteur} · graine {d.graine} · m={a.parametres.m} s={a.parametres.s} n={a.parametres.n} i={a.parametres.i} · {a.parametres.trajectoires} trajectoires</p>
+            <ol className="list-decimal space-y-0.5 pl-5 text-encre-2">{a.chaine_calcul.map((l) => <li key={l}>{decimales(l).replace(/annoncé [\d,]+\s?%/, `annoncé ${pct(a.risque, 1)}`)}</li>)}</ol>
+            <p className="mt-1 text-[11px] text-encre-2">Moteur {d.version_moteur} · graine {d.graine} · {decimales(`m=${a.parametres.m} s=${a.parametres.s} n=${a.parametres.n} i=${a.parametres.i}`)} · {nombre(a.parametres.trajectoires)} trajectoires</p>
           </div>
         </section>
 
@@ -153,7 +166,7 @@ export default function Fiche() {
             {a.alertes?.length ? (
               <ul className="space-y-2">
                 {a.alertes.map((al) => (
-                  <li key={al.code} className="rounded-lg border-l-4 border-safran bg-safran-doux px-3 py-2 text-safran-encre">{al.texte}</li>
+                  <li key={al.code} className="rounded-lg border-l-4 border-safran bg-safran-doux px-3 py-2 text-safran-encre">{decimales(al.texte)}</li>
                 ))}
                 <li className="text-[11px] text-encre-2">Une alerte demande un examen, elle ne prouve rien. Le commerçant n'en est pas informé automatiquement.</li>
               </ul>
