@@ -1,0 +1,83 @@
+{
+ "avertissement": "Mesures sur données simulées uniquement. Pas une performance réelle.",
+ "prevision": {
+  "cible": "moyenne des 8 semaines suivantes",
+  "n_test": 400,
+  "erreur_relative_mediane_modele": 0.1216,
+  "erreur_relative_mediane_naive_mediane12": 0.1334,
+  "hors_reglage_modele": 0.1534,
+  "hors_reglage_naive": 0.203
+ },
+ "defaut": {
+  "n_test": 393,
+  "taux_defaut_test": 0.201,
+  "auc_modele": 0.737,
+  "auc_naive_regularite": 0.497,
+  "auc_risque_simule_moteur": 0.501,
+  "auc_modele_hors_reglage": 0.8,
+  "brier_modele": 0.1497,
+  "calibration": [
+   {
+    "predit": 0.004,
+    "observe": 0.051,
+    "n": 79
+   },
+   {
+    "predit": 0.027,
+    "observe": 0.051,
+    "n": 78
+   },
+   {
+    "predit": 0.073,
+    "observe": 0.253,
+    "n": 79
+   },
+   {
+    "predit": 0.138,
+    "observe": 0.256,
+    "n": 78
+   },
+   {
+    "predit": 0.328,
+    "observe": 0.392,
+    "n": 79
+   }
+  ]
+ },
+ "anomalies": {
+  "n_test": 400,
+  "n_manipules": 58,
+  "detection_regles": 0.948,
+  "detection_modele": 0.845,
+  "detection_combinee": 1.0,
+  "fausses_alertes_regles": 0.003,
+  "fausses_alertes_modele": 0.061,
+  "fausses_alertes_combinees": 0.061,
+  "par_type": {
+   "circulaire": {
+    "n": 10,
+    "regles": 1.0,
+    "modele": 0.1,
+    "combine": 1.0
+   },
+   "concentration": {
+    "n": 15,
+    "regles": 0.8,
+    "modele": 1.0,
+    "combine": 1.0
+   },
+   "pic_avant_demande": {
+    "n": 22,
+    "regles": 1.0,
+    "modele": 1.0,
+    "combine": 1.0
+   },
+   "rafale_ronds": {
+    "n": 11,
+    "regles": 1.0,
+    "modele": 1.0,
+    "combine": 1.0
+   }
+  }
+ }
+}

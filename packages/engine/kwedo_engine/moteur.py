@@ -12,6 +12,7 @@ from dataclasses import asdict, dataclass
 import numpy as np
 
 from .flux import flux_verifies, series_hebdo
+from .modeles import appliquer
 
 VERSION = "0.1.0"
 PAS = 5_000
@@ -175,7 +176,8 @@ def _fcfa(x: float) -> str:
 
 
 def analyser(transactions: list[dict], parametres: dict | Parametres | None = None, graine: int = 0,
-             choc_ventes: float = 0.0, montant_souhaite: int | None = None, avec_raisons: bool = True) -> dict:
+             choc_ventes: float = 0.0, montant_souhaite: int | None = None, avec_raisons: bool = True,
+             avec_modeles: bool = True) -> dict:
     p = parametres if isinstance(parametres, Parametres) else Parametres.depuis(parametres)
     ind, hebdo, fv = indicateurs(transactions)
     W = len(hebdo)
@@ -183,6 +185,10 @@ def analyser(transactions: list[dict], parametres: dict | Parametres | None = No
     plafond, c_p, lmax, l_sim, seuils = _plafond(hebdo, p, graine, choc_ventes, decote)
     risque = risque_pour_montant(seuils, plafond, p) if plafond else 0.0
     al = alertes(ind, hebdo, fv)
+    ml = appliquer(ind, c_p, hebdo, fv) if avec_modeles else None
+    if ml and ml["alerte_anomalie"]:
+        al.append({"code": "anomalie_modele", "texte": f"Le modèle d'anomalies juge ce profil de flux inhabituel "
+                   f"(score {ml['score_anomalie']:.1f}). À examiner : cela ne prouve aucune manipulation."})
     provisoire = W < SEMAINES_MIN
 
     if plafond < PLAFOND_MIN:
@@ -213,6 +219,7 @@ def analyser(transactions: list[dict], parametres: dict | Parametres | None = No
         "recommandation": reco,
         "raisons": raisons,
         "alertes": al,
+        "modeles": ml,
         "serie_hebdo": [int(round(x)) for x in hebdo],
         "chaine_calcul": [
             f"Encaissement prudent (percentile {p.percentile:g}) : {_fcfa(c_p)} par semaine",
