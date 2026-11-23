@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Chronometre } from "@/components/chronometre";
 import { CourbeFlux } from "@/components/courbe-flux";
 import { Bouton, Chargement, Erreur, Pastille, Simule } from "@/components/ui";
 import { api, useApi } from "@/lib/api";
@@ -108,7 +109,7 @@ export default function Fiche() {
                 <Ligne l="Probabilité de défaut" v={pct(a.modeles.proba_defaut, 1)} />
                 <Ligne l="Score d'anomalie" v={a.modeles.score_anomalie.toLocaleString("fr-FR")} />
               </dl>
-              <p className="mt-1 text-[11px] text-encre-2">Informatif : le plafond reste fixé par la formule et la simulation.</p>
+              <p className="mt-1 text-[11px] text-encre-2">La probabilité de défaut est le risque calibré au montant proposé ; la formule reste le plafond.</p>
             </div>
           )}
         </section>
@@ -119,7 +120,7 @@ export default function Fiche() {
             <div>
               <h2 id="t-ana" className="text-xs font-medium uppercase tracking-wide text-encre-2">Montant proposé par le moteur</h2>
               <p className="montant text-4xl text-indigo">{fcfa(a.plafond)}</p>
-              <p className="text-encre-2">{a.duree_semaines} échéances de {fcfa(a.echeance_hebdo)} · risque simulé {pct(a.risque, 1)} (seuil {pct(a.parametres.seuil_risque)})</p>
+              <p className="text-encre-2">{a.duree_semaines} échéances de {fcfa(a.echeance_hebdo)} · risque d'impayé annoncé {pct(a.risque, 1)} (seuil {pct(a.parametres.seuil_risque)})</p>
             </div>
             <div className="text-right">
               <p className="text-xs uppercase tracking-wide text-encre-2">Recommandation</p>
@@ -206,6 +207,8 @@ export default function Fiche() {
               </div>
             )}
           </section>
+
+          <Chronometre dossier={String(id)} />
 
           <details className="text-encre-2">
             <summary className="cursor-pointer">Journal d'accès à ce dossier ({d.acces.length})</summary>
