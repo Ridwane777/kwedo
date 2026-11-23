@@ -40,7 +40,7 @@ export default function PageOffre() {
       <section className="space-y-5">
         <h1 className="titre text-3xl">{o.institution}</h1>
         <p className="text-lg">L'institution n'a pas accordé de crédit cette fois.</p>
-        {o.decision && <p className="border-l-2 border-terre pl-3 italic">« {o.decision.motif} »</p>}
+        {o.decision && <p className="border-l-2 border-alerte pl-3 italic">« {o.decision.motif} »</p>}
         <h2 className="titre text-xl">Ce qui améliorerait votre situation</h2>
         <ul className="list-disc space-y-2 pl-5">{o.conseils.map((c) => <li key={c}>{c}</li>)}</ul>
       </section>
@@ -51,7 +51,7 @@ export default function PageOffre() {
       <section className="space-y-4">
         <h1 className="titre text-3xl">{o.institution}</h1>
         <p className="text-lg">État : {STATUTS[o.statut]}.</p>
-        {o.decision?.type === "complement" && <p className="border-l-2 border-safran pl-3">« {o.decision.motif} »</p>}
+        {o.decision?.type === "complement" && <p className="border-l-2 border-ambre pl-3">« {o.decision.motif} »</p>}
         {o.credit && <Bouton grand className="w-full" onClick={() => router.push("/app/credit")}>Voir mon crédit</Bouton>}
       </section>
     );
@@ -63,7 +63,7 @@ export default function PageOffre() {
     <section className="space-y-6">
       <div className="space-y-1">
         <p className="text-encre-2">{o.institution} vous propose</p>
-        <p className="montant text-5xl text-indigo">{fcfa(o.montant_offre)}</p>
+        <p className="montant text-5xl text-marque">{fcfa(o.montant_offre)}</p>
         <Simule quoi="Offre fictive" />
       </div>
       <dl className="divide-y divide-trait border-y border-trait text-[16px]">
@@ -80,15 +80,15 @@ export default function PageOffre() {
         <span className="text-encre-2">Je préfère emprunter moins (facultatif)</span>
         <input inputMode="numeric" value={contre === null ? "" : nombre(contre)} placeholder={nombre(o.montant_offre!)}
           onChange={(e) => { const v = Number(e.target.value.replace(/\D/g, "")); setContre(v ? Math.min(v, o.montant_offre!) : null); }}
-          className="montant mt-1 block min-h-14 w-full rounded-xl border border-trait bg-papier-2 px-4 text-2xl" />
+          className="montant mt-1 block min-h-14 w-full rounded-xl border border-trait bg-surface-2 px-4 text-2xl" />
       </label>
-      {err && <p role="alert" className="text-terre">{err}</p>}
+      {err && <p role="alert" className="text-alerte">{err}</p>}
       <Bouton grand className="w-full" disabled={!!envoi} onClick={() => repondre("accepte")}>
         {envoi === "accepte" ? "Acceptation…" : `Accepter ${fcfa(montant)}`}
       </Bouton>
       <Bouton variante="discret" className="w-full" disabled={!!envoi} onClick={() => repondre("refuse")}>Décliner l'offre</Bouton>
       <details>
-        <summary className="cursor-pointer text-indigo">Pourquoi ce montant</summary>
+        <summary className="cursor-pointer text-marque">Pourquoi ce montant</summary>
         <div className="mt-2"><Raisons raisons={o.raisons} /></div>
       </details>
     </section>

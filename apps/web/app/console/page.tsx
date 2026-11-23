@@ -33,48 +33,71 @@ export default function File() {
   useRaccourcis(raccourcis);
 
   return (
-    <section className="space-y-4">
+    <section className="space-y-5">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="titre text-2xl">File de dossiers</h1>
-          <p className="text-encre-2">{lignes.length} dossier(s) · tri {tri === "priorite" ? "par priorité (alertes d'abord)" : "par ancienneté"}</p>
+          <h1 className="titre text-[1.75rem] leading-tight">File de dossiers</h1>
+          <p className="text-encre-2">{lignes.length} dossier{lignes.length > 1 ? "s" : ""}, {tri === "priorite" ? "alertes d'abord" : "les plus anciens d'abord"}</p>
         </div>
-        <div className="flex gap-2" role="group" aria-label="Filtres">
-          <button onClick={() => setFiltre(filtre === "tous" ? "a_traiter" : "tous")} className="rounded-lg border border-trait px-3 py-1.5 hover:bg-papier-2">
-            {filtre === "tous" ? "Tous les dossiers" : "À traiter"} <kbd className="ml-1 text-[11px] text-encre-2">f</kbd>
-          </button>
-          <button onClick={() => setTri(tri === "priorite" ? "anciennete" : "priorite")} className="rounded-lg border border-trait px-3 py-1.5 hover:bg-papier-2">
-            Trier <kbd className="ml-1 text-[11px] text-encre-2">t</kbd>
+        <div className="flex flex-wrap gap-2" role="group" aria-label="Filtres">
+          <div className="inline-flex rounded-xl border border-trait bg-surface p-1">
+            {(["a_traiter", "tous"] as const).map((f) => (
+              <button key={f} onClick={() => setFiltre(f)} aria-pressed={filtre === f}
+                className={`min-h-9 rounded-lg px-3 font-medium ${filtre === f ? "bg-encre text-fond" : "text-encre-2 hover:text-encre"}`}>
+                {f === "tous" ? "Tous" : "À traiter"}
+              </button>
+            ))}
+            <kbd className="hidden self-center px-2 text-[11px] text-encre-2 md:inline" title="Raccourci clavier">f</kbd>
+          </div>
+          <button onClick={() => setTri(tri === "priorite" ? "anciennete" : "priorite")} className="min-h-11 rounded-xl border border-trait bg-surface px-3 font-medium hover:border-encre-3">
+            Trier : {tri === "priorite" ? "priorité" : "ancienneté"} <kbd className="ml-1 hidden text-[11px] font-normal text-encre-2 md:inline">t</kbd>
           </button>
         </div>
       </header>
+
+      {donnees && (
+        <dl className="grid grid-cols-3 gap-2 sm:max-w-xl">
+          {[
+            ["À décider", donnees.filter((d) => ["recu", "en_analyse", "complement"].includes(d.statut)).length, ""],
+            ["Avec alertes", donnees.filter((d) => d.alertes.length && ["recu", "en_analyse", "complement"].includes(d.statut)).length, "ambre"],
+            ["Accord retiré", donnees.filter((d) => !d.consentement_actif).length, "alerte"],
+          ].map(([l, n, ton]) => (
+            <div key={l as string} className="rounded-2xl border border-trait bg-surface p-3">
+              <dt className="flex items-center gap-1.5 text-xs text-encre-2">
+                {ton && <span aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${ton === "ambre" ? "bg-ambre" : "bg-alerte"}`} />}{l}
+              </dt>
+              <dd className="montant text-2xl">{n}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
 
       {erreur ? <Erreur message={erreur} reessayer={recharger} /> : charge && !donnees ? <Chargement lignes={6} /> : !lignes.length ? (
         <Vide titre="Aucun dossier à traiter">Les nouveaux dossiers arrivent ici dès qu'un commerçant donne son accord à votre institution.</Vide>
       ) : (
         <>
         {/* Téléphone : une carte par dossier, l'essentiel visible sans défilement horizontal. */}
-        <ul className="divide-y divide-trait border-y border-trait md:hidden">
+        <ul className="divide-y divide-trait overflow-hidden rounded-2xl border border-trait bg-surface md:hidden">
           {lignes.map((d) => (
-            <li key={d.id}>
-              <a href={`/console/dossiers/${d.id}`} className="block space-y-1 py-3">
+            <li key={d.id} className={d.alertes.length ? "border-l-4 border-l-ambre" : ""}>
+              <a href={`/console/dossiers/${d.id}`} className="block min-h-12 space-y-1.5 px-4 py-3">
                 <span className="flex items-baseline justify-between gap-3">
-                  <span className="font-medium">{d.nom}</span>
-                  <span className="chiffres">{fcfa(d.plafond)}</span>
+                  <span className="font-semibold">{d.nom}</span>
+                  <span className="chiffres font-semibold">{fcfa(d.plafond)}</span>
                 </span>
                 <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-encre-2">
                   <Pastille ton={TON_STATUT[d.statut]}>{STATUTS[d.statut]}</Pastille>
                   <span>{RECO[d.recommandation]} · risque {pct(d.risque, 1)}</span>
                   {d.alertes.length > 0 && <span className="font-medium text-encre">◆ {d.alertes.length} alerte{d.alertes.length > 1 ? "s" : ""}</span>}
-                  {!d.consentement_actif && <span className="text-terre">accord retiré</span>}
+                  {!d.consentement_actif && <span className="text-alerte">accord retiré</span>}
                 </span>
               </a>
             </li>
           ))}
         </ul>
-        <div className="hidden overflow-x-auto md:block">
-        <table className="w-full min-w-[900px] border-collapse text-left [&_th]:whitespace-nowrap">
-          <thead className="border-b-2 border-encre text-xs uppercase tracking-wide text-encre-2">
+        <div className="hidden overflow-x-auto rounded-2xl border border-trait bg-surface md:block">
+        <table className="w-full min-w-[900px] border-collapse text-left [&_th]:whitespace-nowrap [&_th]:py-2.5 [&_td]:px-3 [&_td]:py-2.5">
+          <thead className="border-b border-trait bg-surface-2/60 text-xs font-semibold text-encre-2 [&_th]:px-3 [&_th]:font-semibold">
             <tr>
               <th className="py-2 pr-3 font-medium">Commerçant</th>
               <th className="py-2 pr-3 font-medium">Activité</th>
@@ -89,10 +112,10 @@ export default function File() {
           <tbody>
             {lignes.map((d, k) => (
               <tr key={d.id} onClick={() => router.push(`/console/dossiers/${d.id}`)} aria-selected={k === sel}
-                className={`cursor-pointer border-b border-trait ${k === sel ? "bg-indigo-doux" : "hover:bg-papier-2"}`}>
+                className={`cursor-pointer border-b border-trait last:border-b-0 ${k === sel ? "bg-marque-doux shadow-[inset_3px_0_0_var(--marque)]" : "hover:bg-surface-2"}`}>
                 <td className="py-2 pr-3">
-                  <a href={`/console/dossiers/${d.id}`} className="font-medium" onClick={(e) => e.stopPropagation()}>{d.nom}</a>
-                  {!d.consentement_actif && <span className="ml-2 text-xs text-terre">accord retiré</span>}
+                  <a href={`/console/dossiers/${d.id}`} className="font-semibold hover:underline" onClick={(e) => e.stopPropagation()}>{d.nom}</a>
+                  {!d.consentement_actif && <span className="ml-2 text-xs text-alerte">accord retiré</span>}
                 </td>
                 <td className="py-2 pr-3 text-encre-2">{ACTIVITES[d.type_activite] ?? d.type_activite} · {d.semaines} sem.</td>
                 <td className="chiffres py-2 pr-3 text-right">{fcfa(d.plafond)}</td>
@@ -101,7 +124,7 @@ export default function File() {
                 <td className="py-2 pr-3">
                   {d.alertes.length ? (
                     <span className="inline-flex items-center gap-1 font-medium text-encre">
-                      <svg aria-hidden="true" width="10" height="10" viewBox="0 0 10 10"><path d="M5 0l5 5-5 5-5-5z" fill="var(--safran)" /></svg>
+                      <svg aria-hidden="true" width="10" height="10" viewBox="0 0 10 10"><path d="M5 0l5 5-5 5-5-5z" fill="var(--ambre)" /></svg>
                       {d.alertes.length} alerte{d.alertes.length > 1 ? "s" : ""}
                     </span>
                   ) : <span className="text-encre-2">—</span>}

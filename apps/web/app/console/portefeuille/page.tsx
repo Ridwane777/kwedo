@@ -15,7 +15,7 @@ type Portefeuille = {
 function Indicateur({ l, v, ton }: { l: string; v: string; ton?: string }) {
   return (
     <div className="border-l-2 border-trait pl-3">
-      <dt className="text-xs uppercase tracking-wide text-encre-2">{l}</dt>
+      <dt className="text-xs font-semibold text-encre-2">{l}</dt>
       <dd className={`montant text-2xl ${ton ?? ""}`}>{v}</dd>
     </div>
   );
@@ -26,17 +26,17 @@ function Reprogrammer({ e, onFait }: { e: Portefeuille["retards"][number]; onFai
   const [nd, setNd] = useState("");
   const [motif, setMotif] = useState("");
   const [err, setErr] = useState<string | null>(null);
-  if (!ouvert) return <button className="text-indigo hover:underline" onClick={() => setOuvert(true)}>Reprogrammer</button>;
+  if (!ouvert) return <button className="text-marque hover:underline" onClick={() => setOuvert(true)}>Reprogrammer</button>;
   return (
     <form className="flex flex-wrap items-center gap-2" onSubmit={async (ev) => {
       ev.preventDefault(); setErr(null);
       try { await api(`/echeances/${e.id}/interventions`, { body: { nouvelle_date: nd, motif } }); setOuvert(false); await onFait(); }
       catch (x) { setErr(x instanceof Error ? x.message : "Erreur"); }
     }}>
-      <input type="date" required value={nd} onChange={(x) => setNd(x.target.value)} className="rounded border border-trait bg-papier px-1.5 py-1" aria-label="Nouvelle date" />
-      <input required minLength={10} value={motif} onChange={(x) => setMotif(x.target.value)} placeholder="Motif (tracé)" className="w-56 rounded border border-trait bg-papier px-1.5 py-1" aria-label="Motif" />
+      <input type="date" required value={nd} onChange={(x) => setNd(x.target.value)} className="rounded border border-trait bg-fond px-1.5 py-1" aria-label="Nouvelle date" />
+      <input required minLength={10} value={motif} onChange={(x) => setMotif(x.target.value)} placeholder="Motif (tracé)" className="w-56 rounded border border-trait bg-fond px-1.5 py-1" aria-label="Motif" />
       <Bouton type="submit">Enregistrer</Bouton>
-      {err && <span role="alert" className="text-terre">{err}</span>}
+      {err && <span role="alert" className="text-alerte">{err}</span>}
     </form>
   );
 }
@@ -57,7 +57,7 @@ export default function PagePortefeuille() {
       </header>
       <dl className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <Indicateur l="Encours" v={fcfa(p.encours)} />
-        <Indicateur l="Part en retard" v={pct(p.part_en_retard, 1)} ton={p.part_en_retard > 0 ? "text-terre" : ""} />
+        <Indicateur l="Part en retard" v={pct(p.part_en_retard, 1)} ton={p.part_en_retard > 0 ? "text-alerte" : ""} />
         <Indicateur l="PAR 30 jours" v={pct(p.par30, 1)} />
         <Indicateur l="Taux de recouvrement" v={p.taux_recouvrement === null ? "—" : pct(p.taux_recouvrement, 1)} />
       </dl>
@@ -65,7 +65,7 @@ export default function PagePortefeuille() {
       {!p.credits.length ? <Vide titre="Aucun crédit décaissé">Les crédits apparaissent ici dès qu'un commerçant accepte une offre.</Vide> : (
         <div className="overflow-x-auto">
         <table className="w-full min-w-[760px] text-left [&_th]:whitespace-nowrap [&_th]:pr-3 [&_td]:pr-3">
-          <thead className="border-b-2 border-encre text-xs uppercase tracking-wide text-encre-2">
+          <thead className="border-b border-trait bg-surface-2/60 text-xs font-semibold text-encre-2 [&_th]:px-3 [&_th]:font-semibold">
             <tr><th className="py-2">Commerçant</th><th className="text-right">Montant</th><th className="text-right">Restant dû</th><th className="text-right">Payées</th><th className="text-right">Partielles</th><th className="text-right">En retard</th><th className="text-right">Jours de retard</th><th className="text-right">Relances</th></tr>
           </thead>
           <tbody>
@@ -76,7 +76,7 @@ export default function PagePortefeuille() {
                 <td className="chiffres text-right">{fcfa(c.restant)}</td>
                 <td className="chiffres text-right">{c.payees}/{c.echeances}</td>
                 <td className="chiffres text-right">{c.partielles}</td>
-                <td className={`chiffres text-right ${c.en_retard ? "font-medium text-terre" : ""}`}>{c.en_retard}</td>
+                <td className={`chiffres text-right ${c.en_retard ? "font-medium text-alerte" : ""}`}>{c.en_retard}</td>
                 <td className="chiffres text-right">{c.jours_retard}</td>
                 <td className="chiffres text-right">{c.relances}</td>
               </tr>
@@ -106,7 +106,7 @@ export default function PagePortefeuille() {
           {!p.relances.length ? <p className="text-encre-2">Aucune relance pour l'instant.</p> : (
             <ul className="space-y-2">
               {p.relances.map((r) => (
-                <li key={r.id} className="border-l-2 border-indigo pl-3">
+                <li key={r.id} className="border-l-2 border-marque pl-3">
                   <p className="text-xs text-encre-2">{date(r.horodatage, true)} · {r.nom} · échéance {r.rang} · {r.canal}</p>
                   <p>{r.message}</p>
                 </li>

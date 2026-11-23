@@ -1,35 +1,26 @@
 /**
- * Lisière : motif géométrique original (losanges à gradins et peignes), inspiré des bordures tissées
- * d'Afrique de l'Ouest sans reprendre un motif existant. Utilisé en fine bande, jamais en fond plein.
+ * Filet : fine règle de séparation. L'ancien motif tissé « Lisière » est retiré (ADR 0010) ;
+ * le composant garde son nom pour ne pas toucher aux écrans qui l'importent.
  */
-export function Lisiere({ className = "", hauteur = 14 }: { className?: string; hauteur?: number }) {
-  const id = "lisiere";
-  return (
-    <svg aria-hidden="true" className={className} width="100%" height={hauteur} preserveAspectRatio="none">
-      <defs>
-        <pattern id={id} width="28" height="14" patternUnits="userSpaceOnUse">
-          <path d="M0 13h28" stroke="var(--indigo)" strokeWidth="1" opacity=".55" />
-          <path d="M7 2l5 5-5 5-5-5z" fill="none" stroke="var(--indigo)" strokeWidth="1.2" />
-          <path d="M7 5l2 2-2 2-2-2z" fill="var(--terre)" />
-          <path d="M17 12V8h2V5h2v3h2v4" fill="none" stroke="var(--indigo)" strokeWidth="1" opacity=".8" />
-          <circle cx="21" cy="2.5" r="1" fill="var(--safran)" />
-        </pattern>
-      </defs>
-      <rect width="100%" height={hauteur} fill={`url(#${id})`} />
-    </svg>
-  );
+export function Lisiere({ className = "" }: { className?: string; hauteur?: number }) {
+  return <div aria-hidden="true" className={`h-px w-full bg-trait ${className}`} />;
 }
 
-/** Marque Kwedo : un losange tissé + le mot, dessinés pour le projet. */
-export function Marque({ taille = 28, avecMot = true }: { taille?: number; avecMot?: boolean }) {
+/**
+ * Marque Kwedo : un « K » fait d'une barre et de deux traits de flux, dessiné pour le projet.
+ * Elle ne reprend aucun logo existant.
+ */
+export function Marque({ taille = 28, avecMot = true, inverse = false }: { taille?: number; avecMot?: boolean; inverse?: boolean }) {
+  const [plein, creux] = inverse ? ["var(--fond)", "var(--marque)"] : ["var(--marque)", "var(--fond)"];
   return (
-    <span className="inline-flex items-center gap-2" aria-label="Kwedo">
+    <span className={`inline-flex items-center gap-2 ${inverse ? "text-fond" : "text-encre"}`} aria-label="Kwedo">
       <svg aria-hidden="true" width={taille} height={taille} viewBox="0 0 32 32">
-        <path d="M16 2l14 14-14 14L2 16z" fill="var(--indigo)" />
-        <path d="M16 8l8 8-8 8-8-8z" fill="none" stroke="var(--papier)" strokeWidth="2" />
-        <path d="M6 20c4-1 6-6 10-6s6 3 10 2" fill="none" stroke="var(--safran)" strokeWidth="2.2" strokeLinecap="round" />
+        <rect width="32" height="32" rx="9" fill={plein} />
+        <rect x="8" y="7" width="4.5" height="18" rx="1.5" fill={creux} />
+        <path d="M15.5 17l7-9" stroke={creux} strokeWidth="4.5" strokeLinecap="round" />
+        <path d="M17 17.5l6 7" stroke={creux} strokeWidth="4.5" strokeLinecap="round" opacity=".7" />
       </svg>
-      {avecMot && <span className="titre text-xl font-semibold tracking-tight">Kwedo</span>}
+      {avecMot && <span className="titre text-[1.35rem] leading-none">Kwedo</span>}
     </span>
   );
 }

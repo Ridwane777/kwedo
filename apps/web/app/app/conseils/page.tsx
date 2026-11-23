@@ -24,7 +24,7 @@ export default function Conseils() {
       <ol className="space-y-4">
         {a.conseils.map((c, k) => (
           <li key={c} className="flex gap-3">
-            <span className="titre flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-safran-doux text-safran-encre">{k + 1}</span>
+            <span className="titre flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-ambre-doux text-ambre-encre">{k + 1}</span>
             <p className="pt-1 text-[16px] leading-snug">{c}</p>
           </li>
         ))}
@@ -35,7 +35,7 @@ export default function Conseils() {
         <p className="text-sm text-encre-2">Seul le chiffre d'affaires vérifié compte : paiements de clients sur votre compte marchand, hors transferts vers vous-même et hors allers-retours.</p>
         <ol className="flex gap-2" aria-label="Paliers d'historique vérifié">
           {PALIERS.map((p) => (
-            <li key={p} className={`flex-1 rounded-xl border p-3 text-center ${W >= p ? "border-feuille bg-feuille-doux" : "border-trait"}`}>
+            <li key={p} className={`flex-1 rounded-xl border p-3 text-center ${W >= p ? "border-bon bg-bon-doux" : "border-trait"}`}>
               <p className="montant text-2xl">{{ 13: "3", 26: "6", 52: "12" }[p]} mois</p>
               <p className="text-xs text-encre-2">{W >= p ? "atteint" : `encore ${p - W} sem.`}</p>
             </li>

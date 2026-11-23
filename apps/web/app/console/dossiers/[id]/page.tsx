@@ -78,7 +78,7 @@ export default function Fiche() {
     <article className="space-y-4">
       <header className="flex flex-wrap items-start justify-between gap-3 border-b border-trait pb-3">
         <div>
-          <Link href="/console" className="text-xs text-indigo hover:underline">← File <kbd className="text-encre-2">Échap</kbd></Link>
+          <Link href="/console" className="text-xs text-marque hover:underline">← File <kbd className="text-encre-2">Échap</kbd></Link>
           <h1 className="titre text-2xl">{d.commercant.nom}</h1>
           <p className="text-encre-2">
             {ACTIVITES[d.commercant.type_activite]} · compte marchand {d.commercant.compte_separe ? "séparé" : "non séparé"} depuis le {date(d.commercant.compte_marchand_ouvert_le)}
@@ -94,7 +94,7 @@ export default function Fiche() {
       <div className="grid gap-5 xl:grid-cols-[260px_minmax(0,1fr)_340px]">
         {/* Indicateurs */}
         <section aria-labelledby="t-ind">
-          <h2 id="t-ind" className="mb-1 text-xs font-medium uppercase tracking-wide text-encre-2">Indicateurs de flux</h2>
+          <h2 id="t-ind" className="mb-1 text-sm font-semibold text-encre">Indicateurs de flux</h2>
           <dl>
             <Ligne l={`Encaissement prudent (p${a.parametres.percentile})`} v={fcfa(a.encaissement_prudent)} />
             <Ligne l="Encaissement médian" v={fcfa(ind.encaissement_median)} />
@@ -111,7 +111,7 @@ export default function Fiche() {
           </dl>
           {a.modeles && (
             <div className="mt-4">
-              <h2 className="mb-1 flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-encre-2">Modèles <Simule quoi="entraînés sur données simulées" /></h2>
+              <h2 className="mb-1 flex items-center gap-2 text-sm font-semibold text-encre">Modèles <Simule quoi="entraînés sur données simulées" /></h2>
               <dl>
                 <Ligne l={`Prévision (${a.modeles.horizon_semaines} sem.)`} v={`${fcfa(a.modeles.prevision_hebdo)}/sem.`} />
                 <Ligne l="Probabilité de défaut" v={pct(a.modeles.proba_defaut, 1)} />
@@ -126,25 +126,25 @@ export default function Fiche() {
         <section aria-labelledby="t-ana" className="min-w-0 space-y-4">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
-              <h2 id="t-ana" className="text-xs font-medium uppercase tracking-wide text-encre-2">Montant proposé par le moteur</h2>
-              <p className="montant text-4xl text-indigo">{fcfa(a.plafond)}</p>
+              <h2 id="t-ana" className="text-sm font-semibold text-encre">Montant proposé par le moteur</h2>
+              <p className="montant text-4xl text-marque">{fcfa(a.plafond)}</p>
               <p className="text-encre-2">{a.duree_semaines} échéances de {fcfa(a.echeance_hebdo)} · risque d'impayé annoncé {pct(a.risque, 1)} (seuil {pct(a.parametres.seuil_risque)})</p>
             </div>
             <div className="text-right">
-              <p className="text-xs uppercase tracking-wide text-encre-2">Recommandation</p>
+              <p className="text-xs font-semibold text-encre-2">Recommandation</p>
               <p className="titre text-xl">{RECO[a.recommandation]}{a.provisoire ? " · provisoire" : ""}</p>
             </div>
           </div>
           <CourbeFlux serie={a.serie_hebdo} prudent={a.encaissement_prudent} median={ind.encaissement_median} debut={ind.debut} dense hauteur={190} />
           <div>
-            <h3 className="mb-1 text-xs font-medium uppercase tracking-wide text-encre-2">Raisons</h3>
+            <h3 className="mb-1 text-sm font-semibold text-encre">Raisons</h3>
             <ol className="space-y-1.5">
               {a.raisons.map((r) => (
                 <li key={r.code} className="flex justify-between gap-4 border-b border-trait pb-1.5">
                   <span>
                     {pourAgent(r.texte)}
                     {r.code === "tendance" && r.effet < 0 && !!a.alertes?.length && (
-                      <span className="mt-0.5 block text-safran-encre">Cette hausse coïncide avec une alerte : à vérifier avant de la retenir.</span>
+                      <span className="mt-0.5 block text-ambre-encre">Cette hausse coïncide avec une alerte : à vérifier avant de la retenir.</span>
                     )}
                   </span>
                   <span className="chiffres shrink-0 text-encre-2">{r.effet ? `${r.effet > 0 ? "−" : "+"}${fcfa(Math.abs(r.effet))}` : ""}</span>
@@ -153,7 +153,7 @@ export default function Fiche() {
             </ol>
           </div>
           <div>
-            <h3 className="mb-1 text-xs font-medium uppercase tracking-wide text-encre-2">Chaîne de calcul</h3>
+            <h3 className="mb-1 text-sm font-semibold text-encre">Chaîne de calcul</h3>
             <ol className="list-decimal space-y-0.5 pl-5 text-encre-2">{a.chaine_calcul.map((l) => <li key={l}>{decimales(l).replace(/annoncé [\d,]+\s?%/, `annoncé ${pct(a.risque, 1)}`)}</li>)}</ol>
             <p className="mt-1 text-[11px] text-encre-2">Moteur {d.version_moteur} · graine {d.graine} · {decimales(`m=${a.parametres.m} s=${a.parametres.s} n=${a.parametres.n} i=${a.parametres.i}`)} · {nombre(a.parametres.trajectoires)} trajectoires</p>
           </div>
@@ -162,26 +162,26 @@ export default function Fiche() {
         {/* Contrôles et décision */}
         <aside className="space-y-4">
           <section aria-labelledby="t-al">
-            <h2 id="t-al" className="mb-1 text-xs font-medium uppercase tracking-wide text-encre-2">Contrôles de cohérence</h2>
+            <h2 id="t-al" className="mb-1 text-sm font-semibold text-encre">Contrôles de cohérence</h2>
             {a.alertes?.length ? (
               <ul className="space-y-2">
                 {a.alertes.map((al) => (
-                  <li key={al.code} className="rounded-lg border-l-4 border-safran bg-safran-doux px-3 py-2 text-safran-encre">{decimales(al.texte)}</li>
+                  <li key={al.code} className="rounded-lg border-l-4 border-ambre bg-ambre-doux px-3 py-2 text-ambre-encre">{decimales(al.texte)}</li>
                 ))}
                 <li className="text-[11px] text-encre-2">Une alerte demande un examen, elle ne prouve rien. Le commerçant n'en est pas informé automatiquement.</li>
               </ul>
-            ) : <p className="text-feuille">Aucune alerte : pas d'aller-retour, de pic ni de concentration anormale.</p>}
+            ) : <p className="text-bon">Aucune alerte : pas d'aller-retour, de pic ni de concentration anormale.</p>}
           </section>
 
-          <section aria-labelledby="t-dec" className="rounded-xl border border-trait bg-papier-2 p-4">
+          <section aria-labelledby="t-dec" className="rounded-xl border border-trait bg-surface-2 p-4">
             <h2 id="t-dec" className="titre mb-2 text-lg">Décision</h2>
             {ouvert ? (
               <form onSubmit={(e) => { e.preventDefault(); void decider(); }} className="space-y-3">
                 <fieldset className="grid grid-cols-2 gap-2">
                   <legend className="sr-only">Type de décision</legend>
                   {(Object.keys(LIBELLES) as TypeDecision[]).map((t) => (
-                    <label key={t} className={`flex cursor-pointer items-center justify-between rounded-lg border px-2.5 py-2 ${type === t ? "border-indigo bg-indigo-doux text-indigo" : "border-trait bg-papier"}`}>
-                      <span className="flex items-center gap-2"><input type="radio" name="type" checked={type === t} onChange={() => choisir(t)} className="accent-[var(--indigo)]" />{LIBELLES[t]}</span>
+                    <label key={t} className={`flex cursor-pointer items-center justify-between rounded-lg border px-2.5 py-2 ${type === t ? "border-marque bg-marque-doux text-marque" : "border-trait bg-fond"}`}>
+                      <span className="flex items-center gap-2"><input type="radio" name="type" checked={type === t} onChange={() => choisir(t)} className="accent-[var(--marque)]" />{LIBELLES[t]}</span>
                       <kbd className="text-[11px] text-encre-2">{t[0]}</kbd>
                     </label>
                   ))}
@@ -190,18 +190,18 @@ export default function Fiche() {
                   <label className="block">
                     Montant décidé (FCFA)
                     <input inputMode="numeric" value={nombre(montant)} onChange={(e) => setMontant(Number(e.target.value.replace(/\D/g, "")) || 0)}
-                      className="chiffres mt-1 block w-full rounded-lg border border-trait bg-papier px-2 py-1.5" aria-invalid={!montantValide} />
-                    <span className={`text-[11px] ${montantValide ? "text-encre-2" : "text-terre"}`}>Plafond de la formule : {fcfa(plafondFormule)}. Il ne peut pas être dépassé.</span>
+                      className="chiffres mt-1 block w-full rounded-lg border border-trait bg-fond px-2 py-1.5" aria-invalid={!montantValide} />
+                    <span className={`text-[11px] ${montantValide ? "text-encre-2" : "text-alerte"}`}>Plafond de la formule : {fcfa(plafondFormule)}. Il ne peut pas être dépassé.</span>
                   </label>
                 )}
                 <label className="block">
-                  Justificatif {type === "refuse" ? "(motif du refus)" : ""} <span className="text-terre">*</span>
+                  Justificatif {type === "refuse" ? "(motif du refus)" : ""} <span className="text-alerte">*</span>
                   <textarea ref={motifRef} value={motif} onChange={(e) => setMotif(e.target.value)} rows={3} required minLength={10}
                     placeholder="Ex. : saison creuse en janvier, prudence sur le montant."
-                    className="mt-1 block w-full rounded-lg border border-trait bg-papier px-2 py-1.5" />
+                    className="mt-1 block w-full rounded-lg border border-trait bg-fond px-2 py-1.5" />
                   <span className="text-[11px] text-encre-2">Obligatoire, 10 caractères au moins. Enregistré au journal, non modifiable.</span>
                 </label>
-                {envoi.etat === "erreur" && <p role="alert" className="text-terre">{envoi.message}</p>}
+                {envoi.etat === "erreur" && <p role="alert" className="text-alerte">{envoi.message}</p>}
                 <Bouton type="submit" className="w-full" disabled={!type || !motifValide || !montantValide || envoi.etat === "envoi"}>
                   {envoi.etat === "envoi" ? "Enregistrement…" : "Enregistrer la décision"}
                 </Bouton>
@@ -216,7 +216,7 @@ export default function Fiche() {
                     <p className="text-[11px] text-encre-2">{x.auteur} · {date(x.horodatage, true)} · moteur {x.version_moteur} · graine {x.graine}</p>
                   </div>
                 ))}
-                {duree !== null && <p className="pt-2 font-medium text-feuille">Dossier traité en {Math.floor(duree / 60)} min {Math.round(duree % 60)} s (chronomètre de cette session).</p>}
+                {duree !== null && <p className="pt-2 font-medium text-bon">Dossier traité en {Math.floor(duree / 60)} min {Math.round(duree % 60)} s (chronomètre de cette session).</p>}
               </div>
             )}
           </section>

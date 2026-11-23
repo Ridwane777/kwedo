@@ -45,19 +45,19 @@ export default function Parametres() {
         <h1 className="titre text-2xl">Paramètres du moteur</h1>
         <p className="text-encre-2">Formule : R = C<sub>p</sub> × m × s · L<sub>max</sub> = R × (1 − (1 + i)<sup>−n</sup>) / i. Chaque modification crée une version, jamais une réécriture.</p>
       </header>
-      <p className="rounded-lg bg-papier-2 px-3 py-2">Réglages de <strong>{moi.institution}</strong>, visibles par cette seule institution.{!modifiable && ` Votre rôle (${ROLES[moi.role]}) permet de les lire ; seul le responsable crédit peut les modifier.`}</p>
+      <p className="rounded-lg bg-surface-2 px-3 py-2">Réglages de <strong>{moi.institution}</strong>, visibles par cette seule institution.{!modifiable && ` Votre rôle (${ROLES[moi.role]}) permet de les lire ; seul le responsable crédit peut les modifier.`}</p>
       <form onSubmit={enregistrer} className="grid max-w-3xl gap-x-6 gap-y-3 md:grid-cols-2">
         {CHAMPS.map((c) => (
           <label key={c.k} className="block">
             <span className="font-medium">{c.l}</span>
             <input type="number" disabled={!modifiable} min={c.min} max={c.max} step={c.pas} value={f[c.k] as number}
               onChange={(e) => setF({ ...f, [c.k]: Number(e.target.value) })}
-              className="chiffres mt-1 block w-full rounded-lg border border-trait bg-papier px-2 py-1.5 disabled:bg-papier-2" />
+              className="chiffres mt-1 block w-full rounded-lg border border-trait bg-fond px-2 py-1.5 disabled:bg-surface-2" />
             <span className="text-[11px] text-encre-2">{c.aide}</span>
           </label>
         ))}
         <div className="md:col-span-2">
-          {msg && <p role={msg.ok ? "status" : "alert"} className={msg.ok ? "text-feuille" : "text-terre"}>{msg.t}</p>}
+          {msg && <p role={msg.ok ? "status" : "alert"} className={msg.ok ? "text-bon" : "text-alerte"}>{msg.t}</p>}
           {modifiable && <Bouton type="submit" className="mt-2">Enregistrer une nouvelle version</Bouton>}
         </div>
       </form>
@@ -65,7 +65,7 @@ export default function Parametres() {
         <h2 className="titre mb-1 text-lg">Historique</h2>
         <div className="overflow-x-auto">
         <table className="w-full min-w-[640px] max-w-4xl text-left [&_td]:pr-3 [&_th]:whitespace-nowrap [&_th]:pr-3">
-          <thead className="border-b-2 border-encre text-xs uppercase tracking-wide text-encre-2">
+          <thead className="border-b border-trait bg-surface-2/60 text-xs font-semibold text-encre-2 [&_th]:px-3 [&_th]:font-semibold">
             <tr><th className="py-1.5">Version</th><th>m</th><th>s</th><th>n</th><th>i</th><th>Percentile</th><th>Seuil</th><th>Auteur</th><th>Date</th></tr>
           </thead>
           <tbody className="chiffres">

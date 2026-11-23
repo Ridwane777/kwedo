@@ -9,7 +9,7 @@ export function ChoixInstitution({ institutions, valeur, onChange }: { instituti
     <label className="block text-sm text-encre-2">
       Selon les règles de
       <select value={valeur} onChange={(e) => onChange(e.target.value)}
-        className="mt-1 block min-h-12 w-full rounded-xl border border-trait bg-papier-2 px-3 text-base text-encre">
+        className="mt-1 block min-h-12 w-full rounded-xl border border-trait bg-surface-2 px-3 text-base text-encre">
         {institutions.map((i) => <option key={i.id} value={i.id}>{i.nom}</option>)}
       </select>
     </label>
@@ -21,7 +21,7 @@ export function Raisons({ raisons }: { raisons: Analyse["raisons"] }) {
     <ol className="divide-y divide-trait border-y border-trait">
       {raisons.map((r, k) => (
         <li key={r.code} className="flex gap-3 py-3.5">
-          <span className="titre mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-doux text-sm text-indigo">{k + 1}</span>
+          <span className="titre mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-marque-doux text-sm text-marque">{k + 1}</span>
           <div className="text-[15px] leading-snug">
             <p>{r.texte}</p>
             {r.effet !== 0 && (
@@ -40,11 +40,11 @@ export function ChaineCalcul({ a }: { a: Estimation }) {
   const [ouvert, setOuvert] = useState(false);
   return (
     <div className="text-sm">
-      <button onClick={() => setOuvert(!ouvert)} aria-expanded={ouvert} className="min-h-11 font-medium text-indigo underline-offset-4 hover:underline">
+      <button onClick={() => setOuvert(!ouvert)} aria-expanded={ouvert} className="min-h-11 font-medium text-marque underline-offset-4 hover:underline">
         {ouvert ? "Masquer le calcul" : "Voir le calcul complet"}
       </button>
       {ouvert && (
-        <ol className="apparait mt-2 space-y-1.5 border-l-2 border-safran pl-3 text-encre-2">
+        <ol className="apparait mt-2 space-y-1.5 border-l-2 border-ambre pl-3 text-encre-2">
           {a.chaine_calcul.map((l) => <li key={l}>{l}</li>)}
           <li className="text-xs">Moteur {a.version_moteur} · durée {a.duree_semaines} semaines · taux {pct(a.parametres.i, 2)} par semaine</li>
         </ol>

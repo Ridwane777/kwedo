@@ -29,8 +29,17 @@ async function verifier(page: Page, url: string, nom: string, largeur: number) {
 }
 
 for (const largeur of LARGEURS) {
-  test(`connexion @${largeur}`, async ({ page }) => {
+  test(`accueil et connexion @${largeur}`, async ({ page }) => {
+    await verifier(page, "/", "accueil", largeur);
     await verifier(page, "/connexion", "connexion", largeur);
+  });
+
+  test(`commerçant @${largeur}`, async ({ page }) => {
+    test.setTimeout(90_000);
+    await connecter(page.request, "commercant");
+    for (const chemin of ["/app", "/app/simulateur", "/app/dossier", "/app/credit", "/app/activite", "/app/conseils"]) {
+      await verifier(page, chemin, `commercant${chemin.replace(/[^\w]+/g, "_")}`, largeur);
+    }
   });
 
   test(`admin @${largeur}`, async ({ page }) => {
