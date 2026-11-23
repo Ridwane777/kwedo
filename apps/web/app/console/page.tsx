@@ -80,7 +80,7 @@ export default function File() {
                 <td className="py-2 pr-3">{RECO[d.recommandation]}{d.provisoire && <span className="text-encre-2"> · provisoire</span>}</td>
                 <td className="py-2 pr-3">
                   {d.alertes.length ? (
-                    <span className="inline-flex items-center gap-1 font-medium text-terre">
+                    <span className="inline-flex items-center gap-1 font-medium text-encre">
                       <svg aria-hidden="true" width="10" height="10" viewBox="0 0 10 10"><path d="M5 0l5 5-5 5-5-5z" fill="var(--safran)" /></svg>
                       {d.alertes.length} alerte{d.alertes.length > 1 ? "s" : ""}
                     </span>

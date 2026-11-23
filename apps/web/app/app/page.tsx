@@ -15,7 +15,8 @@ export default function Estimation() {
   const insts = useApi<Institution[]>("/institutions");
   const com = useApi<{ commercant: Commercant }>(`/commercants/${id}`);
   const nbTx = com.donnees?.commercant.nb_transactions ?? 0;
-  const est = useApi<Analyse>(nbTx ? `/commercants/${id}/estimation?institution_id=${inst}` : null);
+  // Lancée en parallèle du profil : le montant (LCP) n'attend pas une seconde requête.
+  const est = useApi<Analyse>(`/commercants/${id}/estimation?institution_id=${inst}`);
 
   if (com.erreur) return <Erreur message={com.erreur} reessayer={com.recharger} />;
   if (!com.donnees) return <Chargement lignes={5} label="Chargement de votre estimation" />;

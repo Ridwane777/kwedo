@@ -1,0 +1,80 @@
+{
+ "date": "2026-11-23T14:49:36.551Z",
+ "machine": {
+  "cpu": "AMD EPYC Processor (with IBPB)",
+  "coeurs": 8,
+  "memoire_go": 23,
+  "gpu": "aucun"
+ },
+ "conditions": "Local, 127.0.0.1, build de production (next start), sans limitation réseau ni CPU, machine partagée avec d'autres processus.",
+ "api": {
+  "GET /commercants/{id}/estimation (curseur de choc)": {
+   "n": 30,
+   "p50_ms": 80.2,
+   "p95_ms": 221.1,
+   "max_ms": 363.2
+  },
+  "GET /dossiers (file)": {
+   "n": 30,
+   "p50_ms": 12.4,
+   "p95_ms": 45.8,
+   "max_ms": 98.1
+  },
+  "GET /dossiers/{id} (fiche)": {
+   "n": 30,
+   "p50_ms": 34.5,
+   "p95_ms": 81.7,
+   "max_ms": 201.2
+  },
+  "GET /portefeuille": {
+   "n": 30,
+   "p50_ms": 9.4,
+   "p95_ms": 32.6,
+   "max_ms": 37.8
+  },
+  "POST /demo/reinitialiser": {
+   "n": 3,
+   "p50_ms": 6017.5,
+   "p95_ms": 9366.4,
+   "max_ms": 9366.4
+  }
+ },
+ "pages": {
+  "/": {
+   "ttfb_ms_p50": 35.2,
+   "dcl_ms_p50": 897.6,
+   "lcp_ms_p50": 956,
+   "js_ko_non_compresse": 255
+  },
+  "/app": {
+   "ttfb_ms_p50": 47.1,
+   "dcl_ms_p50": 376.5,
+   "lcp_ms_p50": 1760,
+   "js_ko_non_compresse": 25
+  },
+  "/app/simulateur": {
+   "ttfb_ms_p50": 13.3,
+   "dcl_ms_p50": 232.6,
+   "lcp_ms_p50": 500,
+   "js_ko_non_compresse": 203
+  },
+  "/console": {
+   "ttfb_ms_p50": 44.8,
+   "dcl_ms_p50": 323.4,
+   "lcp_ms_p50": 656,
+   "js_ko_non_compresse": 42
+  },
+  "/console/dossiers/{id}": {
+   "ttfb_ms_p50": 87.4,
+   "dcl_ms_p50": 693.8,
+   "lcp_ms_p50": 968,
+   "js_ko_non_compresse": 260
+  },
+  "/demo": {
+   "ttfb_ms_p50": 32.3,
+   "dcl_ms_p50": 208.5,
+   "lcp_ms_p50": 772,
+   "js_ko_non_compresse": 224
+  }
+ }
+}
