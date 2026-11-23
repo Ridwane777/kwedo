@@ -59,3 +59,15 @@ la dérive demanderait de rapprocher le réglage des réglages connus du génér
 **Limite : le choix de profil n'est pas une authentification (pas de mot de passe).** Le cloisonnement est réel et
 testé par appels directs, mais n'importe quel visiteur peut choisir n'importe quel profil. Résiduel : un commerçant
 peut inférer approximativement les réglages d'une institution par essais répétés (voir ADR 0009).
+
+## Mission interface : produit fini (`docs/MISSION-INTERFACE.md`, branche `cloisonnement`)
+
+| # | Étape | Statut | Preuve |
+|---|---|---|---|
+| I1 | Système de design « comptoir » | fait | ADR 0010, `docs/design.md` : tokens sémantiques clair/sombre (AA mesuré, `scripts/contrastes.mjs`), Bricolage Grotesque + Instrument Sans, nouvelle marque, composants (états chargement / vide / erreur / confirmation) |
+| I2 | Écrans refaits | fait | Accueil public (aperçu de l'app, parcours commerçant et prêteur, chiffres « à recontrôler » retirés), connexion, accueil commerçant (combien / prix / action), cadre et file console (compteurs d'exception), admin (institutions triées par attente, activité récente, confirmation de réinitialisation) |
+| I3 | Revue sur captures | fait | `e2e/ecrans.spec.ts` étendu à l'accueil et aux 6 écrans commerçant ; défauts trouvés et corrigés : débordement de l'accueil à 360 px, icône manquante dans la console, initiales de rôle, journal admin trop long, étiquettes en capitales |
+| I4 | Vérification | fait | build OK, `test:api` 16/16, `npx playwright test` **40/40** |
+
+Calculs, droits d'accès et contrat d'API inchangés. Limite : le test du chronomètre a échoué une fois par délai
+d'attente sous charge (passé seul puis dans la suite complète) ; à surveiller.
