@@ -101,7 +101,7 @@ export default function Demo() {
 
   return (
     <div className="flex min-h-dvh flex-col">
-      <header className="flex flex-wrap items-center justify-between gap-3 px-6 py-3">
+      <header className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
         <Link href="/"><Marque /></Link>
         <div className="flex items-center gap-3">
           <Simule quoi="Scénario de démonstration · données figées et simulées" />
@@ -109,7 +109,7 @@ export default function Demo() {
         </div>
       </header>
       <Lisiere hauteur={10} />
-      <div className="grid flex-1 gap-6 p-6 lg:grid-cols-[380px_1fr]">
+      <div className="grid flex-1 gap-6 p-4 sm:p-6 lg:grid-cols-[380px_minmax(0,1fr)]">
         <aside className="space-y-5">
           <ol className="grid grid-cols-9 gap-1" aria-label="Temps du scénario">
             {TEMPS.map((x, i) => (
@@ -132,17 +132,17 @@ export default function Demo() {
           </div>
           <p className="text-xs text-encre-2">Clavier : ← et →. Les écrans à droite sont l'application réelle, branchée sur l'API locale.</p>
         </aside>
-        <section className="flex flex-wrap items-start justify-center gap-6" aria-label="Écrans">
+        <section className="flex min-w-0 flex-wrap items-start justify-center gap-6" aria-label="Écrans">
           {pret && ecran.telephone && (
-            <figure className="space-y-2">
-              <div className="overflow-hidden rounded-[2.2rem] border-[10px] border-encre bg-papier shadow-xl" style={{ width: 380, height: 760 }}>
+            <figure className="w-[380px] max-w-full space-y-2">
+              <div className="h-[760px] w-full overflow-hidden rounded-[2.2rem] border-[10px] border-encre bg-papier shadow-xl">
                 <iframe key={`t${cle}${ecran.telephone}`} src={ecran.telephone} title="Application commerçant" className="h-full w-full" />
               </div>
               <figcaption className="text-center text-xs text-encre-2">Application commerçant · 360 px</figcaption>
             </figure>
           )}
           {pret && ecran.console && (
-            <figure className="min-w-0 flex-1 space-y-2" style={{ minWidth: 560 }}>
+            <figure className="w-full min-w-0 flex-1 space-y-2 md:min-w-[560px]">
               <div className="overflow-hidden rounded-xl border border-trait shadow-lg" style={{ height: 760 }}>
                 <iframe key={`c${cle}${ecran.console}`} src={ecran.console} title="Console prêteur" className="h-full w-full" />
               </div>

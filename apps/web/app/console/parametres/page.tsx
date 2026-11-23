@@ -63,7 +63,8 @@ export default function Parametres() {
       </form>
       <div>
         <h2 className="titre mb-1 text-lg">Historique</h2>
-        <table className="w-full max-w-4xl text-left">
+        <div className="overflow-x-auto">
+        <table className="w-full min-w-[640px] max-w-4xl text-left [&_td]:pr-3 [&_th]:whitespace-nowrap [&_th]:pr-3">
           <thead className="border-b-2 border-encre text-xs uppercase tracking-wide text-encre-2">
             <tr><th className="py-1.5">Version</th><th>m</th><th>s</th><th>n</th><th>i</th><th>Percentile</th><th>Seuil</th><th>Auteur</th><th>Date</th></tr>
           </thead>
@@ -73,6 +74,7 @@ export default function Parametres() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
     </section>
   );

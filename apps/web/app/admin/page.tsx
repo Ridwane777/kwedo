@@ -52,7 +52,15 @@ function Tableau({ u }: { u: Utilisateur }) {
 
       <section>
         <h2 className="titre mb-2 text-xl">Institutions</h2>
-        <div className="overflow-x-auto">
+        <ul className="divide-y divide-trait border-y border-trait md:hidden">
+          {a.institutions.map((i) => (
+            <li key={i.id} className="py-3">
+              <p className="font-medium">{i.nom}</p>
+              <p className="chiffres text-sm text-encre-2">{i.dossiers} dossiers · {i.a_traiter} à traiter · {i.credits} crédits · {i.versions_parametres} version(s) de réglages</p>
+            </li>
+          ))}
+        </ul>
+        <div className="hidden overflow-x-auto md:block">
           <table className="w-full min-w-[640px] text-left">
             <thead className="border-b-2 border-encre text-xs uppercase tracking-wide text-encre-2">
               <tr><th className="py-2">Institution</th><th className="text-right">Dossiers</th><th className="text-right">À traiter</th><th className="text-right">Crédits</th><th className="text-right">Versions de réglages</th></tr>

@@ -52,7 +52,27 @@ export default function File() {
       {erreur ? <Erreur message={erreur} reessayer={recharger} /> : charge && !donnees ? <Chargement lignes={6} /> : !lignes.length ? (
         <Vide titre="Aucun dossier à traiter">Les nouveaux dossiers arrivent ici dès qu'un commerçant donne son accord à votre institution.</Vide>
       ) : (
-        <div className="overflow-x-auto">
+        <>
+        {/* Téléphone : une carte par dossier, l'essentiel visible sans défilement horizontal. */}
+        <ul className="divide-y divide-trait border-y border-trait md:hidden">
+          {lignes.map((d) => (
+            <li key={d.id}>
+              <a href={`/console/dossiers/${d.id}`} className="block space-y-1 py-3">
+                <span className="flex items-baseline justify-between gap-3">
+                  <span className="font-medium">{d.nom}</span>
+                  <span className="chiffres">{fcfa(d.plafond)}</span>
+                </span>
+                <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-encre-2">
+                  <Pastille ton={TON_STATUT[d.statut]}>{STATUTS[d.statut]}</Pastille>
+                  <span>{RECO[d.recommandation]} · risque {pct(d.risque, 1)}</span>
+                  {d.alertes.length > 0 && <span className="font-medium text-encre">◆ {d.alertes.length} alerte{d.alertes.length > 1 ? "s" : ""}</span>}
+                  {!d.consentement_actif && <span className="text-terre">accord retiré</span>}
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+        <div className="hidden overflow-x-auto md:block">
         <table className="w-full min-w-[900px] border-collapse text-left [&_th]:whitespace-nowrap">
           <thead className="border-b-2 border-encre text-xs uppercase tracking-wide text-encre-2">
             <tr>
@@ -93,6 +113,7 @@ export default function File() {
           </tbody>
         </table>
         </div>
+        </>
       )}
       <p className="text-xs text-encre-2">Clavier : <kbd>j</kbd>/<kbd>k</kbd> pour se déplacer, <kbd>Entrée</kbd> pour ouvrir.</p>
     </section>

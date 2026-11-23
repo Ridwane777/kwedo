@@ -32,7 +32,8 @@ export default function Journal() {
         ))}
       </div>
       {!lignes.length ? <Vide titre="Aucun événement" /> : (
-        <table className="w-full text-left">
+        <div className="overflow-x-auto">
+        <table className="w-full min-w-[720px] text-left">
           <thead className="border-b-2 border-encre text-xs uppercase tracking-wide text-encre-2">
             <tr><th className="w-36 py-1.5">Date</th><th className="w-28">Type</th><th className="w-40">Acteur</th><th className="w-28">Dossier</th><th>Détail</th></tr>
           </thead>
@@ -48,6 +49,7 @@ export default function Journal() {
             ))}
           </tbody>
         </table>
+        </div>
       )}
     </section>
   );
