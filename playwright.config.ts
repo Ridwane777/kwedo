@@ -11,7 +11,7 @@ export default defineConfig({
   reporter: [["list"]],
   use: { baseURL: WEB, locale: "fr-FR", timezoneId: "Africa/Porto-Novo" },
   webServer: [
-    { command: "rm -f .captures/e2e.sqlite* && python3 services/api/serveur.py --port 3462 --db .captures/e2e.sqlite", url: `${API}/sante`, timeout: 60_000, reuseExistingServer: false },
+    { command: "rm -f .captures/e2e.sqlite* && .venv/bin/python services/api/serveur.py --port 3462 --db .captures/e2e.sqlite", url: `${API}/sante`, timeout: 60_000, reuseExistingServer: false },
     { command: "npx next start -H 127.0.0.1 -p 3463", cwd: "apps/web", url: WEB, timeout: 60_000, reuseExistingServer: false, env: { KWEDO_API: API } },
   ],
 });

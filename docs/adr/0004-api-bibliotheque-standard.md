@@ -1,6 +1,6 @@
 # ADR 0004 : API sur la bibliothèque standard Python plutôt que FastAPI
 
-- **Statut** : accepté
+- **Statut** : remplacé par [ADR 0006](0006-api-fastapi.md)
 - **Date** : 2026-11-23
 - **Décideurs** : équipe Kwedo
 

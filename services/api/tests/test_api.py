@@ -1,11 +1,9 @@
-import json
 import sqlite3
 import tempfile
-import threading
 import unittest
-import urllib.request
-from http.server import ThreadingHTTPServer
 from pathlib import Path
+
+from fastapi.testclient import TestClient
 
 from kwedo_api.app import fabriquer
 from kwedo_api.service import ErreurMetier, Service
@@ -82,18 +80,26 @@ class TestParcours(unittest.TestCase):
         self.assertEqual(e.exception.statut, 403)
 
     def test_5_http(self):
-        srv = ThreadingHTTPServer(("127.0.0.1", 0), fabriquer(self.s))
-        threading.Thread(target=srv.serve_forever, daemon=True).start()
-        base = f"http://127.0.0.1:{srv.server_address[1]}"
-        with urllib.request.urlopen(base + "/commercants/com-afiavi/estimation?choc_ventes=-0.3") as r:
-            self.assertEqual(r.status, 200)
-            self.assertIn("plafond", json.loads(r.read()))
-        req = urllib.request.Request(base + "/dossiers", data=b'{"commercant_id":"com-gildas","institution_id":"inst-solidaire"}',
-                                     headers={"Content-Type": "application/json"}, method="POST")
-        with self.assertRaises(urllib.error.HTTPError) as e:
-            urllib.request.urlopen(req)
-        self.assertEqual(e.exception.code, 403)
-        srv.shutdown()
+        c = TestClient(fabriquer(self.s))
+        r = c.get("/commercants/com-afiavi/estimation?choc_ventes=-0.3")
+        self.assertEqual(r.status_code, 200)
+        self.assertIn("plafond", r.json())
+        self.assertIn("Server-Timing", r.headers)
+        r = c.post("/dossiers", content=b'{"commercant_id":"com-gildas","institution_id":"inst-solidaire"}',
+                   headers={"Content-Type": "application/json"})
+        self.assertEqual(r.status_code, 403)
+        self.assertIn("erreur", r.json())
+
+    def test_6_contrat_codes(self):
+        c = TestClient(fabriquer(self.s))
+        self.assertEqual(c.get("/inconnue").status_code, 404)
+        self.assertEqual(c.get("/inconnue").json(), {"erreur": "route inconnue"})
+        self.assertEqual(c.get("/echeances/abc/interventions").status_code, 404)
+        self.assertEqual(c.post("/demo/avancer", content=b"{pas du json").status_code, 422)
+        self.assertEqual(c.get("/sante").json()["donnees"], "simulees")
+        self.s.consentir("com-rachidi", "inst-lagune", "accorde")
+        r = c.post("/dossiers", json={"commercant_id": "com-rachidi", "institution_id": "inst-lagune"})
+        self.assertEqual(r.status_code, 201)
 
 
 if __name__ == "__main__":

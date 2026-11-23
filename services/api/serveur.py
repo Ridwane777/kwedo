@@ -1,4 +1,4 @@
-"""Lanceur : python3 services/api/serveur.py [--db chemin] [--port 3460]"""
+"""Lanceur : .venv/bin/python services/api/serveur.py [--db chemin] [--port 3460]"""
 
 import sys
 from pathlib import Path

@@ -7,7 +7,10 @@
     "apps/*"
   ],
   "scripts": {
-    "test:engine": "python3 -m unittest discover -s packages/engine/tests -t packages/engine",
+    "test:engine": ".venv/bin/python -m unittest discover -s packages/engine/tests -t packages/engine",
+    "test:api": ".venv/bin/python -m unittest discover -s services/api/tests -t services/api",
+    "test:gen": ".venv/bin/python -m unittest discover -s packages/generator/tests -t packages/generator",
+    "api": ".venv/bin/python services/api/serveur.py",
     "dev:web": "npm --workspace apps/web run dev",
     "build:web": "npm --workspace apps/web run build"
   },

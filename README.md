@@ -36,7 +36,8 @@ Le plafond proposé est le plus gros montant dont le risque simulé reste sous l
 
 ```
 npm install                                          # dépendances web et tests
-python3 services/api/serveur.py                      # API sur 127.0.0.1:3460 (charge la démo figée au premier lancement)
+python3 -m venv .venv && .venv/bin/python -m pip install -r requirements.txt   # Python épinglé, dans .venv seulement
+npm run api                                          # API FastAPI sur 127.0.0.1:3460 (charge la démo figée au premier lancement)
 npm --workspace apps/web run build && npm --workspace apps/web run start   # web sur 127.0.0.1:3461
 ```
 
@@ -46,8 +47,8 @@ Puis ouvrir `/demo` (scénario guidé), `/app` (commerçant, pensé pour 360 px)
 
 ```
 npm run test:engine                                                   # moteur (14 tests)
-(cd packages/generator && python3 -m unittest discover -s tests -t .) # générateur (7)
-(cd services/api && python3 -m unittest discover -s tests -t .)       # API (5)
+npm run test:gen                                                      # générateur (7)
+npm run test:api                                                      # API FastAPI (6)
 npx playwright install chromium && npx playwright test                # E2E + accessibilité (19), ports 3462/3463
 ```
 
