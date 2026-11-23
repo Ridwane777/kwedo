@@ -16,7 +16,7 @@ export default function File() {
   const router = useRouter();
   const [tri, setTri] = useState<"priorite" | "anciennete">("priorite");
   const [filtre, setFiltre] = useState<"a_traiter" | "tous">("a_traiter");
-  const { donnees, erreur, charge, recharger } = useApi<LigneDossier[]>(`/dossiers?institution_id=inst-lagune&tri=${tri}`);
+  const { donnees, erreur, charge, recharger } = useApi<LigneDossier[]>(`/dossiers?tri=${tri}`);
   const [sel, setSel] = useState(0);
   const lignes = useMemo(
     () => (donnees ?? []).filter((d) => filtre === "tous" || ["recu", "en_analyse", "complement"].includes(d.statut)),

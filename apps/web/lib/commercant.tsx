@@ -1,19 +1,27 @@
 "use client";
 
+import { usePathname, useRouter } from "next/navigation";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { Chargement } from "@/components/ui";
 import { COMMERCANT_DEMO } from "./api";
+import { useSession } from "./session";
 
 const Ctx = createContext<{ id: string; changer: (id: string) => void }>({ id: COMMERCANT_DEMO, changer: () => {} });
 
-/** Identité du commerçant connecté (prototype : mémorisée dans le navigateur, pas d'authentification). */
+/** Identité du commerçant connecté, lue dans la session signée (ADR 0009). */
 export function FournisseurCommercant({ children }: { children: ReactNode }) {
-  const [id, setId] = useState(COMMERCANT_DEMO);
+  const session = useSession();
+  const router = useRouter();
+  const chemin = usePathname();
+  const [id, setId] = useState<string | null>(null);
+  const inscription = chemin === "/app/inscription";
   useEffect(() => {
-    const v = window.localStorage.getItem("kwedo.commercant");
-    if (v) setId(v);
-  }, []);
-  const changer = (v: string) => { window.localStorage.setItem("kwedo.commercant", v); setId(v); };
-  return <Ctx.Provider value={{ id, changer }}>{children}</Ctx.Provider>;
+    if (!session) return;
+    if (session.commercant?.commercant_id) setId(session.commercant.commercant_id);
+    else if (!inscription) router.replace(`/connexion?suite=${encodeURIComponent(chemin)}`);
+  }, [session, inscription, router, chemin]);
+  if (!id && !inscription) return <Chargement lignes={5} />;
+  return <Ctx.Provider value={{ id: id ?? "", changer: setId }}>{children}</Ctx.Provider>;
 }
 
 export const useCommercant = () => useContext(Ctx);

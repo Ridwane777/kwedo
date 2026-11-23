@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Marque } from "@/components/motif";
 import { Simule } from "@/components/ui";
+import { deconnecter } from "@/lib/session";
 
 const LIENS = [
   { href: "/app", label: "Estimation", icone: "M4 18l5-6 4 3 7-9" },
@@ -17,7 +18,10 @@ export function EnteteCommercant() {
   return (
     <header className="flex items-center justify-between px-5 pb-3 pt-4">
       <Link href="/app" aria-label="Accueil Kwedo"><Marque taille={26} /></Link>
-      <Simule quoi="Démo simulée" />
+      <div className="flex items-center gap-2">
+        <Simule quoi="Démo simulée" />
+        <button onClick={() => void deconnecter("com")} className="min-h-10 rounded-lg px-2 text-xs text-encre-2 underline">Quitter</button>
+      </div>
     </header>
   );
 }

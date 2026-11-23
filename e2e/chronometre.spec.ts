@@ -1,10 +1,10 @@
 import { expect, test } from "@playwright/test";
+import { connecter, reinitialiser } from "./session";
 
-const API = process.env.KWEDO_API ?? "http://127.0.0.1:3462";
-
-test("chronomètre : « non mesuré » tant qu'aucun humain n'a chronométré, puis mesure et export", async ({ page, request }) => {
-  await request.post(`${API}/demo/reinitialiser`, { data: {} });
-  const f = await (await request.get(`${API}/dossiers?institution_id=inst-lagune`)).json();
+test("chronomètre : « non mesuré » tant qu'aucun humain n'a chronométré, puis mesure et export", async ({ page }) => {
+  await reinitialiser(page.request);
+  await connecter(page.request, "agent-lagune");
+  const f = await (await page.request.get("/api/dossiers")).json();
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto(`/console/dossiers/${f[0].id}`);
   const zone = page.getByRole("region", { name: "Chronomètre de traitement" });

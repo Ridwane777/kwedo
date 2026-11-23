@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Lisiere, Marque } from "@/components/motif";
 import { Bouton, Simule } from "@/components/ui";
-import { api, COMMERCANT_DEMO } from "@/lib/api";
+import { api, COMMERCANT_DEMO, connecter } from "@/lib/api";
 import { useRaccourcis } from "@/lib/clavier";
 import type { LigneDossier } from "@/lib/types";
 
@@ -15,8 +15,15 @@ type Ids = { dossier?: string; alerte?: string };
 const MOTIF = "Saison creuse en janvier pour les tissus : prudence sur le montant.";
 
 async function idsDemo(): Promise<Ids> {
-  const f = await api<LigneDossier[]>("/dossiers?institution_id=inst-lagune");
+  const f = await api<LigneDossier[]>("/dossiers");
   return { dossier: f.find((d) => d.commercant_id === COMMERCANT_DEMO)?.id, alerte: f.find((d) => d.alertes.includes("circulaire"))?.id };
+}
+
+// Le scénario joue les deux côtés : commerçant et agent Lagune. Les commandes de la démo passent par le profil admin.
+const profilsDemo = async () => { await connecter("commercant"); await connecter("agent-lagune"); };
+async function enAdmin<T>(faire: () => Promise<T>) {
+  await connecter("admin");
+  try { return await faire(); } finally { await connecter("agent-lagune"); }
 }
 
 const TEMPS: Temps[] = [
@@ -39,7 +46,7 @@ const TEMPS: Temps[] = [
     action: { label: "Ajuster avec justificatif", faire: async (ids) => {
       if (!ids.dossier) throw new Error("Envoyez d'abord le dossier (temps 4).");
       const d = await api<{ analyse: { plafond: number } }>(`/dossiers/${ids.dossier}`);
-      await api(`/dossiers/${ids.dossier}/decisions`, { body: { type: "ajuste", montant_decide: Math.floor((d.analyse.plafond * 0.8) / 5000) * 5000, motif: MOTIF }, acteur: "agent.demo" });
+      await api(`/dossiers/${ids.dossier}/decisions`, { body: { type: "ajuste", montant_decide: Math.floor((d.analyse.plafond * 0.8) / 5000) * 5000, motif: MOTIF } });
     } } },
   { titre: "Offre et accord", duree: 20, ecran: (ids) => ({ telephone: ids.dossier ? `/app/offre/${ids.dossier}` : "/app/dossier" }),
     dire: "Afiavi lit l'offre : montant, durée, échéance, coût total, zéro frais Kwedo. Elle accepte ; l'échéancier se crée et le décaissement simulé part.",
@@ -51,7 +58,7 @@ const TEMPS: Temps[] = [
       if (!c.credit) throw new Error("Acceptez d'abord l'offre (temps 6).");
       const cr = await api<{ prochaine: { montant_attendu: number } }>(`/credits/${c.credit.id}`);
       await api(`/credits/${c.credit.id}/paiements`, { body: { montant: cr.prochaine.montant_attendu } });
-      await api("/demo/avancer", { body: { jours: 15 } });
+      await enAdmin(() => api("/demo/avancer", { body: { jours: 15 } }));
     } } },
   { titre: "Test de résistance", duree: 20, ecran: () => ({ telephone: "/app/simulateur" }),
     dire: "Le curseur baisse les ventes de 30 % : la courbe descend, le plafond diminue et le risque monte, en direct." },
@@ -67,14 +74,16 @@ export default function Demo() {
   const t = TEMPS[k]!;
   const ecran = t.ecran(ids);
 
+  const [pret, setPret] = useState(false);
   const rafraichir = useCallback(async () => { try { setIds(await idsDemo()); } catch { /* API arrêtée : message à l'action */ } setCle((c) => c + 1); }, []);
-  useEffect(() => { void rafraichir(); }, [k, rafraichir]);
+  useEffect(() => { void profilsDemo().catch(() => {}).finally(() => setPret(true)); }, []);
+  useEffect(() => { if (pret) void rafraichir(); }, [k, pret, rafraichir]);
 
   async function reinitialiser() {
     setEtat({ t: "occupe" });
     try {
-      await api("/demo/reinitialiser", { body: {} });
-      window.localStorage.setItem("kwedo.commercant", COMMERCANT_DEMO);
+      await enAdmin(() => api("/demo/reinitialiser", { body: {} }));
+      await profilsDemo();
       setK(0); await rafraichir(); setEtat({ t: "ok", m: "Démo réinitialisée : données figées rechargées." });
     } catch (e) { setEtat({ t: "erreur", m: e instanceof Error ? e.message : "Erreur" }); }
   }
@@ -124,7 +133,7 @@ export default function Demo() {
           <p className="text-xs text-encre-2">Clavier : ← et →. Les écrans à droite sont l'application réelle, branchée sur l'API locale.</p>
         </aside>
         <section className="flex flex-wrap items-start justify-center gap-6" aria-label="Écrans">
-          {ecran.telephone && (
+          {pret && ecran.telephone && (
             <figure className="space-y-2">
               <div className="overflow-hidden rounded-[2.2rem] border-[10px] border-encre bg-papier shadow-xl" style={{ width: 380, height: 760 }}>
                 <iframe key={`t${cle}${ecran.telephone}`} src={ecran.telephone} title="Application commerçant" className="h-full w-full" />
@@ -132,7 +141,7 @@ export default function Demo() {
               <figcaption className="text-center text-xs text-encre-2">Application commerçant · 360 px</figcaption>
             </figure>
           )}
-          {ecran.console && (
+          {pret && ecran.console && (
             <figure className="min-w-0 flex-1 space-y-2" style={{ minWidth: 560 }}>
               <div className="overflow-hidden rounded-xl border border-trait shadow-lg" style={{ height: 760 }}>
                 <iframe key={`c${cle}${ecran.console}`} src={ecran.console} title="Console prêteur" className="h-full w-full" />

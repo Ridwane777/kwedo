@@ -8,10 +8,10 @@ export class ErreurApi extends Error {
   }
 }
 
-export async function api<T>(chemin: string, init?: { method?: string; body?: unknown; acteur?: string }): Promise<T> {
+export async function api<T>(chemin: string, init?: { method?: string; body?: unknown }): Promise<T> {
   const r = await fetch(`/api${chemin}`, {
     method: init?.method ?? (init?.body ? "POST" : "GET"),
-    headers: { "Content-Type": "application/json", ...(init?.acteur ? { "X-Acteur": init.acteur } : {}) },
+    headers: { "Content-Type": "application/json" },
     body: init?.body ? JSON.stringify(init.body) : undefined,
     cache: "no-store",
   });
@@ -44,3 +44,5 @@ export function useApi<T>(chemin: string | null) {
 }
 
 export const COMMERCANT_DEMO = "com-afiavi";
+
+export const connecter = (profil: string) => api<{ role: string }>("/auth/connexion", { body: { profil } });

@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
+import { connecter, reinitialiser } from "./session";
 
-const API = process.env.KWEDO_API ?? "http://127.0.0.1:3460";
 const CAP = process.env.KWEDO_CAPTURES ?? ".captures";
 
 async function capture(page: Page, nom: string) {
@@ -10,9 +10,10 @@ async function capture(page: Page, nom: string) {
 
 test.describe.configure({ mode: "serial" });
 
-test("parcours complet : estimation → décision → offre → remboursement → relance", async ({ page, request, browser }) => {
+test("parcours complet : estimation → décision → offre → remboursement → relance", async ({ page, browser }) => {
   test.setTimeout(180_000);
-  expect((await request.post(`${API}/demo/reinitialiser`, { data: {} })).ok()).toBeTruthy();
+  await reinitialiser(page.request);
+  await connecter(page.request, "commercant");
 
   // 1. Estimation avec raisons, étiquette « simulé »
   await page.setViewportSize({ width: 360, height: 780 });
@@ -41,6 +42,7 @@ test("parcours complet : estimation → décision → offre → remboursement �
 
   // 4. Console : fiche analysée, ajustement avec justificatif
   const agent = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  await connecter(agent.request, "agent-lagune");
   await agent.goto("/console");
   await agent.getByRole("link", { name: "Afiavi Houngbo" }).click();
   await expect(agent.getByText("Montant proposé par le moteur")).toBeVisible();
@@ -74,11 +76,11 @@ test("parcours complet : estimation → décision → offre → remboursement �
 
   // 7. Retard simulé → relance respectueuse → portefeuille
   await agent.goto("/console/portefeuille");
-  await agent.getByRole("button", { name: "Avancer de 7 jours" }).click();
-  for (let k = 0; k < 2; k++) {
-    await agent.getByRole("button", { name: "Avancer de 7 jours" }).click();
-    await expect(agent.getByRole("button", { name: "Avancer de 7 jours" })).toBeEnabled();
-  }
+  const admin = await browser.newPage();
+  await connecter(admin.request, "admin");
+  for (let k = 0; k < 3; k++) expect((await admin.request.post("/api/demo/avancer", { data: { jours: 7 } })).ok()).toBeTruthy();
+  await admin.close();
+  await agent.reload();
   await expect(agent.getByText(/n'est pas encore réglée/).first()).toBeVisible({ timeout: 15_000 });
   await expect(agent.getByText("Échéances en retard")).toBeVisible();
   await capture(agent, "7-portefeuille");
@@ -87,6 +89,34 @@ test("parcours complet : estimation → décision → offre → remboursement �
   await expect(page.getByText("Messages reçus")).toBeVisible();
 
   // Journal : la décision est tracée et ne peut être réécrite
-  const j = await (await request.get(`${API}/journal`)).json();
+  const j = await (await agent.request.get("/api/journal")).json();
   expect(j.some((e: { type: string; detail: string }) => e.type === "decision" && e.detail.includes("Saison creuse"))).toBeTruthy();
+});
+
+test("cloisonnement : une institution ne voit ni ne modifie celle d'à côté", async ({ browser }) => {
+  const baobab = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  await connecter(baobab.request, "responsable-baobab");
+  await baobab.goto("/console/parametres");
+  await expect(baobab.getByText(/Réglages de/)).toContainText("Banque Baobab");
+  await expect(baobab.getByRole("combobox")).toHaveCount(0);
+  expect((await baobab.request.get("/api/institutions/inst-lagune/parametres")).status()).toBe(403);
+  expect((await baobab.request.post("/api/institutions/inst-lagune/parametres", { data: { m: 0.1 } })).status()).toBe(403);
+  await baobab.goto("/console");
+  await expect(baobab.getByRole("link", { name: "Séna Kpadonou" })).toHaveCount(0);
+
+  const agent = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  await connecter(agent.request, "agent-lagune");
+  await agent.goto("/console/parametres");
+  await expect(agent.getByRole("button", { name: /Enregistrer/ })).toHaveCount(0);
+});
+
+test("connexion puis admin général : supervision sans détail de dossier", async ({ page }) => {
+  await page.goto("/console");
+  await expect(page).toHaveURL(/\/connexion/);
+  await page.getByRole("button", { name: /Admin général/ }).click();
+  await expect(page).toHaveURL(/\/admin/);
+  await expect(page.getByRole("heading", { name: "Supervision de la plateforme" })).toBeVisible();
+  await expect(page.getByText("Séna Kpadonou")).toHaveCount(0);
+  await page.goto("/console");
+  await expect(page).toHaveURL(/\/admin/);
 });

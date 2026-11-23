@@ -8,14 +8,16 @@ async function relayer(req: NextRequest, { params }: { params: Promise<{ chemin:
   const base = process.env.KWEDO_API ?? "http://127.0.0.1:3460";
   const url = `${base}/${chemin.map(encodeURIComponent).join("/")}${req.nextUrl.search}`;
   const entetes: Record<string, string> = { "Content-Type": "application/json" };
-  const acteur = req.headers.get("x-acteur");
-  if (acteur) entetes["X-Acteur"] = acteur;
+  const cookie = req.headers.get("cookie");
+  if (cookie) entetes.Cookie = cookie;
   try {
     const r = await fetch(url, {
       method: req.method, headers: entetes, cache: "no-store",
       body: req.method === "GET" ? undefined : await req.text(),
     });
-    return new Response(await r.text(), { status: r.status, headers: { "Content-Type": "application/json; charset=utf-8" } });
+    const reponse = new Headers({ "Content-Type": "application/json; charset=utf-8" });
+    for (const c of r.headers.getSetCookie()) reponse.append("Set-Cookie", c);
+    return new Response(await r.text(), { status: r.status, headers: reponse });
   } catch {
     return Response.json({ erreur: "Le serveur Kwedo ne répond pas (API arrêtée ?)." }, { status: 502 });
   }

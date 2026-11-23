@@ -20,8 +20,7 @@ export default function Accueil() {
       <header className="flex items-center justify-between py-5">
         <Marque />
         <nav className="flex gap-1 text-sm sm:gap-4" aria-label="Accès">
-          <Link href="/app" className="hidden rounded-lg px-2 py-2 hover:bg-papier-2 sm:block">Commerçant</Link>
-          <Link href="/console" className="hidden rounded-lg px-2 py-2 hover:bg-papier-2 sm:block">Prêteur</Link>
+          <Link href="/connexion" className="whitespace-nowrap rounded-lg px-2 py-2 hover:bg-papier-2">Se connecter</Link>
           <Link href="/demo" className="whitespace-nowrap rounded-lg bg-indigo px-3 py-2 font-medium text-papier">Démo guidée</Link>
         </nav>
       </header>
@@ -36,7 +35,7 @@ export default function Accueil() {
           </p>
           <div className="flex flex-wrap gap-3">
             <Link href="/demo" className="inline-flex min-h-12 items-center rounded-xl bg-indigo px-5 font-medium text-papier">Voir la démo en 4 minutes</Link>
-            <Link href="/app" className="inline-flex min-h-12 items-center rounded-xl border border-indigo px-5 font-medium text-indigo">Ouvrir l'application</Link>
+            <Link href="/connexion" className="inline-flex min-h-12 items-center rounded-xl border border-indigo px-5 font-medium text-indigo">Ouvrir l'application</Link>
           </div>
           <Simule quoi="Prototype · données 100 % simulées · personnes et institutions fictives" />
         </div>

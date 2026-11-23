@@ -5,8 +5,20 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
+from kwedo_api import auth
 from kwedo_api.app import fabriquer
 from kwedo_api.service import ErreurMetier, Service
+
+
+def client(service, *profils, commercant=None):
+    c = TestClient(fabriquer(service))
+    for p in profils:
+        u = {**auth.PROFILS[p], "profil": p}
+        c.cookies.set(auth.COOKIES[auth.espace(u)], auth.signer(u))
+    if commercant:
+        u = {"role": "commercant", "nom": commercant, "login": commercant, "commercant_id": commercant, "institution_id": None}
+        c.cookies.set(auth.COOKIES["com"], auth.signer(u))
+    return c
 
 
 class TestParcours(unittest.TestCase):
@@ -80,18 +92,19 @@ class TestParcours(unittest.TestCase):
         self.assertEqual(e.exception.statut, 403)
 
     def test_5_http(self):
-        c = TestClient(fabriquer(self.s))
+        c = client(self.s, "commercant")
         r = c.get("/commercants/com-afiavi/estimation?choc_ventes=-0.3")
         self.assertEqual(r.status_code, 200)
         self.assertIn("plafond", r.json())
         self.assertIn("Server-Timing", r.headers)
+        c = client(self.s, commercant="com-gildas")
         r = c.post("/dossiers", content=b'{"commercant_id":"com-gildas","institution_id":"inst-solidaire"}',
                    headers={"Content-Type": "application/json"})
         self.assertEqual(r.status_code, 403)
         self.assertIn("erreur", r.json())
 
     def test_6_contrat_codes(self):
-        c = TestClient(fabriquer(self.s))
+        c = client(self.s, "admin", commercant="com-rachidi")
         self.assertEqual(c.get("/inconnue").status_code, 404)
         self.assertEqual(c.get("/inconnue").json(), {"erreur": "route inconnue"})
         self.assertEqual(c.get("/echeances/abc/interventions").status_code, 404)
@@ -100,6 +113,61 @@ class TestParcours(unittest.TestCase):
         self.s.consentir("com-rachidi", "inst-lagune", "accorde")
         r = c.post("/dossiers", json={"commercant_id": "com-rachidi", "institution_id": "inst-lagune"})
         self.assertEqual(r.status_code, 201)
+
+
+class TestCloisonnement(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.s = Service(str(Path(cls.tmp.name) / "c.sqlite"))
+        cls.s.reinitialiser()
+        cls.did = cls.s.file("inst-lagune")[0]["id"]
+
+    def test_sans_session_tout_est_refuse(self):
+        c = TestClient(fabriquer(self.s))
+        for chemin in ("/dossiers", f"/dossiers/{self.did}", "/portefeuille", "/journal", "/admin/apercu",
+                       "/institutions/inst-lagune/parametres", "/commercants/com-afiavi"):
+            self.assertEqual(c.get(chemin).status_code, 401, chemin)
+        self.assertEqual(c.post("/demo/reinitialiser", json={}).status_code, 401)
+
+    def test_jeton_falsifie_et_entete_ignores(self):
+        c = TestClient(fabriquer(self.s))
+        c.cookies.set(auth.COOKIES["pro"], auth.signer(auth.PROFILS["agent-baobab"])[:-2] + "xx")
+        self.assertEqual(c.get("/dossiers", headers={"X-Acteur": "admin.kwedo"}).status_code, 401)
+
+    def test_institution_ne_voit_pas_l_autre(self):
+        c = client(self.s, "responsable-baobab")
+        self.assertEqual(c.get("/institutions/inst-lagune/parametres").status_code, 403)
+        self.assertEqual(c.post("/institutions/inst-lagune/parametres", json={"m": 0.1}).status_code, 403)
+        self.assertEqual(c.get(f"/dossiers/{self.did}").status_code, 404)
+        self.assertEqual(c.post(f"/dossiers/{self.did}/decisions", json={"type": "refuse", "motif": "tentative hors périmètre"}).status_code, 404)
+        self.assertTrue(all(d["institution_id"] == "inst-baobab" for d in c.get("/dossiers?institution_id=inst-lagune").json()))
+        self.assertTrue(all(e["institution_id"] == "inst-baobab" for e in c.get("/journal").json()))
+        self.assertNotIn("parametres", c.get("/institutions").json()[0])
+
+    def test_seul_le_responsable_modifie(self):
+        self.assertEqual(client(self.s, "agent-lagune").post("/institutions/inst-lagune/parametres", json={"m": 0.29}).status_code, 403)
+        self.assertEqual(client(self.s, "responsable-lagune").post("/institutions/inst-lagune/parametres", json={"m": 0.3}).status_code, 200)
+
+    def test_admin_supervise_sans_detail(self):
+        c = client(self.s, "admin")
+        a = c.get("/admin/apercu")
+        self.assertEqual(a.status_code, 200)
+        self.assertNotIn("seuil=", a.text)
+        self.assertNotIn("Afiavi", a.text)
+        for chemin in (f"/dossiers/{self.did}", "/dossiers", "/portefeuille", "/institutions/inst-lagune/parametres"):
+            self.assertEqual(c.get(chemin).status_code, 403, chemin)
+        self.assertEqual(c.post("/institutions/inst-lagune/parametres", json={"m": 0.1}).status_code, 403)
+        self.assertTrue(all(e["dossier_id"] is None for e in c.get("/journal").json()))
+
+    def test_commercant_isole_et_sans_reglages(self):
+        c = client(self.s, "commercant")
+        self.assertEqual(c.get("/commercants/com-sena").status_code, 403)
+        e = c.get("/commercants/com-afiavi/estimation?institution_id=inst-baobab").json()
+        self.assertEqual(set(e["parametres"]), {"n", "i"})
+        for interne in ("l_max", "echeance_supportable", "alertes", "modeles"):
+            self.assertNotIn(interne, e)
+        self.assertEqual(c.post("/commercants", json={"nom": "Afiavi Houngbo", "telephone": self.s.commercant("com-afiavi")["telephone"]}).status_code, 409)
 
 
 if __name__ == "__main__":

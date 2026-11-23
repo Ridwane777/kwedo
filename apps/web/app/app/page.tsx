@@ -7,12 +7,12 @@ import { Chargement, Erreur, LienBouton, Simule } from "@/components/ui";
 import { useApi } from "@/lib/api";
 import { useCommercant } from "@/lib/commercant";
 import { fcfa } from "@/lib/format";
-import type { Analyse, Commercant, Institution } from "@/lib/types";
+import type { Analyse, Commercant, InstitutionPublique } from "@/lib/types";
 
 export default function Estimation() {
   const { id } = useCommercant();
   const [inst, setInst] = useState("inst-lagune");
-  const insts = useApi<Institution[]>("/institutions");
+  const insts = useApi<InstitutionPublique[]>("/institutions");
   const com = useApi<{ commercant: Commercant }>(`/commercants/${id}`);
   const nbTx = com.donnees?.commercant.nb_transactions ?? 0;
   // Lancée en parallèle du profil : le montant (LCP) n'attend pas une seconde requête.

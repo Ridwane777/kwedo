@@ -29,7 +29,7 @@ export type Analyse = {
   chaine_calcul: string[];
   alertes?: Alerte[];
   modeles?: { version: string; prevision_hebdo: number; horizon_semaines: number; proba_defaut: number; score_anomalie: number; alerte_anomalie: boolean } | null;
-  souhait?: { montant: number; risque: number; echeance: number; atteignable: boolean; manque: string[] };
+  souhait?: { montant: number; risque: number; echeance: number; atteignable: boolean; manque: string[]; au_dessus_du_seuil?: boolean };
   institution_id?: string;
 };
 
@@ -66,6 +66,7 @@ export type Dossier = {
   decisions: Decision[]; credit: { id: string } | null; acces: { acteur: string; action: string; horodatage: string }[];
 };
 
+export type InstitutionPublique = { id: string; nom: string };
 export type Institution = { id: string; nom: string; parametres: { id: number; m: number; s: number; n: number; i: number; percentile: number; seuil_risque: number; auteur: string; cree_le: string } };
 
 export type TableauDeBord = {

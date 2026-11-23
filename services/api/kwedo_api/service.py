@@ -151,8 +151,8 @@ class Service:
         if not nom.strip() or not telephone.strip():
             raise ErreurMetier(422, "nom et téléphone obligatoires")
         cid = f"com-{_g(nom, telephone) % 10**6:06d}"
-        if self.un("SELECT id FROM commercants WHERE id = ?", cid):
-            return self.commercant(cid)
+        if self.un("SELECT id FROM commercants WHERE id = ? OR telephone = ?", cid, telephone.strip()):
+            raise ErreurMetier(409, "un profil existe déjà avec ce numéro")
         self._inserer_commercant(cid, nom.strip(), telephone.strip(), activite, compte_separe, [])
         return self.commercant(cid)
 
@@ -193,6 +193,15 @@ class Service:
         res["institution_id"] = inst
         # Le commerçant ne voit jamais les alertes de manipulation : elles vont à l'agent.
         res.pop("alertes"); res.pop("modeles")
+        # Réglages internes de l'institution (m, s, percentile, seuil) : ils ne sortent pas vers l'espace commerçant.
+        if res.get("souhait"):
+            res["souhait"]["au_dessus_du_seuil"] = res["souhait"]["risque"] > p["seuil_risque"]
+        res["parametres"] = {"n": res["parametres"]["n"], "i": res["parametres"]["i"]}
+        for interne in ("l_max", "l_simulation", "echeance_supportable", "decote_anciennete"):
+            res.pop(interne)
+        res["chaine_calcul"] = [f"Niveau prudent de vos encaissements : {_f(res['encaissement_prudent'])} par semaine",
+                                f"Échéance pour ce montant : {_f(res['echeance_hebdo'])} par semaine, sur {res['duree_semaines']} semaines",
+                                f"Coût total du crédit : {_f(res['cout_total'])}"]
         return res
 
     def tableau_de_bord(self, cid: str) -> dict:
@@ -488,20 +497,45 @@ class Service:
     def historique_parametres(self, inst: str) -> list[dict]:
         return self.q("SELECT * FROM parametres_moteur WHERE institution_id = ? ORDER BY id DESC", inst)
 
-    def journal(self, limite: int = 200) -> list[dict]:
-        ev = [{"type": "decision", "horodatage": r["horodatage"], "acteur": r["auteur"], "dossier_id": r["dossier_id"],
+    def journal(self, limite: int = 200, inst: str | None = None, expurge: bool = False) -> list[dict]:
+        """Journal d'une institution, ou vue d'administration (`expurge`) : qui, quand, quoi, sans contenu de dossier."""
+        ev = [{"type": "decision", "horodatage": r["horodatage"], "acteur": r["auteur"], "dossier_id": r["dossier_id"], "institution_id": r["inst"],
                "detail": f"{r['type']} — proposé {_f(r['montant_propose'])}, décidé {_f(r['montant_decide'])} — « {r['motif']} » "
-                         f"(moteur {r['version_moteur']}, graine {r['graine']})"} for r in self.q("SELECT * FROM decisions")]
-        ev += [{"type": "acces", "horodatage": r["horodatage"], "acteur": r["acteur"], "dossier_id": r["dossier_id"], "detail": r["action"]}
-               for r in self.q("SELECT * FROM journal_acces")]
-        ev += [{"type": "intervention", "horodatage": r["horodatage"], "acteur": r["auteur"], "dossier_id": None,
-                "detail": f"échéance {r['echeance_id']} : {r['avant']} → {r['apres']} — « {r['motif']} »"} for r in self.q("SELECT * FROM interventions")]
-        ev += [{"type": "parametres", "horodatage": r["cree_le"], "acteur": r["auteur"], "dossier_id": None,
+                         f"(moteur {r['version_moteur']}, graine {r['graine']})"}
+              for r in self.q("SELECT x.*, d.institution_id AS inst FROM decisions x JOIN dossiers d ON d.id = x.dossier_id")]
+        ev += [{"type": "acces", "horodatage": r["horodatage"], "acteur": r["acteur"], "dossier_id": r["dossier_id"], "institution_id": r["inst"], "detail": r["action"]}
+               for r in self.q("SELECT x.*, d.institution_id AS inst FROM journal_acces x LEFT JOIN dossiers d ON d.id = x.dossier_id")]
+        ev += [{"type": "intervention", "horodatage": r["horodatage"], "acteur": r["auteur"], "dossier_id": None, "institution_id": r["inst"],
+                "detail": f"échéance {r['echeance_id']} : {r['avant']} → {r['apres']} — « {r['motif']} »"}
+               for r in self.q("SELECT x.*, c.institution_id AS inst FROM interventions x JOIN echeances e ON e.id = x.echeance_id "
+                               "JOIN credits c ON c.id = e.credit_id")]
+        ev += [{"type": "parametres", "horodatage": r["cree_le"], "acteur": r["auteur"], "dossier_id": None, "institution_id": r["institution_id"],
                 "detail": f"{r['institution_id']} : m={r['m']} s={r['s']} n={r['n']} i={r['i']} p{r['percentile']:g} seuil={r['seuil_risque']}"}
                for r in self.q("SELECT * FROM parametres_moteur")]
-        ev += [{"type": "consentement", "horodatage": r["horodatage"], "acteur": r["commercant_id"], "dossier_id": None,
+        ev += [{"type": "consentement", "horodatage": r["horodatage"], "acteur": r["commercant_id"], "dossier_id": None, "institution_id": r["institution_id"],
                 "detail": f"{r['action']} pour {r['institution_id']}"} for r in self.q("SELECT * FROM consentements")]
+        if inst:
+            ev = [e for e in ev if e["institution_id"] == inst]
+        if expurge:
+            libelles = {"decision": "Décision enregistrée", "acces": "Dossier consulté", "intervention": "Échéance modifiée",
+                        "parametres": "Nouvelle version de paramètres", "consentement": "Consentement modifié"}
+            ev = [{**e, "dossier_id": None, "detail": libelles[e["type"]],
+                   "acteur": "commerçant" if e["type"] == "consentement" else e["acteur"]} for e in ev]
         return sorted(ev, key=lambda e: e["horodatage"], reverse=True)[:limite]
 
+    def apercu_admin(self) -> dict:
+        """Supervision de la plateforme : volumes agrégés par institution, sans dossier nominatif ni valeur de paramètre."""
+        lignes = []
+        for i in self.q("SELECT id, nom FROM institutions ORDER BY nom"):
+            lignes.append({**i,
+                           "dossiers": self.un("SELECT COUNT(*) n FROM dossiers WHERE institution_id = ?", i["id"])["n"],
+                           "a_traiter": self.un("SELECT COUNT(*) n FROM dossiers WHERE institution_id = ? AND statut IN ('recu','en_analyse','complement')", i["id"])["n"],
+                           "credits": self.un("SELECT COUNT(*) n FROM credits WHERE institution_id = ?", i["id"])["n"],
+                           "versions_parametres": self.un("SELECT COUNT(*) n FROM parametres_moteur WHERE institution_id = ?", i["id"])["n"]})
+        return {"maintenant": self._iso(), "version_moteur": VERSION, "institutions": lignes,
+                "commercants": self.un("SELECT COUNT(*) n FROM commercants")["n"],
+                "dossiers": sum(l["dossiers"] for l in lignes), "credits": sum(l["credits"] for l in lignes),
+                "journal": self.journal(40, expurge=True)}
+
     def institutions(self) -> list[dict]:
-        return [{**i, "parametres": self.parametres(i["id"])} for i in self.q("SELECT * FROM institutions ORDER BY nom")]
+        return self.q("SELECT id, nom FROM institutions ORDER BY nom")  # liste publique : jamais les paramètres

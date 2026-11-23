@@ -30,7 +30,7 @@ function Reprogrammer({ e, onFait }: { e: Portefeuille["retards"][number]; onFai
   return (
     <form className="flex flex-wrap items-center gap-2" onSubmit={async (ev) => {
       ev.preventDefault(); setErr(null);
-      try { await api(`/echeances/${e.id}/interventions`, { body: { nouvelle_date: nd, motif }, acteur: "agent.demo" }); setOuvert(false); await onFait(); }
+      try { await api(`/echeances/${e.id}/interventions`, { body: { nouvelle_date: nd, motif } }); setOuvert(false); await onFait(); }
       catch (x) { setErr(x instanceof Error ? x.message : "Erreur"); }
     }}>
       <input type="date" required value={nd} onChange={(x) => setNd(x.target.value)} className="rounded border border-trait bg-papier px-1.5 py-1" aria-label="Nouvelle date" />
@@ -42,15 +42,9 @@ function Reprogrammer({ e, onFait }: { e: Portefeuille["retards"][number]; onFai
 }
 
 export default function PagePortefeuille() {
-  const { donnees: p, erreur, recharger } = useApi<Portefeuille>("/portefeuille?institution_id=inst-lagune");
-  const [avance, setAvance] = useState(false);
+  const { donnees: p, erreur, recharger } = useApi<Portefeuille>("/portefeuille");
   if (erreur) return <Erreur message={erreur} reessayer={recharger} />;
   if (!p) return <Chargement lignes={6} />;
-
-  async function avancer() {
-    setAvance(true);
-    try { await api("/demo/avancer", { body: { jours: 7 } }); await recharger(); } finally { setAvance(false); }
-  }
 
   return (
     <section className="space-y-6">
@@ -59,10 +53,7 @@ export default function PagePortefeuille() {
           <h1 className="titre text-2xl">Portefeuille</h1>
           <p className="text-encre-2">Date simulée : {date(p.maintenant, true)}</p>
         </div>
-        <div className="flex items-center gap-3">
-          <Simule quoi="Horloge et paiements simulés" />
-          <Bouton variante="trait" onClick={avancer} disabled={avance}>{avance ? "…" : "Avancer de 7 jours"}</Bouton>
-        </div>
+        <Simule quoi="Horloge et paiements simulés" />
       </header>
       <dl className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <Indicateur l="Encours" v={fcfa(p.encours)} />

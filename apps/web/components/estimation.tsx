@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import type { Analyse, Institution } from "@/lib/types";
+import type { Analyse, InstitutionPublique } from "@/lib/types";
 import { fcfa, pct } from "@/lib/format";
 
-export function ChoixInstitution({ institutions, valeur, onChange }: { institutions: Institution[]; valeur: string; onChange: (v: string) => void }) {
+export function ChoixInstitution({ institutions, valeur, onChange }: { institutions: InstitutionPublique[]; valeur: string; onChange: (v: string) => void }) {
   return (
     <label className="block text-sm text-encre-2">
       Selon les règles de

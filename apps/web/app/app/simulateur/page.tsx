@@ -90,7 +90,7 @@ export default function Simulateur() {
               </div>
               <div>
                 <dt className="text-sm text-encre-2">Risque au montant souhaité</dt>
-                <dd className={`montant text-2xl ${s && s.risque > a.parametres.seuil_risque ? "text-terre" : ""}`}>{pct(s?.risque ?? 0, 1)}</dd>
+                <dd className={`montant text-2xl ${s?.au_dessus_du_seuil ? "text-terre" : ""}`}>{pct(s?.risque ?? 0, 1)}</dd>
                 <dd className="text-xs text-encre-2">part des avenirs simulés avec une échéance manquée</dd>
               </div>
             </dl>

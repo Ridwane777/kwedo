@@ -62,7 +62,7 @@ export default function Fiche() {
     if (!type) return;
     setEnvoi({ etat: "envoi" });
     try {
-      await api(`/dossiers/${id}/decisions`, { body: { type, motif, montant_decide: type === "ajuste" ? montant : undefined }, acteur: "agent.demo" });
+      await api(`/dossiers/${id}/decisions`, { body: { type, motif, montant_decide: type === "ajuste" ? montant : undefined } });
       setDuree((performance.now() - debut.current) / 1000);
       setEnvoi({ etat: "idle" });
       await recharger();

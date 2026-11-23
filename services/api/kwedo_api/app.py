@@ -19,14 +19,15 @@ from fastapi import FastAPI, Request
 from fastapi.responses import Response
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from . import auth
 from .service import ErreurMetier, Service
 
 ROUTES = []
 
 
-def route(methode, motif):
+def route(methode, motif, acces):
     def deco(f):
-        ROUTES.append((methode, re.compile("^" + motif + "$"), f))
+        ROUTES.append((methode, re.compile("^" + motif + "$"), f, acces))
         return f
     return deco
 
@@ -35,137 +36,272 @@ def _int(v):
     return int(v) if v not in (None, "") else None
 
 
-@route("GET", r"/sante")
+# ---------- contrôle d'accès (ADR 0009) : chaque route déclare sa règle, appliquée avant la logique métier ----------
+def public(s, u, b, pp):
+    return None
+
+
+def _pro(u, *roles):
+    if not u["pro"]:
+        raise ErreurMetier(401, "connexion requise")
+    if u["pro"]["role"] not in roles:
+        raise ErreurMetier(403, "action non autorisée pour ce rôle")
+    return u["pro"]
+
+
+def _proprietaire(u, cid):
+    if not u["com"]:
+        raise ErreurMetier(401, "connexion requise")
+    if u["com"]["commercant_id"] != cid:
+        raise ErreurMetier(403, "ce profil n'est pas le vôtre")
+
+
+def admin(s, u, b, pp):
+    _pro(u, "admin")
+
+
+def equipe(s, u, b, pp):
+    _pro(u, "agent", "responsable")
+
+
+def connecte_pro(s, u, b, pp):
+    _pro(u, "agent", "responsable", "admin")
+
+
+def commercant_du_chemin(s, u, b, pp):
+    _proprietaire(u, pp["cid"])
+
+
+def commercant_du_corps(s, u, b, pp):
+    _proprietaire(u, b.get("commercant_id", ""))
+
+
+def equipe_institution(s, u, b, pp):
+    if _pro(u, "agent", "responsable")["institution_id"] != pp["inst"]:
+        raise ErreurMetier(403, "ces paramètres appartiennent à une autre institution")
+
+
+def responsable_institution(s, u, b, pp):
+    if _pro(u, "responsable")["institution_id"] != pp["inst"]:
+        raise ErreurMetier(403, "seul le responsable de cette institution peut modifier ses paramètres")
+
+
+def equipe_dossier(s, u, b, pp):
+    p = _pro(u, "agent", "responsable")
+    if not s.un("SELECT 1 FROM dossiers WHERE id = ? AND institution_id = ?", pp["did"], p["institution_id"]):
+        raise ErreurMetier(404, "dossier inconnu")  # même réponse qu'un dossier inexistant
+
+
+def commercant_du_dossier(s, u, b, pp):
+    d = s.un("SELECT commercant_id FROM dossiers WHERE id = ?", pp["did"])
+    if not d or not u["com"] or u["com"]["commercant_id"] != d["commercant_id"]:
+        if not u["com"]:
+            raise ErreurMetier(401, "connexion requise")
+        raise ErreurMetier(404, "dossier inconnu")
+
+
+def _voit_credit(s, u, cr):
+    c = s.un("SELECT commercant_id, institution_id FROM credits WHERE id = ?", cr)
+    if not c:
+        return False
+    return bool((u["com"] and u["com"]["commercant_id"] == c["commercant_id"])
+                or (u["pro"] and u["pro"]["institution_id"] == c["institution_id"]))
+
+
+def lecteur_credit(s, u, b, pp):
+    if not u["com"] and not u["pro"]:
+        raise ErreurMetier(401, "connexion requise")
+    if not _voit_credit(s, u, pp["cr"]):
+        raise ErreurMetier(404, "crédit inconnu")
+
+
+def payeur_credit(s, u, b, pp):
+    c = s.un("SELECT commercant_id FROM credits WHERE id = ?", pp["cr"])
+    if not u["com"]:
+        raise ErreurMetier(401, "connexion requise")
+    if not c or c["commercant_id"] != u["com"]["commercant_id"]:
+        raise ErreurMetier(404, "crédit inconnu")
+
+
+def equipe_echeance(s, u, b, pp):
+    p = _pro(u, "agent", "responsable")
+    if not s.un("SELECT 1 FROM echeances e JOIN credits c ON c.id = e.credit_id WHERE e.id = ? AND c.institution_id = ?",
+                int(pp["eid"]), p["institution_id"]):
+        raise ErreurMetier(404, "échéance inconnue")
+
+
+# ---------- sessions ----------
+@route("GET", r"/auth/profils", public)
+def profils(s, q, b, h):
+    noms = {i["id"]: i["nom"] for i in s.q("SELECT id, nom FROM institutions")}
+    return [{"id": k, "role": p["role"], "nom": p["nom"], "institution": noms.get(p["institution_id"])} for k, p in auth.PROFILS.items()]
+
+
+@route("POST", r"/auth/connexion", public)
+def connexion_profil(s, q, b, h):
+    p = auth.PROFILS.get(b.get("profil", ""))
+    if not p:
+        raise ErreurMetier(422, "profil inconnu")
+    u = {**p, "profil": b["profil"]}
+    return {"role": p["role"], "_cookies": {auth.COOKIES[auth.espace(u)]: auth.signer(u)}}
+
+
+@route("GET", r"/auth/moi", public)
+def moi(s, q, b, h):
+    com, pro = h["com"], h["pro"]
+    if com and not s.un("SELECT 1 FROM commercants WHERE id = ?", com["commercant_id"]):
+        com = None  # profil inscrit effacé par une réinitialisation de la démo
+    if pro and pro["institution_id"]:
+        pro = {**pro, "institution": s.un("SELECT nom FROM institutions WHERE id = ?", pro["institution_id"])["nom"]}
+    return {"commercant": com, "pro": pro}
+
+
+@route("POST", r"/auth/deconnexion", public)
+def deconnexion(s, q, b, h):
+    if b.get("espace") not in auth.COOKIES:
+        raise ErreurMetier(422, "espace : com ou pro")
+    return {"ok": True, "_cookies": {auth.COOKIES[b["espace"]]: None}}
+
+
+@route("GET", r"/sante", public)
 def sante(s, q, b, h):
     return {"ok": True, "maintenant": s.maintenant().isoformat(), "donnees": "simulees"}
 
 
-@route("POST", r"/demo/reinitialiser")
+@route("POST", r"/demo/reinitialiser", admin)
 def demo_reset(s, q, b, h):
     return s.reinitialiser()
 
 
-@route("POST", r"/demo/avancer")
+@route("POST", r"/demo/avancer", admin)
 def demo_avancer(s, q, b, h):
     return s.avancer(int(b.get("jours", 7)))
 
 
-@route("GET", r"/institutions")
+@route("GET", r"/institutions", public)
 def institutions(s, q, b, h):
     return s.institutions()
 
 
-@route("POST", r"/commercants")
+@route("POST", r"/commercants", public)
 def inscrire(s, q, b, h):
-    return s.inscrire(b.get("nom", ""), b.get("telephone", ""), b.get("type_activite", "tissus"), bool(b.get("compte_separe", True)))
+    c = s.inscrire(b.get("nom", ""), b.get("telephone", ""), b.get("type_activite", "tissus"), bool(b.get("compte_separe", True)))
+    u = {"role": "commercant", "nom": c["nom"], "login": c["id"], "commercant_id": c["id"], "institution_id": None, "profil": "inscription"}
+    return {**c, "_cookies": {auth.COOKIES["com"]: auth.signer(u)}}
 
 
-@route("GET", r"/commercants/(?P<cid>[\w-]+)")
+@route("GET", r"/commercants/(?P<cid>[\w-]+)", commercant_du_chemin)
 def commercant(s, q, b, h, cid):
     return s.tableau_de_bord(cid)
 
 
-@route("POST", r"/commercants/(?P<cid>[\w-]+)/connexion-flux")
+@route("POST", r"/commercants/(?P<cid>[\w-]+)/connexion-flux", commercant_du_chemin)
 def connexion(s, q, b, h, cid):
     return s.connecter_flux(cid, int(b.get("semaines", 30)))
 
 
-@route("POST", r"/commercants/(?P<cid>[\w-]+)/canal")
+@route("POST", r"/commercants/(?P<cid>[\w-]+)/canal", commercant_du_chemin)
 def canal(s, q, b, h, cid):
     return s.choisir_canal(cid, b.get("canal", ""))
 
 
-@route("GET", r"/commercants/(?P<cid>[\w-]+)/estimation")
+@route("GET", r"/commercants/(?P<cid>[\w-]+)/estimation", commercant_du_chemin)
 def estimation(s, q, b, h, cid):
     return s.estimation(cid, q.get("institution_id", "inst-lagune"), float(q.get("choc_ventes", 0) or 0), _int(q.get("montant_souhaite")))
 
 
-@route("GET", r"/commercants/(?P<cid>[\w-]+)/consentements")
+@route("GET", r"/commercants/(?P<cid>[\w-]+)/consentements", commercant_du_chemin)
 def consentements(s, q, b, h, cid):
     return s.consentements(cid)
 
 
-@route("POST", r"/commercants/(?P<cid>[\w-]+)/consentements")
+@route("POST", r"/commercants/(?P<cid>[\w-]+)/consentements", commercant_du_chemin)
 def consentir(s, q, b, h, cid):
     return s.consentir(cid, b.get("institution_id", ""), b.get("action", ""))
 
 
-@route("GET", r"/commercants/(?P<cid>[\w-]+)/dossiers/(?P<did>[\w-]+)")
+@route("GET", r"/commercants/(?P<cid>[\w-]+)/dossiers/(?P<did>[\w-]+)", commercant_du_chemin)
 def offre_commercant(s, q, b, h, cid, did):
     return s.offre(cid, did)
 
 
-@route("GET", r"/dossiers")
+@route("GET", r"/dossiers", equipe)
 def file(s, q, b, h):
-    return s.file(q.get("institution_id"), q.get("statut"), q.get("tri", "priorite"))
+    return s.file(h["institution"], q.get("statut"), q.get("tri", "priorite"))
 
 
-@route("POST", r"/dossiers")
+@route("POST", r"/dossiers", commercant_du_corps)
 def envoyer(s, q, b, h):
-    return s.envoyer_dossier(b.get("commercant_id", ""), b.get("institution_id", ""))
+    d = s.envoyer_dossier(b.get("commercant_id", ""), b.get("institution_id", ""))
+    return {k: d[k] for k in ("id", "institution_id", "statut")}  # jamais les alertes côté commerçant
 
 
-@route("GET", r"/dossiers/(?P<did>[\w-]+)")
+@route("GET", r"/dossiers/(?P<did>[\w-]+)", equipe_dossier)
 def dossier(s, q, b, h, did):
-    return s.dossier(did, acteur=h.get("X-Acteur", "agent.demo"))
+    return s.dossier(did, acteur=h["X-Acteur"])
 
 
-@route("GET", r"/dossiers/(?P<did>[\w-]+)/rejouer")
+@route("GET", r"/dossiers/(?P<did>[\w-]+)/rejouer", equipe_dossier)
 def rejouer(s, q, b, h, did):
     return s.rejouer(did)
 
 
-@route("POST", r"/dossiers/(?P<did>[\w-]+)/decisions")
+@route("POST", r"/dossiers/(?P<did>[\w-]+)/decisions", equipe_dossier)
 def decider(s, q, b, h, did):
-    return s.decider(did, b.get("type", ""), b.get("auteur") or h.get("X-Acteur", "agent.demo"), b.get("motif", ""),
+    return s.decider(did, b.get("type", ""), h["X-Acteur"], b.get("motif", ""),
                      _int(b.get("montant_decide")), _int(b.get("duree_semaines")))
 
 
-@route("POST", r"/dossiers/(?P<did>[\w-]+)/offre")
+@route("POST", r"/dossiers/(?P<did>[\w-]+)/offre", commercant_du_dossier)
 def offre(s, q, b, h, did):
-    return s.repondre_offre(did, b.get("reponse", ""), _int(b.get("montant")))
+    r = s.repondre_offre(did, b.get("reponse", ""), _int(b.get("montant")))
+    return s.offre(r["commercant_id"], did) if "analyse" in r else r
 
 
-@route("GET", r"/credits/(?P<cr>[\w-]+)")
+@route("GET", r"/credits/(?P<cr>[\w-]+)", lecteur_credit)
 def credit(s, q, b, h, cr):
     return s.credit(cr)
 
 
-@route("POST", r"/credits/(?P<cr>[\w-]+)/paiements")
+@route("POST", r"/credits/(?P<cr>[\w-]+)/paiements", payeur_credit)
 def payer(s, q, b, h, cr):
     return s.payer(cr, int(b.get("montant", 0)))
 
 
-@route("POST", r"/echeances/(?P<eid>\d+)/interventions")
+@route("POST", r"/echeances/(?P<eid>\d+)/interventions", equipe_echeance)
 def intervenir(s, q, b, h, eid):
-    return s.intervenir(int(eid), b.get("auteur") or h.get("X-Acteur", "agent.demo"), b.get("motif", ""),
-                        b.get("nouvelle_date"), b.get("statut"))
+    return s.intervenir(int(eid), h["X-Acteur"], b.get("motif", ""), b.get("nouvelle_date"), b.get("statut"))
 
 
-@route("GET", r"/portefeuille")
+@route("GET", r"/portefeuille", equipe)
 def portefeuille(s, q, b, h):
-    return s.portefeuille(q.get("institution_id"))
+    return s.portefeuille(h["institution"])
 
 
-@route("POST", r"/relances/executer")
+@route("POST", r"/relances/executer", admin)
 def relances(s, q, b, h):
     return s.executer_relances()
 
 
-@route("GET", r"/institutions/(?P<inst>[\w-]+)/parametres")
+@route("GET", r"/institutions/(?P<inst>[\w-]+)/parametres", equipe_institution)
 def params(s, q, b, h, inst):
     return {"actifs": s.parametres(inst), "historique": s.historique_parametres(inst)}
 
 
-@route("POST", r"/institutions/(?P<inst>[\w-]+)/parametres")
+@route("POST", r"/institutions/(?P<inst>[\w-]+)/parametres", responsable_institution)
 def nv_params(s, q, b, h, inst):
     kw = {k: b[k] for k in ("m", "s", "n", "i", "percentile", "seuil_risque") if k in b}
-    return s.nouveaux_parametres(inst, b.get("auteur") or h.get("X-Acteur", "responsable.demo"), **kw)
+    return s.nouveaux_parametres(inst, h["X-Acteur"], **kw)
 
 
-@route("GET", r"/journal")
+@route("GET", r"/journal", connecte_pro)
 def journal(s, q, b, h):
-    return s.journal(int(q.get("limite", 200)))
+    return s.journal(int(q.get("limite", 200)), h["institution"], expurge=h["role"] == "admin")
+
+
+@route("GET", r"/admin/apercu", admin)
+def admin_apercu(s, q, b, h):
+    return s.apercu_admin()
 
 
 CODES_201 = ("/dossiers", "/decisions", "/paiements")
@@ -173,9 +309,16 @@ PARAM = re.compile(r"\(\?P<(\w+)>([^)]+)\)")
 
 
 def _json(statut: int, corps, t0: float) -> Response:
+    cookies = corps.pop("_cookies", {}) if isinstance(corps, dict) else {}
     data = json.dumps(corps, ensure_ascii=False, default=str).encode()
-    return Response(data, status_code=statut, media_type="application/json; charset=utf-8",
-                    headers={"Server-Timing": f"app;dur={(time.perf_counter() - t0) * 1000:.1f}"})
+    r = Response(data, status_code=statut, media_type="application/json; charset=utf-8",
+                 headers={"Server-Timing": f"app;dur={(time.perf_counter() - t0) * 1000:.1f}"})
+    for nom, valeur in cookies.items():
+        if valeur is None:
+            r.delete_cookie(nom, path="/")
+        else:
+            r.set_cookie(nom, valeur, max_age=auth.DUREE, path="/", httponly=True, samesite="lax")
+    return r
 
 
 def fabriquer(service: Service) -> FastAPI:
@@ -184,7 +327,7 @@ def fabriquer(service: Service) -> FastAPI:
     app = FastAPI(title="Kwedo API", version="0.2.0", description="Données 100 % simulées.")
     verrou = threading.Lock()  # SQLite + une seule connexion : sérialiser les requêtes suffit au prototype
 
-    def monter(methode, motif, f):
+    def monter(methode, motif, f, acces):
         source = motif.pattern[1:-1]
         params = {m.group(1): re.compile("^" + m.group(2) + "$") for m in PARAM.finditer(source)}
         chemin = PARAM.sub(lambda m: "{" + m.group(1) + "}", source)
@@ -201,14 +344,19 @@ def fabriquer(service: Service) -> FastAPI:
                     raise ValueError("objet JSON attendu")
             except (ValueError, UnicodeDecodeError) as e:
                 return _json(422, {"erreur": f"requête invalide : {e}"}, t0)
-            return await _executer(f, dict(request.query_params), b, dict(request.headers), pp,
+            return await _executer(f, acces, dict(request.query_params), b, dict(request.cookies), pp,
                                    201 if methode == "POST" and request.url.path.endswith(CODES_201) else 200, t0)
 
         app.add_api_route(chemin, point, methods=[methode], name=f.__name__, include_in_schema=True)
 
-    def _appel(f, q, b, h, pp, code, t0):
+    def _appel(f, acces, q, b, cookies, pp, code, t0):
+        u = {e: auth.lire(cookies.get(nom)) for e, nom in auth.COOKIES.items()}
+        # Contexte construit ici depuis les sessions signées : aucun en-tête client n'y entre.
+        qui = u["pro"] or u["com"] or {}
+        h = {**u, "X-Acteur": qui.get("login"), "institution": (u["pro"] or {}).get("institution_id"), "role": qui.get("role")}
         try:
             with verrou:
+                acces(service, u, b, pp)
                 return _json(code, f(service, q, b, h, **pp), t0)
         except ErreurMetier as e:
             return _json(e.statut, {"erreur": e.message}, t0)
@@ -222,8 +370,8 @@ def fabriquer(service: Service) -> FastAPI:
         from starlette.concurrency import run_in_threadpool
         return await run_in_threadpool(_appel, *args)
 
-    for methode, motif, f in ROUTES:
-        monter(methode, motif, f)
+    for methode, motif, f, acces in ROUTES:
+        monter(methode, motif, f, acces)
 
     @app.exception_handler(StarletteHTTPException)
     async def introuvable(request: Request, exc: StarletteHTTPException):

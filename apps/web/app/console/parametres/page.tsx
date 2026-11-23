@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Bouton, Chargement, Erreur } from "@/components/ui";
 import { api, useApi } from "@/lib/api";
 import { date, pct } from "@/lib/format";
+import { ROLES, useSession } from "@/lib/session";
 import type { Institution } from "@/lib/types";
 
 type P = Institution["parametres"];
@@ -17,20 +18,22 @@ const CHAMPS: { k: keyof P; l: string; aide: string; min: number; max: number; p
 ];
 
 export default function Parametres() {
-  const [inst, setInst] = useState("inst-lagune");
-  const insts = useApi<Institution[]>("/institutions");
-  const hist = useApi<{ actifs: P; historique: P[] }>(`/institutions/${inst}/parametres`);
+  const session = useSession();
+  const moi = session?.pro ?? null;
+  const inst = moi?.institution_id ?? null;
+  const modifiable = moi?.role === "responsable";
+  const hist = useApi<{ actifs: P; historique: P[] }>(inst ? `/institutions/${inst}/parametres` : null);
   const [f, setF] = useState<P | null>(null);
   const [msg, setMsg] = useState<{ ok: boolean; t: string } | null>(null);
   useEffect(() => { if (hist.donnees) setF(hist.donnees.actifs); }, [hist.donnees]);
 
-  if (insts.erreur || hist.erreur) return <Erreur message={(insts.erreur ?? hist.erreur)!} />;
-  if (!insts.donnees || !hist.donnees || !f) return <Chargement lignes={6} />;
+  if (hist.erreur) return <Erreur message={hist.erreur} />;
+  if (!moi || !hist.donnees || !f) return <Chargement lignes={6} />;
 
   async function enregistrer(e: React.FormEvent) {
     e.preventDefault(); setMsg(null);
     try {
-      await api(`/institutions/${inst}/parametres`, { body: { ...f, auteur: "responsable.demo" } });
+      await api(`/institutions/${inst}/parametres`, { body: f });
       setMsg({ ok: true, t: "Nouvelle version enregistrée. Elle s'applique aux prochains dossiers ; les décisions passées gardent leurs paramètres." });
       await hist.recharger();
     } catch (er) { setMsg({ ok: false, t: er instanceof Error ? er.message : "Erreur" }); }
@@ -42,24 +45,20 @@ export default function Parametres() {
         <h1 className="titre text-2xl">Paramètres du moteur</h1>
         <p className="text-encre-2">Formule : R = C<sub>p</sub> × m × s · L<sub>max</sub> = R × (1 − (1 + i)<sup>−n</sup>) / i. Chaque modification crée une version, jamais une réécriture.</p>
       </header>
-      <label className="block w-80">Institution
-        <select value={inst} onChange={(e) => setInst(e.target.value)} className="mt-1 block w-full rounded-lg border border-trait bg-papier-2 px-2 py-1.5">
-          {insts.donnees.map((i) => <option key={i.id} value={i.id}>{i.nom}</option>)}
-        </select>
-      </label>
+      <p className="rounded-lg bg-papier-2 px-3 py-2">Réglages de <strong>{moi.institution}</strong>, visibles par cette seule institution.{!modifiable && ` Votre rôle (${ROLES[moi.role]}) permet de les lire ; seul le responsable crédit peut les modifier.`}</p>
       <form onSubmit={enregistrer} className="grid max-w-3xl gap-x-6 gap-y-3 md:grid-cols-2">
         {CHAMPS.map((c) => (
           <label key={c.k} className="block">
             <span className="font-medium">{c.l}</span>
-            <input type="number" min={c.min} max={c.max} step={c.pas} value={f[c.k] as number}
+            <input type="number" disabled={!modifiable} min={c.min} max={c.max} step={c.pas} value={f[c.k] as number}
               onChange={(e) => setF({ ...f, [c.k]: Number(e.target.value) })}
-              className="chiffres mt-1 block w-full rounded-lg border border-trait bg-papier px-2 py-1.5" />
+              className="chiffres mt-1 block w-full rounded-lg border border-trait bg-papier px-2 py-1.5 disabled:bg-papier-2" />
             <span className="text-[11px] text-encre-2">{c.aide}</span>
           </label>
         ))}
         <div className="md:col-span-2">
           {msg && <p role={msg.ok ? "status" : "alert"} className={msg.ok ? "text-feuille" : "text-terre"}>{msg.t}</p>}
-          <Bouton type="submit" className="mt-2">Enregistrer une nouvelle version</Bouton>
+          {modifiable && <Bouton type="submit" className="mt-2">Enregistrer une nouvelle version</Bouton>}
         </div>
       </form>
       <div>
