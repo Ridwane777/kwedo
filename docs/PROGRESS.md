@@ -32,7 +32,7 @@ terminé du cahier n'est pas entièrement satisfaite (critère 5). Option pruden
 | C2 | Modèles | fait | 9cd2a17 | LightGBM (4 fils, `nice -n 10`) vs NumPy sur le réglage : AUC 0,923 vs 0,917, Brier 0,088 vs 0,094 ; prévision 10,05 % vs 10,27 % ; ADR 0007 remplace 0003 | — |
 | C3 | Calibration | fait (réglage) / ❌ au run final | 9cd2a17 | Cause : dépenses perso absentes de la simulation + marge supposée trop haute (`ml/artifacts/diagnostic-calibration.json`) ; isotonique sur partition b : ECE 0,017 sur le réglage, **0,089 au run final** | dérive du générateur de test |
 | C4 | Décision | fait / ❌ hors réglage | 9cd2a17, 5ea6a00 | Run final 1 : 0,93 % vs 1,25 / 1,23 % sur le test complet (IC excluant 0) ; hors réglage 1,41 % vs 1,43 / 1,40 % (non significatif) ; plafond ≤ L_max ; raisons 100 % fidèles ; équité 40/40 | critères 1-2 non atteints hors réglage |
-| C5 | Temps de traitement | fait | ac8ff67 | Chronomètre dans la fiche dossier, « non mesuré » par défaut, export CSV/JSON ; `e2e/chronometre.spec.ts` OK. Temps humain : **non mesuré** | — |
+| C5 | Temps de traitement | fait | ac8ff67 | Chronomètre dans la fiche dossier, « non mesuré » par défaut, export CSV/JSON ; `e2e/chronometre.spec.ts` OK. Temps humain : **non mesuré**. **Retiré depuis** sur décision produit (mission menu de compte), sans avoir servi | — |
 | C6 | Mise à jour | fait | voir git log | Évaluation, performance, Définition de terminé, rétrospective, README, ce fichier | — |
 
 **Runs finaux : 1 sur 3, en échec** (`docs/evaluation/runs/run-1.json`). Pas de run 2 : voir la rétrospective (corriger
@@ -71,3 +71,28 @@ peut inférer approximativement les réglages d'une institution par essais rép�
 
 Calculs, droits d'accès et contrat d'API inchangés. Limite : le test du chronomètre a échoué une fois par délai
 d'attente sous charge (passé seul puis dans la suite complète) ; à surveiller.
+
+## Relecture de l'interface (`docs/RELECTURE-INTERFACE.md`, branche `finition`)
+
+| # | Correction | Preuve |
+|---|---|---|
+| 0 | Acceptation de l'offre | Non reproduite en 5 passages. Faille du produit trouvée : après un accord réussi, le bouton se réactivait et la page attendait une navigation sans rien montrer ; si elle tardait, le commerçant restait sur l'offre (un second clic aurait renvoyé « aucune offre en attente »). Corrigé : `/app/credit` préchargé, écran « Offre acceptée » avec lien de secours, bouton jamais réactivé, erreur affichée avec « Réessayer ». Parcours rejoué 5 fois : 15/15 |
+| 1 | Mots collés | Cause mesurée : l'espace d'Instrument Sans vaut 0,17 em (2 px à 12 px). Police de texte remplacée par Public Sans (a2d9cb5) ; contrôlé sur captures 360 et 1440 px |
+| 2–4 | Barre latérale | Fond porté par la colonne pleine hauteur, raccourcis non compressibles, nom d'institution sur deux lignes au besoin |
+| 5 | « ← FileÉchap » | « ← Retour à la file » + touche Échap séparée |
+| — | Fiche de décision | Synthèse (montant, risque contre seuil, recommandation), alertes, « ce qui a pesé » (avec l'avertissement de hausse à côté de son montant) et décision au premier écran à 1440 × 900 ; indicateurs, courbe, chaîne de calcul, modèles et journal d'accès en onglets ARIA (flèches, Début, Fin). Sur téléphone, la décision suit les raisons |
+| — | Admin | Événements identiques consécutifs regroupés (« 5 fois »), institutions en liste compacte |
+| — | Démo | Étiquette courte à 360 px ; captures prises une fois les iframes chargées |
+| — | Vérification | build OK, `test:api` 16/16, `npx playwright test` **40/40** ; revue des écrans étendue à l'offre et au crédit en cours |
+
+## Menu de compte, icônes, thème, retrait du chronomètre (`docs/MISSION-MENU-COMPTE.md`, branche `finition`)
+
+| # | Demande | Preuve |
+|---|---|---|
+| 0 | Relecture précédente | entièrement traitée (voir section précédente) ; captures désormais dans `.captures/revue-finale/` |
+| 1 | `UserButton` | `components/user-button.tsx`, seul menu de compte du commerçant, de la console et de l'admin ; « Quitter » et les « Changer de profil » permanents supprimés. Pastille de 48 px, menu ARIA (flèches, Début, Fin, Échap, clic extérieur, focus rendu). Déconnexion réelle puis `location.replace` ; page restaurée du cache rechargée. Masqué dans les iframes de la démo. Défaut trouvé : le raccourci global « Entrée » de la file captait l'Entrée du bouton ; les raccourcis n'interceptent plus Entrée/Espace sur un bouton ou un lien. `e2e/compte.spec.ts` : 3 espaces × 360/1440, refus de l'API et retour arrière vérifiés |
+| 2 | Icônes | `lucide-react` (20 px, trait 1,75) ; `BoutonIcone`/`LienIcone` (aria-label, infobulle au survol et au focus, 48/44 px) pour retour, précédent, suivant, trier, réessayer, réinitialiser, avancer l'horloge, replier, voir le calcul, reprogrammer ; icône + libellé pour envoyer, accepter, décliner, payer, enregistrer, se déconnecter. SVG faits main en doublon retirés (la marque reste). Défaut trouvé : les infobulles invisibles élargissaient la page ; elles sont retirées de la mise en page hors survol |
+| 3 | Chronomètre | composant, usage, exports et `e2e/chronometre.spec.ts` supprimés ; « Dossier traité en… » remplacé par « Décision enregistrée au journal. » ; README, évaluation, protocole, rétrospective, performance, Définition de terminé alignés : **gain de temps humain non mesuré, non annoncé** |
+| 4 | Thème | Clair / Sombre / Système via `data-theme`, script avant rendu (aucun flash), `localStorage` protégé, Système suit le téléphone en direct (CSS), iframes synchronisées. Contrastes AA mesurés dans les deux thèmes (`scripts/contrastes.mjs`) ; axe sur tous les écrans principaux en clair et en sombre (`e2e/qualite.spec.ts`) ; persistance testée |
+| 5 | ADR | 0010 restauré tel que sur `main`, statut seul annoté ; ADR 0011 (Public Sans) ajouté à l'index |
+| — | Vérification | build OK, `test:api` OK, `npx playwright test` **83/83** ; 178 captures (chaque écran et rôle, 360/1440, clair/sombre, offre, crédit en cours, 9 temps de démo, menus ouverts) dans `.captures/revue-finale/` |

@@ -1,5 +1,6 @@
 "use client";
 
+import { Wallet, FileText } from "lucide-react";
 import { useState } from "react";
 import { Bouton, Chargement, Erreur, LienBouton, Pastille, Simule, Vide } from "@/components/ui";
 import { api, useApi } from "@/lib/api";
@@ -41,7 +42,7 @@ function CarteCredit({ c, canal, onChange }: { c: Credit; canal: string; onChang
           <p className="montant text-3xl">{fcfa(du)}</p>
           {recu && <p role="status" className="text-bon">Paiement reçu. Reçu n° {recu}</p>}
           {err && <p role="alert" className="text-alerte">{err}</p>}
-          <Bouton grand className="w-full" disabled={envoi || du <= 0} onClick={payer}>{envoi ? "Paiement…" : `Payer ${fcfa(du)} par mobile money`}</Bouton>
+          <Bouton grand icone={Wallet} className="w-full" disabled={envoi || du <= 0} onClick={payer}>{envoi ? "Paiement…" : `Payer ${fcfa(du)} par mobile money`}</Bouton>
           <Simule quoi="Paiement simulé : aucun argent ne circule" />
         </div>
       ) : <p className="rounded-2xl bg-bon-doux p-5 text-bon">Crédit entièrement remboursé. Bravo.</p>}
@@ -92,7 +93,7 @@ export default function PageCredit() {
     <section className="space-y-7">
       <h1 className="titre text-3xl">Mon crédit</h1>
       {!donnees.credits.length ? (
-        <Vide titre="Pas de crédit en cours"><p>Quand vous acceptez une offre, votre échéancier apparaît ici.</p><LienBouton href="/app/dossier" variante="trait" className="mt-3">Voir mes demandes</LienBouton></Vide>
+        <Vide titre="Pas de crédit en cours"><p>Quand vous acceptez une offre, votre échéancier apparaît ici.</p><LienBouton href="/app/dossier" variante="trait" icone={FileText} className="mt-3">Voir mes demandes</LienBouton></Vide>
       ) : donnees.credits.map((c) => <CarteCredit key={c.id} c={c} canal={canal} onChange={recharger} />)}
       <fieldset className="space-y-2 border-t border-trait pt-5" disabled={majCanal}>
         <legend className="titre text-lg">Comment recevoir mes rappels</legend>

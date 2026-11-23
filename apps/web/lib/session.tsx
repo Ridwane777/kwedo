@@ -12,13 +12,21 @@ export const ROLES: Record<Utilisateur["role"], string> = { commercant: "Commer�
 
 export function useSession() {
   const [session, setSession] = useState<Session | null>(null);
-  useEffect(() => { void api<Session>("/auth/moi").then(setSession).catch(() => setSession({ commercant: null, pro: null })); }, []);
+  useEffect(() => {
+    void api<Session>("/auth/moi").then(setSession).catch(() => setSession({ commercant: null, pro: null }));
+    // Retour arrière après déconnexion : une page restaurée depuis le cache du navigateur est rechargée,
+    // donc la session est relue et l'espace fermé ne se rouvre pas.
+    const retour = (e: PageTransitionEvent) => { if (e.persisted) window.location.reload(); };
+    window.addEventListener("pageshow", retour);
+    return () => window.removeEventListener("pageshow", retour);
+  }, []);
   return session;
 }
 
 export async function deconnecter(espace: "com" | "pro") {
   await api("/auth/deconnexion", { body: { espace } });
-  window.location.assign("/connexion");
+  // replace : la page de l'espace fermé quitte l'historique.
+  window.location.replace("/connexion");
 }
 
 /** Confort d'affichage : renvoie vers la bonne page. La protection des données est faite par l'API. */

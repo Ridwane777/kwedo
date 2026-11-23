@@ -15,9 +15,12 @@ test.beforeAll(async ({ browser }) => {
   await page.close();
 });
 
+for (const theme of ["light", "dark"] as const)
 for (const [largeur, pages] of [[360, COMMERCANT], [1440, [...COMMERCANT.slice(0, 1), ...CONSOLE, "FICHE"]]] as const) {
   for (const chemin of pages) {
-    test(`a11y + capture ${chemin} @${largeur}`, async ({ page }) => {
+    test(`a11y + capture ${chemin} @${largeur} ${theme}`, async ({ page }) => {
+      // Thème choisi avant le premier rendu, comme le ferait le script de la page après un choix mémorisé.
+      await page.addInitScript((t) => { try { localStorage.setItem("kwedo-theme", t); } catch {} }, theme);
       await connecter(page.request, "commercant", chemin === "/admin" ? "admin" : "agent-lagune");
       let url: string = chemin;
       if (chemin === "FICHE") {
@@ -30,7 +33,8 @@ for (const [largeur, pages] of [[360, COMMERCANT], [1440, [...COMMERCANT.slice(0
       await page.goto(url);
       await page.waitForLoadState("networkidle");
       await page.waitForTimeout(1500);
-      await page.screenshot({ path: `${CAP}/q-${url.replace(/[^\w]+/g, "_")}-${largeur}.png`, fullPage: true });
+      expect(await page.evaluate(() => document.documentElement.dataset.theme)).toBe(theme);
+      await page.screenshot({ path: `${CAP}/q-${url.replace(/[^\w]+/g, "_")}-${largeur}-${theme}.png`, fullPage: true });
       const res = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).exclude("iframe").analyze();
       const graves = res.violations.filter((v) => v.impact === "serious" || v.impact === "critical");
       const resume = graves.map((v) => `${v.id} (${v.impact}) : ${v.nodes.slice(0, 3).map((n) => n.target.join(" ")).join(" | ")}`);

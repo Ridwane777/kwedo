@@ -1,5 +1,6 @@
 "use client";
 
+import { Send } from "lucide-react";
 import { Chargement, Erreur, LienBouton, Simule } from "@/components/ui";
 import { useApi } from "@/lib/api";
 import { useCommercant } from "@/lib/commercant";
@@ -48,7 +49,7 @@ export default function Conseils() {
           <dt className="text-encre-2">Exclu : transferts vers vous-même</dt><dd className="chiffres text-right">{fcfa(a.indicateurs.exclu_transferts_soi)}</dd>
         </dl>
       </div>
-      <LienBouton href="/app/dossier" grand className="w-full">Envoyer mon dossier</LienBouton>
+      <LienBouton href="/app/dossier" grand icone={Send} className="w-full">Envoyer mon dossier</LienBouton>
     </section>
   );
 }

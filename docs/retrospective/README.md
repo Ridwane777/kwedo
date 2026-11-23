@@ -48,7 +48,8 @@ boosting ; passer l'API sur FastAPI si autorisé (réécriture de `app.py` seule
 **Fait** : API sur FastAPI sans changement de contrat (ADR 0006) ; dépendances épinglées dans `.venv` ; défaut et
 prévision sur LightGBM, comparés à NumPy (ADR 0007) ; cause de la sous-estimation trouvée (dépenses personnelles
 absentes de la simulation, marge supposée trop haute) et calibration isotonique sur une partition dédiée ; montant
-fixé par le risque calibré sous `L_max` (ADR 0008) ; chronomètre humain exportable (C5).
+fixé par le risque calibré sous `L_max` (ADR 0008) ; chronomètre humain exportable (C5), retiré depuis sur
+décision produit sans avoir servi : le gain de temps humain reste non mesuré.
 
 **Résultat, dit tel quel** : protocole et graines figés avant le run ; **1 run final**, en échec. Le moteur bat
 nettement les deux règles naïves sur l'ensemble du générateur de test (0,93 % d'échéances manquées contre ≈ 1,24 %,
@@ -65,4 +66,4 @@ indirectement sur le test. Nous avons préféré publier l'échec plutôt que de
 au run final).
 
 **Ensuite** : calibrer sur de vrais remboursements d'une institution pilote, par activité ; prévoir une marge de
-prudence explicite pour les activités sans historique de remboursement ; mesurer le temps humain avec le chronomètre.
+prudence explicite pour les activités sans historique de remboursement ; mesurer le temps humain selon `docs/evaluation/protocole-temps.md`, avec un chronomètre externe.

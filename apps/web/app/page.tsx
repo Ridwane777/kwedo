@@ -2,6 +2,7 @@ import Link from "next/link";
 import { CourbeFlux } from "@/components/courbe-flux";
 import { Marque } from "@/components/motif";
 import { Simule } from "@/components/ui";
+import { BoutonTheme } from "@/components/user-button";
 
 // Série d'exemple, simulée, uniquement illustrative (même forme que l'écran commerçant).
 const EXEMPLE = [182, 205, 176, 230, 214, 198, 252, 268, 231, 219, 204, 246, 262, 289, 255, 237, 221, 249, 301, 334, 276, 258, 247, 266, 281, 240]
@@ -68,7 +69,8 @@ export default function Accueil() {
       <header className="flex items-center justify-between gap-3 py-5">
         <Marque />
         <nav className="flex items-center gap-1 text-sm sm:gap-2" aria-label="Accès">
-          <Link href="/connexion" className="whitespace-nowrap rounded-lg px-2 py-2.5 font-medium hover:bg-surface-2 sm:px-3">Se connecter</Link>
+          <BoutonTheme />
+          <Link href="/connexion" className="hidden whitespace-nowrap rounded-lg px-3 py-2.5 font-medium hover:bg-surface-2 sm:inline-block">Se connecter</Link>
           <Link href="/demo" className="whitespace-nowrap rounded-lg bg-encre px-2.5 py-2.5 font-semibold text-fond sm:px-3">Démo guidée</Link>
         </nav>
       </header>

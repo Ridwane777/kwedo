@@ -4,9 +4,9 @@ import { usePathname, useRouter } from "next/navigation";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { Chargement } from "@/components/ui";
 import { COMMERCANT_DEMO } from "./api";
-import { useSession } from "./session";
+import { useSession, type Utilisateur } from "./session";
 
-const Ctx = createContext<{ id: string; changer: (id: string) => void }>({ id: COMMERCANT_DEMO, changer: () => {} });
+const Ctx = createContext<{ id: string; changer: (id: string) => void; u: Utilisateur | null }>({ id: COMMERCANT_DEMO, changer: () => {}, u: null });
 
 /** Identité du commerçant connecté, lue dans la session signée (ADR 0009). */
 export function FournisseurCommercant({ children }: { children: ReactNode }) {
@@ -21,7 +21,7 @@ export function FournisseurCommercant({ children }: { children: ReactNode }) {
     else if (!inscription) router.replace(`/connexion?suite=${encodeURIComponent(chemin)}`);
   }, [session, inscription, router, chemin]);
   if (!id && !inscription) return <Chargement lignes={5} />;
-  return <Ctx.Provider value={{ id: id ?? "", changer: setId }}>{children}</Ctx.Provider>;
+  return <Ctx.Provider value={{ id: id ?? "", changer: setId, u: session?.commercant ?? null }}>{children}</Ctx.Provider>;
 }
 
 export const useCommercant = () => useContext(Ctx);

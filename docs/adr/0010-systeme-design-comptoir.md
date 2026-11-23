@@ -1,6 +1,6 @@
 # ADR 0010 : système de design « comptoir » à la place du « registre vivant »
 
-- Statut : accepté
+- Statut : accepté ; choix de la police d'interface remplacé par l'ADR 0011
 - Date : 2026-11-23
 
 ## Contexte

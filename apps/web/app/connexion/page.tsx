@@ -1,9 +1,11 @@
 "use client";
 
+import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import { Marque } from "@/components/motif";
+import { BoutonTheme } from "@/components/user-button";
 import { Chargement, Erreur, Simule } from "@/components/ui";
 import { connecter, useApi } from "@/lib/api";
 import { ROLES, type Utilisateur } from "@/lib/session";
@@ -61,7 +63,7 @@ function Choix() {
                   </span>
                   {envoi === p.id
                     ? <span className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-marque border-t-transparent" aria-label="Connexion en cours" />
-                    : <svg aria-hidden="true" className="shrink-0 text-encre-3" width="18" height="18" viewBox="0 0 20 20"><path d="M7 4l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>}
+                    : <ChevronRight aria-hidden="true" size={20} strokeWidth={1.75} className="shrink-0 text-encre-3" />}
                 </button>
               </li>
             ))}
@@ -87,7 +89,7 @@ export default function Connexion() {
       <div className="mx-auto w-full max-w-xl px-5 py-6 lg:py-12">
         <header className="flex items-center justify-between gap-3 pb-6 lg:justify-end">
           <Link href="/" aria-label="Accueil Kwedo" className="lg:hidden"><Marque /></Link>
-          <Simule quoi="Profils fictifs" />
+          <div className="flex items-center gap-2"><Simule quoi="Profils fictifs" /><BoutonTheme /></div>
         </header>
         <main>
           <h1 className="titre text-[2.25rem] leading-tight">Se connecter</h1>

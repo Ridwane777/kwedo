@@ -1,26 +1,29 @@
 "use client";
 
+import { BarChart3, Calculator, CreditCard, FileText, TrendingUp, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Marque } from "@/components/motif";
 import { Simule } from "@/components/ui";
-import { deconnecter } from "@/lib/session";
+import { BoutonTheme, UserButton } from "@/components/user-button";
+import { useCommercant } from "@/lib/commercant";
 
-const LIENS = [
-  { href: "/app", label: "Estimation", icone: "M4 18l5-6 4 3 7-9" },
-  { href: "/app/simulateur", label: "Simuler", icone: "M4 12h16M12 4v16" },
-  { href: "/app/dossier", label: "Dossier", icone: "M6 3h9l3 3v15H6zM9 12h6M9 16h6" },
-  { href: "/app/credit", label: "Crédit", icone: "M3 7h18v10H3zM3 11h18" },
-  { href: "/app/activite", label: "Activité", icone: "M4 20V10M10 20V4M16 20v-7M22 20H2" },
+const LIENS: { href: string; label: string; icone: LucideIcon }[] = [
+  { href: "/app", label: "Estimation", icone: TrendingUp },
+  { href: "/app/simulateur", label: "Simuler", icone: Calculator },
+  { href: "/app/dossier", label: "Dossier", icone: FileText },
+  { href: "/app/credit", label: "Crédit", icone: CreditCard },
+  { href: "/app/activite", label: "Activité", icone: BarChart3 },
 ];
 
 export function EnteteCommercant() {
+  const { u } = useCommercant();
   return (
-    <header className="flex items-center justify-between px-5 pb-3 pt-4">
+    <header className="relative z-20 flex items-center justify-between gap-2 px-5 pb-3 pt-4">
       <Link href="/app" aria-label="Accueil Kwedo"><Marque taille={26} /></Link>
       <div className="flex items-center gap-2">
         <Simule quoi="Démo simulée" />
-        <button onClick={() => void deconnecter("com")} className="min-h-11 rounded-lg px-2 text-sm font-medium text-encre-2 hover:text-encre">Quitter</button>
+        {u ? <UserButton u={u} espace="com" /> : <BoutonTheme />}
       </div>
     </header>
   );
@@ -33,12 +36,13 @@ export function NavCommercant() {
       <ul className="mx-auto grid max-w-md grid-cols-5">
         {LIENS.map((l) => {
           const actif = l.href === "/app" ? chemin === "/app" : chemin.startsWith(l.href);
+          const Icone = l.icone;
           return (
             <li key={l.href}>
               <Link href={l.href} aria-current={actif ? "page" : undefined}
                 className={`flex min-h-16 flex-col items-center justify-center gap-1 text-[11px] font-semibold ${actif ? "text-marque" : "text-encre-2"}`}>
                 <span className={`flex h-8 w-14 items-center justify-center rounded-full transition ${actif ? "bg-marque-doux" : ""}`}>
-                  <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={actif ? 2.2 : 1.7} strokeLinecap="round" strokeLinejoin="round"><path d={l.icone} /></svg>
+                  <Icone aria-hidden="true" size={20} strokeWidth={actif ? 2.25 : 1.75} />
                 </span>
                 {l.label}
               </Link>

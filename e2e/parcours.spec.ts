@@ -53,7 +53,7 @@ test("parcours complet : estimation → décision → offre → remboursement �
   await agent.getByLabel(/Justificatif/).fill("Saison creuse en janvier : prudence sur le montant.");
   await agent.getByRole("button", { name: "Enregistrer la décision" }).click();
   await expect(agent.getByText("« Saison creuse en janvier : prudence sur le montant. »")).toBeVisible();
-  await expect(agent.getByText(/Dossier traité en/)).toBeVisible();
+  await expect(agent.getByText("Décision enregistrée au journal.")).toBeVisible();
   await capture(agent, "4-decision");
 
   // Le second dossier montre une alerte de manipulation

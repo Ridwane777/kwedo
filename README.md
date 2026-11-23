@@ -62,7 +62,7 @@ après un redémarrage de l'API.
 npm run test:engine                                                   # moteur (14 tests)
 npm run test:gen                                                      # générateur (7)
 npm run test:api                                                      # API FastAPI et cloisonnement (16)
-npx playwright install chromium && npx playwright test                # E2E, accessibilité, chronomètre, écrans par rôle à 360/1440 px (38), ports 3462/3463
+npx playwright install chromium && npx playwright test                # E2E, accessibilité en clair et en sombre, menu de compte, thème, écrans par rôle à 360/1440 px, ports 3462/3463
 ```
 
 ## Évaluer

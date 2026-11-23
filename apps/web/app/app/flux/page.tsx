@@ -1,5 +1,6 @@
 "use client";
 
+import { Link2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Bouton, Simule } from "@/components/ui";
@@ -40,7 +41,7 @@ export default function Flux() {
       </label>
       {etat === "fait" && <p role="status" className="text-bon">{msg}</p>}
       {etat === "erreur" && <p role="alert" className="text-alerte">{msg}</p>}
-      <Bouton grand className="w-full" disabled={!accord || etat === "envoi" || etat === "fait"} onClick={connecter}>
+      <Bouton grand icone={Link2} className="w-full" disabled={!accord || etat === "envoi" || etat === "fait"} onClick={connecter}>
         {etat === "envoi" ? "Connexion…" : "Autoriser et connecter"}
       </Bouton>
       <p className="text-sm text-encre-2">Factures e-MECeF : prévues plus tard (phase 2).</p>
