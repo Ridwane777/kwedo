@@ -1,9 +1,10 @@
 import type { Metadata, Viewport } from "next";
-import { Bricolage_Grotesque, Instrument_Sans } from "next/font/google";
+import { Bricolage_Grotesque, Public_Sans } from "next/font/google";
 import "./globals.css";
 
 const titre = Bricolage_Grotesque({ subsets: ["latin"], variable: "--font-titre", axes: ["wdth", "opsz"], display: "swap" });
-const texte = Instrument_Sans({ subsets: ["latin"], variable: "--font-texte", display: "swap" });
+// Public Sans : espace de mot normale (Instrument Sans collait les mots en petit corps, voir docs/design.md).
+const texte = Public_Sans({ subsets: ["latin"], variable: "--font-texte", display: "swap" });
 
 export const metadata: Metadata = {
   title: { default: "Kwedo — crédit au rythme de vos ventes", template: "%s · Kwedo" },
