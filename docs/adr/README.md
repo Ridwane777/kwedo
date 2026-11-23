@@ -10,3 +10,4 @@
 | [0006](0006-api-fastapi.md) | API sur FastAPI | accepté |
 | [0007](0007-modeles-lightgbm.md) | Modèles de défaut et de prévision sur LightGBM | accepté (remplace 0003) |
 | [0008](0008-decision-risque-calibre.md) | Plafond fixé par le risque calibré, sous la formule | accepté (remplace la modulation de 0005) |
+| [0009](0009-comptes-roles-cloisonnement.md) | Profils de démonstration, rôles et cloisonnement des institutions (pas d'authentification) | accepté |

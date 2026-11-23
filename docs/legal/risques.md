@@ -12,3 +12,18 @@
 | Hébergement / transfert hors du Bénin | Règle non trouvée | À vérifier auprès de l'APDP avant pilote | Ouvert |
 | Usurpation d'identité | Cas rapportés (CIO Mag, juin 2026) | Vérification d'identité renforcée | Simulé ; phase 2 |
 | Données mobile money d'un tiers | Accord opérateur requis | Accès autorisé par le commerçant, canal à négocier | Simulé |
+
+## Accès et cloisonnement (ADR 0009)
+
+**Le choix de profil n'est pas une authentification : pas de mot de passe.** Le cloisonnement est réel (appliqué
+par l'API, testé), mais n'importe quel visiteur peut choisir n'importe quel profil. Acceptable uniquement sur
+données fictives.
+
+| Risque | Gravité | Parade dans le prototype | Reste à faire avant pilote |
+|---|---|---|---|
+| Usurpation de profil (aucun mot de passe) | Critique hors démo | Données 100 % fictives ; avertissement sur `/connexion` | Authentification réelle (OTP SMS commerçant, comptes nominatifs + 2FA prêteurs) |
+| Une institution lit ou modifie les données d'une autre | Élevée | Règles par route, institution lue dans la session signée, 404 hors périmètre ; tests croisés | Revue externe, tests d'intrusion |
+| Fuite des réglages ou du risque vers le commerçant | Moyenne (secret des affaires) | Champs internes retirés, textes moteur réécrits à la frontière ; test dédié | Limitation de débit contre l'inférence par essais répétés |
+| Admin qui lit des données personnelles | Élevée (minimisation, loi 2017-20) | Agrégats et journal expurgé seulement | Journalisation des accès admin |
+| Vol de session | Moyenne | Cookie HttpOnly, SameSite=Lax, HMAC, 12 h | HTTPS + `Secure`, révocation côté serveur, secret fixe et protégé |
+| Énumération des numéros à l'inscription (409 si déjà inscrit) | Faible | — | Réponse uniforme + vérification par OTP |

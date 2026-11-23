@@ -1,72 +1,49 @@
 openapi: 3.1.0
 info:
   title: Kwedo API (prototype, données simulées)
-  version: 0.1.0
+  version: 0.3.0
+  description: |
+    Accès (ADR 0009) : session signée dans un cookie HttpOnly, `kwedo_commercant` (espace commerçant) ou `kwedo_pro`
+    (agent, responsable, admin), obtenue par POST /auth/connexion. LE CHOIX DE PROFIL N'EST PAS UNE AUTHENTIFICATION :
+    pas de mot de passe, n'importe quel visiteur peut choisir n'importe quel profil. Le cloisonnement est appliqué
+    par l'API. Les en-têtes client (X-Acteur, X-Institution) sont ignorés.
+    Codes : 401 sans session, 403 rôle insuffisant, 404 pour une ressource hors périmètre (comme si elle n'existait pas).
+    `x-acces` indique la règle de chaque opération.
 servers:
   - url: http://127.0.0.1:3460
-paths:
-  /commercants/{id}/estimation:
-    get:
-      summary: Estimation (indicateurs, plafond, risque, raisons, conseils)
-      parameters:
-        - {name: id, in: path, required: true, schema: {type: string}}
-        - {name: institution_id, in: query, schema: {type: string}}
-        - {name: choc_ventes, in: query, schema: {type: number, minimum: -0.9, maximum: 0}}
-        - {name: montant_souhaite, in: query, schema: {type: integer}}
-      responses: {'200': {content: {application/json: {schema: {$ref: '#/components/schemas/Analyse'}}}}}
-  /commercants/{id}/consentements:
-    get: {summary: Liste des consentements, responses: {'200': {description: ok}}}
-    post:
-      summary: Accorder ou retirer un consentement
-      requestBody: {content: {application/json: {schema: {type: object, required: [institution_id, action], properties: {institution_id: {type: string}, action: {enum: [accorde, retire]}}}}}}
-      responses: {'201': {description: enregistré}}
-  /dossiers:
-    get: {summary: File de dossiers (filtre institution, statut, tri), responses: {'200': {description: ok}}}
-    post:
-      summary: Envoi du dossier (exige un consentement actif)
-      requestBody: {content: {application/json: {schema: {type: object, required: [commercant_id, institution_id], properties: {commercant_id: {type: string}, institution_id: {type: string}}}}}}
-      responses: {'201': {description: créé}, '403': {description: pas de consentement}}
-  /dossiers/{id}:
-    get: {summary: Fiche analysée (journalise l'accès), responses: {'200': {description: ok}}}
-  /dossiers/{id}/decisions:
-    post:
-      summary: Décision humaine (ajout seul)
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [type, auteur, motif]
-              properties:
-                type: {enum: [valide, ajuste, refuse, complement]}
-                montant_decide: {type: integer}
-                duree_semaines: {type: integer}
-                auteur: {type: string}
-                motif: {type: string, minLength: 10}
-      responses: {'201': {description: enregistrée}, '422': {description: justificatif manquant}}
-  /dossiers/{id}/offre:
-    post:
-      summary: Réponse du commerçant à l'offre (accepte crée crédit + échéancier + décaissement simulé)
-      requestBody: {content: {application/json: {schema: {type: object, properties: {reponse: {enum: [accepte, refuse]}}}}}}
-      responses: {'200': {description: ok}}
-  /credits/{id}:
-    get: {summary: Crédit, échéancier, paiements, relances, responses: {'200': {description: ok}}}
-  /credits/{id}/paiements:
-    post: {summary: Paiement mobile money simulé, responses: {'201': {description: reçu}}}
-  /portefeuille:
-    get: {summary: Indicateurs portefeuille (payées, retard, PAR30), responses: {'200': {description: ok}}}
-  /relances/executer:
-    post: {summary: Tâche planifiée de relance (journal, simulé), responses: {'200': {description: ok}}}
-  /institutions/{id}/parametres:
-    get: {summary: Paramètres actifs, responses: {'200': {description: ok}}}
-    post: {summary: Nouvelle version de paramètres, responses: {'201': {description: ok}}}
-  /journal:
-    get: {summary: Journal d'audit (décisions, accès, interventions), responses: {'200': {description: ok}}}
-  /demo/reinitialiser:
-    post: {summary: Recharge le jeu de démo figé, responses: {'200': {description: ok}}}
 components:
+  securitySchemes:
+    commercant: {type: apiKey, in: cookie, name: kwedo_commercant}
+    pro: {type: apiKey, in: cookie, name: kwedo_pro}
   schemas:
+    Estimation:
+      description: Vue commerçant. Jamais m, s, percentile, seuil, L_max, R, recommandation, graine, alertes ni modèles.
+      type: object
+      properties:
+        version_moteur: {type: string}
+        parametres: {type: object, properties: {n: {type: integer}, i: {type: number}}}
+        provisoire: {type: boolean}
+        indicateurs: {type: object}
+        encaissement_prudent: {type: integer}
+        echeance_hebdo: {type: integer}
+        plafond: {type: integer}
+        duree_semaines: {type: integer}
+        cout_total: {type: integer}
+        raisons: {type: array, items: {type: object, properties: {code: {type: string}, texte: {type: string}, effet: {type: integer}}}}
+        conseils: {type: array, items: {type: string}}
+        serie_hebdo: {type: array, items: {type: integer}}
+        chaine_calcul: {type: array, items: {type: string}}
+        souhait:
+          type: object
+          properties:
+            montant: {type: integer}
+            echeance: {type: integer}
+            atteignable: {type: boolean}
+            au_dessus_du_seuil: {type: boolean}
+            manque: {type: array, items: {type: string}}
+        institution_id: {type: string}
     Analyse:
+      description: Vue prêteur (fiche dossier), réservée à l'équipe de l'institution du dossier.
       type: object
       properties:
         version_moteur: {type: string}
@@ -82,4 +59,112 @@ components:
         raisons: {type: array, items: {type: object, properties: {code: {type: string}, texte: {type: string}, effet: {type: integer}}}}
         conseils: {type: array, items: {type: string}}
         alertes: {type: array, items: {type: object, properties: {code: {type: string}, texte: {type: string}}}}
+        modeles: {type: object}
         serie_hebdo: {type: array, items: {type: integer}}
+paths:
+  /auth/profils:
+    get: {summary: Profils de démonstration (id, rôle, nom, institution), x-acces: public, responses: {'200': {description: ok}}}
+  /auth/connexion:
+    post:
+      summary: Choisir un profil de démonstration (pose le cookie de l'espace)
+      x-acces: public
+      requestBody: {content: {application/json: {schema: {type: object, required: [profil], properties: {profil: {enum: [commercant, agent-lagune, responsable-lagune, agent-baobab, responsable-baobab, admin]}}}}}}
+      responses: {'200': {description: ok}, '422': {description: profil inconnu}}
+  /auth/moi:
+    get: {summary: Sessions en cours (commerçant, pro), x-acces: public, responses: {'200': {description: ok}}}
+  /auth/deconnexion:
+    post:
+      summary: Efface le cookie d'un espace
+      x-acces: public
+      requestBody: {content: {application/json: {schema: {type: object, properties: {espace: {enum: [com, pro]}}}}}}
+      responses: {'200': {description: ok}}
+  /sante:
+    get: {summary: Santé du service, x-acces: public, responses: {'200': {description: ok}}}
+  /institutions:
+    get: {summary: Liste publique (id, nom ; jamais les réglages), x-acces: public, responses: {'200': {description: ok}}}
+  /commercants:
+    post: {summary: Inscription (ouvre la session commerçant), x-acces: public, responses: {'200': {description: ok}, '409': {description: numéro déjà inscrit}}}
+  /commercants/{id}:
+    get: {summary: Tableau de bord du commerçant, x-acces: le commerçant lui-même, security: [{commercant: []}], responses: {'200': {description: ok}, '401': {description: sans session}, '403': {description: autre commerçant}}}
+  /commercants/{id}/connexion-flux:
+    post: {summary: Connexion des flux mobile money (simulée), x-acces: le commerçant lui-même, security: [{commercant: []}], responses: {'200': {description: ok}}}
+  /commercants/{id}/canal:
+    post: {summary: Canal de contact, x-acces: le commerçant lui-même, security: [{commercant: []}], responses: {'200': {description: ok}}}
+  /commercants/{id}/estimation:
+    get:
+      summary: Estimation (vue commerçant expurgée)
+      x-acces: le commerçant lui-même
+      security: [{commercant: []}]
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string}}
+        - {name: institution_id, in: query, schema: {type: string}}
+        - {name: choc_ventes, in: query, schema: {type: number, minimum: -0.9, maximum: 0}}
+        - {name: montant_souhaite, in: query, schema: {type: integer}}
+      responses: {'200': {content: {application/json: {schema: {$ref: '#/components/schemas/Estimation'}}}}}
+  /commercants/{id}/consentements:
+    get: {summary: Liste des consentements, x-acces: le commerçant lui-même, security: [{commercant: []}], responses: {'200': {description: ok}}}
+    post:
+      summary: Accorder ou retirer un consentement
+      x-acces: le commerçant lui-même
+      security: [{commercant: []}]
+      requestBody: {content: {application/json: {schema: {type: object, required: [institution_id, action], properties: {institution_id: {type: string}, action: {enum: [accorde, retire]}}}}}}
+      responses: {'200': {description: enregistré}}
+  /commercants/{id}/dossiers/{dossier}:
+    get: {summary: Vue commerçant d'un dossier (statut, offre, raisons ; sans alertes ni réglages), x-acces: le commerçant du dossier, security: [{commercant: []}], responses: {'200': {description: ok}, '404': {description: inconnu ou hors périmètre}}}
+  /dossiers:
+    get: {summary: File de dossiers de l'institution de la session (filtre statut, tri), x-acces: agent ou responsable, security: [{pro: []}], responses: {'200': {description: ok}}}
+    post:
+      summary: Envoi du dossier (exige un consentement actif)
+      x-acces: le commerçant du corps (commercant_id)
+      security: [{commercant: []}]
+      requestBody: {content: {application/json: {schema: {type: object, required: [commercant_id, institution_id], properties: {commercant_id: {type: string}, institution_id: {type: string}}}}}}
+      responses: {'201': {description: créé (id, institution_id, statut)}, '403': {description: pas de consentement ou autre commerçant}}
+  /dossiers/{id}:
+    get: {summary: Fiche analysée (journalise l'accès), x-acces: équipe de l'institution du dossier, security: [{pro: []}], responses: {'200': {content: {application/json: {schema: {$ref: '#/components/schemas/Analyse'}}}}, '404': {description: inconnu ou hors périmètre}}}
+  /dossiers/{id}/rejouer:
+    get: {summary: Rejoue l'analyse (audit), x-acces: équipe de l'institution du dossier, security: [{pro: []}], responses: {'200': {description: ok}}}
+  /dossiers/{id}/decisions:
+    post:
+      summary: Décision humaine (ajout seul ; auteur = login de la session)
+      x-acces: agent ou responsable de l'institution du dossier
+      security: [{pro: []}]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [type, motif]
+              properties:
+                type: {enum: [valide, ajuste, refuse, complement]}
+                montant_decide: {type: integer}
+                duree_semaines: {type: integer}
+                motif: {type: string, minLength: 10}
+      responses: {'201': {description: enregistrée}, '404': {description: hors périmètre}, '422': {description: justificatif manquant}}
+  /dossiers/{id}/offre:
+    post:
+      summary: Réponse du commerçant à l'offre (accepte crée crédit + échéancier + décaissement simulé)
+      x-acces: le commerçant du dossier
+      security: [{commercant: []}]
+      requestBody: {content: {application/json: {schema: {type: object, properties: {reponse: {enum: [accepte, refuse]}, montant: {type: integer}}}}}}
+      responses: {'200': {description: ok}, '404': {description: hors périmètre}}
+  /credits/{id}:
+    get: {summary: Crédit, échéancier, paiements, relances, x-acces: le commerçant du crédit ou l'équipe de son institution, responses: {'200': {description: ok}, '404': {description: hors périmètre}}}
+  /credits/{id}/paiements:
+    post: {summary: Paiement mobile money simulé, x-acces: le commerçant du crédit, security: [{commercant: []}], responses: {'201': {description: reçu}, '404': {description: hors périmètre}}}
+  /echeances/{id}/interventions:
+    post: {summary: Reprogrammer ou requalifier une échéance (tracé), x-acces: équipe de l'institution du crédit, security: [{pro: []}], responses: {'200': {description: ok}, '404': {description: hors périmètre}}}
+  /portefeuille:
+    get: {summary: Indicateurs portefeuille de l'institution de la session, x-acces: agent ou responsable, security: [{pro: []}], responses: {'200': {description: ok}}}
+  /institutions/{id}/parametres:
+    get: {summary: Paramètres actifs et historique, x-acces: équipe de cette institution, security: [{pro: []}], responses: {'200': {description: ok}, '403': {description: autre institution ou admin}}}
+    post: {summary: Nouvelle version de paramètres, x-acces: responsable de cette institution, security: [{pro: []}], responses: {'200': {description: ok}, '403': {description: agent, autre institution ou admin}}}
+  /journal:
+    get: {summary: "Journal d'audit : celui de l'institution de la session, ou vue expurgée pour l'admin (ni dossier, ni nom, ni valeur)", x-acces: agent, responsable ou admin, security: [{pro: []}], responses: {'200': {description: ok}}}
+  /admin/apercu:
+    get: {summary: Supervision (volumes agrégés, santé, journal expurgé), x-acces: admin, security: [{pro: []}], responses: {'200': {description: ok}}}
+  /relances/executer:
+    post: {summary: Tâche planifiée de relance (simulée), x-acces: admin, security: [{pro: []}], responses: {'200': {description: ok}}}
+  /demo/avancer:
+    post: {summary: Avance l'horloge simulée, x-acces: admin, security: [{pro: []}], responses: {'200': {description: ok}}}
+  /demo/reinitialiser:
+    post: {summary: Recharge le jeu de démo figé, x-acces: admin, security: [{pro: []}], responses: {'200': {description: ok}}}

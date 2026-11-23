@@ -44,13 +44,25 @@ npm --workspace apps/web run build && npm --workspace apps/web run start   # web
 
 Puis ouvrir `/demo` (scénario guidé), `/app` (commerçant, pensé pour 360 px) ou `/console` (prêteur).
 
+## Accès et profils (ADR 0009)
+
+`/connexion` propose six profils fictifs : commerçant, agent et responsable de deux institutions (Lagune, Baobab),
+admin général. L'API fait respecter les droits (session signée en cookie HttpOnly) : une institution ne voit que ses
+dossiers, crédits, portefeuille, paramètres et journal ; seul le responsable modifie les paramètres ; le commerçant
+ne reçoit jamais m, s, percentile, seuil, L_max, R, alertes ni modèles ; l'admin supervise sans lire de dossier, de
+nom de commerçant ni de valeur de réglage.
+
+**Limite : le choix de profil n'est pas une authentification (pas de mot de passe).** Le cloisonnement est réel,
+mais n'importe quel visiteur peut choisir n'importe quel profil. Définir `KWEDO_SECRET` pour garder les sessions
+après un redémarrage de l'API.
+
 ## Tester
 
 ```
 npm run test:engine                                                   # moteur (14 tests)
 npm run test:gen                                                      # générateur (7)
-npm run test:api                                                      # API FastAPI (6)
-npx playwright install chromium && npx playwright test                # E2E + accessibilité + chronomètre (20), ports 3462/3463
+npm run test:api                                                      # API FastAPI et cloisonnement (16)
+npx playwright install chromium && npx playwright test                # E2E, accessibilité, chronomètre, écrans par rôle à 360/1440 px (38), ports 3462/3463
 ```
 
 ## Évaluer
