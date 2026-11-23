@@ -45,3 +45,17 @@ la dérive demanderait de rapprocher le réglage des réglages connus du génér
 - `pip install` dans `.venv` : refusé par la politique de permissions de la session. Option prudente :
   tout en Python pur + NumPy + bibliothèque standard (ADR 0003, 0004).
 - `npm install` et le réseau git fonctionnent.
+
+## Mission accès : comptes, cloisonnement, admin général (`docs/MISSION-ACCES.md`, branche `cloisonnement`)
+
+| # | Étape | Statut | Commit | Preuve |
+|---|---|---|---|---|
+| A1 | Corrections de types, build, tests | fait | 666e235 | `npm run build:web` OK ; `npm run test:api` 12/12 ; `npx playwright test` 24/24 |
+| A2 | Audit route par route | fait | cadcf53 | Trous fermés : l'estimation commerçant renvoyait R (plafond et montant souhaité), la recommandation et la graine ; textes moteur citant R, le seuil, s et un encaissement requis (→ m × s) réécrits à la frontière de l'API (moteur inchangé). Tests ajoutés : crédits, échéances, offres, commandes de démo, champs internes. `test:api` 16/16 |
+| A3 | Revue des écrans | fait | c8dc63a | `e2e/ecrans.spec.ts` : `/connexion`, `/admin`, console × 4 profils, 9 temps de `/demo`, à 360 et 1440 px, 0 erreur JS, 0 débordement. Défaut trouvé : toute la console et la démo débordaient à 360 px (barre latérale fixe, iframe de 560 px). Corrigé : onglets défilants, cartes de dossiers et d'institutions sur téléphone, tableaux défilants |
+| A4 | Documentation | fait | 78df9d9 | ADR 0009 + index, `openapi.yaml` (règle `x-acces` par route), README, `docs/legal/risques.md` |
+| A5 | Vérification finale | fait | — | build OK ; `test:api` 16/16 ; `npx playwright test` **38/38** (ports 3462/3463) |
+
+**Limite : le choix de profil n'est pas une authentification (pas de mot de passe).** Le cloisonnement est réel et
+testé par appels directs, mais n'importe quel visiteur peut choisir n'importe quel profil. Résiduel : un commerçant
+peut inférer approximativement les réglages d'une institution par essais répétés (voir ADR 0009).
