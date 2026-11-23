@@ -1,0 +1,153 @@
+{
+ "run": "1",
+ "graines": [
+  816161778,
+  806274696,
+  341036788,
+  231911821,
+  628112296,
+  836514728,
+  244473717,
+  116045976,
+  996047360,
+  450619151
+ ],
+ "commercants_par_graine": 400,
+ "avertissement": "Données simulées (générateur de test). Pas une performance réelle.",
+ "machine": {
+  "python": "3.12.3",
+  "numpy": "1.26.4",
+  "fils": 4,
+  "gpu": "aucun"
+ },
+ "test_complet": {
+  "n": 4000,
+  "moteur": {
+   "accordes": 3950,
+   "montant_total": 1842820000,
+   "part_echeances_manquees": 0.00927
+  },
+  "naive_moyenne_x_k": {
+   "k": 1.8424,
+   "accordes": 4000,
+   "montant_total": 1842819999,
+   "part_echeances_manquees": 0.01245,
+   "difference_moteur_moins_regle": -0.00318,
+   "ic95_bootstrap": [
+    -0.00429,
+    -0.0021
+   ],
+   "critere1_moteur_inferieur": true,
+   "critere2_ic_exclut_zero": true
+  },
+  "naive_mediane_x_k": {
+   "k": 1.8912,
+   "accordes": 4000,
+   "montant_total": 1842819999,
+   "part_echeances_manquees": 0.01228,
+   "difference_moteur_moins_regle": -0.00301,
+   "ic95_bootstrap": [
+    -0.00416,
+    -0.00191
+   ],
+   "critere1_moteur_inferieur": true,
+   "critere2_ic_exclut_zero": true
+  }
+ },
+ "archetypes_hors_reglage": {
+  "n": 1130,
+  "moteur": {
+   "accordes": 1130,
+   "montant_total": 513330000,
+   "part_echeances_manquees": 0.01406
+  },
+  "naive_moyenne_x_k": {
+   "k": 1.9306,
+   "accordes": 1130,
+   "montant_total": 513330000,
+   "part_echeances_manquees": 0.01426,
+   "difference_moteur_moins_regle": -0.0002,
+   "ic95_bootstrap": [
+    -0.00153,
+    0.00102
+   ],
+   "critere1_moteur_inferieur": true,
+   "critere2_ic_exclut_zero": false
+  },
+  "naive_mediane_x_k": {
+   "k": 2.0076,
+   "accordes": 1130,
+   "montant_total": 513330000,
+   "part_echeances_manquees": 0.01396,
+   "difference_moteur_moins_regle": 0.0001,
+   "ic95_bootstrap": [
+    -0.00109,
+    0.00116
+   ],
+   "critere1_moteur_inferieur": false,
+   "critere2_ic_exclut_zero": false
+  }
+ },
+ "calibration": {
+  "points": 23700,
+  "ece_10": 0.0894,
+  "ecart_moyen": 0.0792,
+  "classes": [
+   {
+    "classe": "0%–2%",
+    "annonce": 0.0095,
+    "observe": 0.0802,
+    "n": 1110
+   },
+   {
+    "classe": "2%–5%",
+    "annonce": 0.036,
+    "observe": 0.1273,
+    "n": 7688
+   },
+   {
+    "classe": "5%–10%",
+    "annonce": 0.0722,
+    "observe": 0.1761,
+    "n": 7603
+   },
+   {
+    "classe": "10%–20%",
+    "annonce": 0.1538,
+    "observe": 0.2614,
+    "n": 2708
+   },
+   {
+    "classe": "20%–40%",
+    "annonce": 0.2698,
+    "observe": 0.3425,
+    "n": 2797
+   },
+   {
+    "classe": "40%–100%",
+    "annonce": 0.5033,
+    "observe": 0.5323,
+    "n": 1794
+   }
+  ],
+  "critere3": false
+ },
+ "detection": {
+  "n_manipules": 587,
+  "detection": 1.0,
+  "fausses_alertes": 0.0495,
+  "critere4_detection": true
+ },
+ "controles": {
+  "dossiers": 40,
+  "stabilite_p90_variation_bruit_5pct": 0.0464,
+  "raisons_effets_identiques": 1.0,
+  "raisons_triees": 1.0,
+  "raison_formule_coherente": 1.0,
+  "decisions_identiques_activite_changee": "40/40",
+  "variables_sensibles_dans_le_moteur": [],
+  "critere4_stabilite_fidelite_equite": true
+ },
+ "plafond_sous_l_max": "par construction : min(L_max, montant au risque calibré ≤ seuil)",
+ "duree_s": 39.0
+}
