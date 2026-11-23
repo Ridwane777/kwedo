@@ -8,3 +8,5 @@
 | [0004](0004-api-bibliotheque-standard.md) | API sur la bibliothèque standard | remplacé par 0006 |
 | [0005](0005-modulation-modele-defaut.md) | Le modèle de défaut peut baisser le plafond, jamais le monter | accepté |
 | [0006](0006-api-fastapi.md) | API sur FastAPI | accepté |
+| [0007](0007-modeles-lightgbm.md) | Modèles de défaut et de prévision sur LightGBM | accepté (remplace 0003) |
+| [0008](0008-decision-risque-calibre.md) | Plafond fixé par le risque calibré, sous la formule | accepté (remplace la modulation de 0005) |

@@ -1,0 +1,8 @@
+{
+ "note": "Graines tirées au hasard (module secrets) et committées AVANT tout run final. Jamais utilisées pendant le développement. Un jeu par run ; au plus 3 runs. Générateur de test, 400 commerçants par graine.",
+ "runs": {
+  "1": {"graines": [816161778, 806274696, 341036788, 231911821, 628112296, 836514728, 244473717, 116045976, 996047360, 450619151], "commercants_par_graine": 400, "graine_bootstrap": 491146},
+  "2": {"graines": [864181022, 432088182, 821817692, 758612524, 938257593, 646665500, 202024082, 426474510, 515767293, 152670807], "commercants_par_graine": 400, "graine_bootstrap": 797486},
+  "3": {"graines": [334615657, 582963483, 984472668, 803443398, 547981578, 670093582, 799137918, 276859363, 436690941, 686088225], "commercants_par_graine": 400, "graine_bootstrap": 339065}
+ }
+}

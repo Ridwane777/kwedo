@@ -11,10 +11,11 @@ from dataclasses import asdict, dataclass
 
 import numpy as np
 
+from . import decision
 from .flux import flux_verifies, series_hebdo
 from .modeles import appliquer
 
-VERSION = "0.1.0"
+VERSION = "0.2.0"
 PAS = 5_000
 SEMAINES_MIN = 12          # en dessous : estimation provisoire
 SEMAINES_PLEINES = 26      # au-delà : pas de décote d'ancienneté
@@ -95,6 +96,7 @@ def risque_pour_montant(seuils: np.ndarray, montant: float, p: Parametres) -> fl
 
 
 def _plafond(hebdo, p, graine, choc=0.0, decote=1.0):
+    """v0.1 : formule + simulation seule (sans modèle). Conservé comme repli et comme référence d'évaluation."""
     if len(hebdo) == 0 or hebdo.max() <= 0:
         return 0, 0.0, 0.0, 0.0, np.zeros(p.trajectoires)
     c_p = float(np.percentile(hebdo, p.percentile)) * (1 + choc)
@@ -105,6 +107,37 @@ def _plafond(hebdo, p, graine, choc=0.0, decote=1.0):
     brut = max(0.0, min(lmax, l_sim)) * decote
     plafond = int(brut // PAS * PAS)
     return plafond, c_p, lmax, l_sim, seuils
+
+
+def ind_depuis_hebdo(ind: dict, hebdo: np.ndarray) -> dict:
+    """Recalcule les indicateurs qui dépendent de la série hebdomadaire (pour neutraliser un facteur)."""
+    W = len(hebdo)
+    med = float(np.median(hebdo)) if W else 0.0
+    moy = float(hebdo.mean()) if W else 0.0
+    recent = hebdo[-12:]
+    top = np.sort(hebdo)[-max(1, W // 10):] if W else np.zeros(1)
+    return {**ind, "encaissement_median": round(med), "encaissement_moyen": round(moy),
+            "regularite_cv": round(float(hebdo.std() / moy), 3) if moy else 0.0,
+            "tendance_hebdo": round(float(np.polyfit(np.arange(len(recent)), recent, 1)[0] / med), 4) if len(recent) >= 4 and med else 0.0,
+            "saisonnalite": round(float(top.mean() / med - 1), 3) if med else 0.0}
+
+
+def plafond_complet(hebdo, p, graine, ind, fv, choc=0.0, decote=1.0, mod="auto"):
+    """v0.2 : plus grand montant ≤ L_max × décote dont le risque CALIBRÉ reste ≤ seuil (ADR 0008).
+
+    Renvoie (plafond, c_p, lmax, l_risque, seuils, risque_au_plafond, calibre). Sans modèle : v0.1.
+    """
+    mod = decision.charger() if mod == "auto" else mod
+    plafond, c_p, lmax, l_sim, seuils = _plafond(hebdo, p, graine, choc, decote)
+    if mod is None or not c_p:
+        return plafond, c_p, lmax, l_sim, seuils, (risque_pour_montant(seuils, plafond, p) if plafond else 0.0), False
+    base = decision.profil(ind_depuis_hebdo(ind, hebdo), hebdo, fv)
+    p20 = c_p / (1 + choc)
+    a = annuite(p.i, p.n)
+    l_risque, _ = decision.montant_max(mod, base, hebdo, seuils, p20, 2 * lmax, p.seuil_risque, a, PAS, choc)
+    plafond = int(max(0.0, min(lmax, l_risque)) * decote // PAS * PAS)
+    r = float(decision.risque(mod, decision.lignes_montant(base, hebdo, seuils, [plafond / a], p20, choc))[0]) if plafond else 0.0
+    return plafond, c_p, lmax, float(l_risque), seuils, r, True
 
 
 def indicateurs(transactions) -> tuple[dict, np.ndarray, np.ndarray]:
@@ -187,19 +220,15 @@ def analyser(transactions: list[dict], parametres: dict | Parametres | None = No
     ind, hebdo, fv = indicateurs(transactions)
     W = len(hebdo)
     decote = min(1.0, W / SEMAINES_PLEINES) if W else 0.0
-    plafond, c_p, lmax, l_sim, seuils = _plafond(hebdo, p, graine, choc_ventes, decote)
-    risque = risque_pour_montant(seuils, plafond, p) if plafond else 0.0
+    mod = decision.charger() if avec_modeles else None
+    plafond, c_p, lmax, l_sim, seuils, risque, calibre = plafond_complet(hebdo, p, graine, ind, fv, choc_ventes, decote, mod)
     al = alertes(ind, hebdo, fv)
     # Le modèle lit l'historique réel : le choc de ventes est un scénario sur l'avenir, pas un nouvel historique.
-    ml = appliquer(ind, c_p / (1 + choc_ventes), hebdo, fv) if avec_modeles else None
+    ml = appliquer(ind, c_p / (1 + choc_ventes), hebdo, fv, risque if calibre else None) if avec_modeles else None
     if ml and ml["alerte_anomalie"]:
         al.append({"code": "anomalie_modele", "texte": f"Le modèle d'anomalies juge ce profil de flux inhabituel "
                    f"(score {ml['score_anomalie']:.1f}). À examiner : cela ne prouve aucune manipulation."})
     plafond_avant_modele = plafond
-    if ml and p.gamma_modele > 0 and plafond:
-        # Le modèle ne peut que BAISSER le montant : la formule reste le garde-fou.
-        plafond = int(plafond * float(np.exp(-p.gamma_modele * ml["proba_defaut"])) // PAS * PAS)
-        risque = risque_pour_montant(seuils, plafond, p) if plafond else 0.0
     provisoire = W < SEMAINES_MIN
 
     if plafond < PLAFOND_MIN:
@@ -209,13 +238,9 @@ def analyser(transactions: list[dict], parametres: dict | Parametres | None = No
     else:
         reco = "accord"
 
-    raisons = _raisons(hebdo, p, graine, choc_ventes, decote, plafond_avant_modele, ind, c_p, lmax, l_sim) if avec_raisons else []
-    effet_modele = plafond_avant_modele - plafond
-    if avec_raisons and effet_modele > 0:
-        raisons = raisons[:2] + [{"code": "modele_risque", "effet": int(effet_modele),
-                                  "texte": f"Le modèle de risque (entraîné sur données simulées) estime la probabilité d'impayé à "
-                                           f"{_pc(ml['proba_defaut'])} et réduit le montant de {_fcfa(effet_modele)}."}]
-    facteur_modele = plafond / plafond_avant_modele if plafond_avant_modele else 1.0
+    raisons = _raisons(hebdo, p, graine, choc_ventes, decote, plafond, ind, fv, c_p, lmax, l_sim, mod) if avec_raisons else []
+    effet_modele = 0
+    facteur_modele = 1.0
     res = {
         "version_moteur": VERSION,
         "graine": int(graine),
@@ -242,22 +267,32 @@ def analyser(transactions: list[dict], parametres: dict | Parametres | None = No
             f"Encaissement prudent (percentile {p.percentile:g}) : {_fcfa(c_p)} par semaine",
             f"× part restant après coûts m = {p.m:g} × part prélevable s = {p.s:g} → échéance supportable {_fcfa(c_p * p.m * p.s)}",
             f"Sur {p.n} semaines au taux {p.i:.2%} par semaine → plafond théorique {_fcfa(lmax)}",
-            f"Simulation de {p.trajectoires} avenirs : montant au risque ≤ {_pc(p.seuil_risque)} → {_fcfa(l_sim)}",
+            (f"Simulation de {p.trajectoires} avenirs + modèle de risque calibré (entraîné sur données simulées) : "
+             f"montant au risque ≤ {_pc(p.seuil_risque)} → {_fcfa(l_sim)}" if calibre else
+             f"Simulation de {p.trajectoires} avenirs : montant au risque ≤ {_pc(p.seuil_risque)} → {_fcfa(l_sim)}"),
             *( [f"Historique de {W} semaines : décote d'ancienneté × {decote:.2f}"] if decote < 1 else [] ),
-            f"Le plus bas des deux, arrondi à {_fcfa(PAS)} : {_fcfa(plafond_avant_modele)}",
-            *( [f"Modèle de risque : probabilité d'impayé {_pc(ml['proba_defaut'])} → × {facteur_modele:.2f} (ne peut que baisser)"]
-               if effet_modele > 0 else [] ),
-            f"Plafond proposé : {_fcfa(plafond)}",
+            f"Le plus bas des deux, arrondi à {_fcfa(PAS)} (la formule n'est jamais dépassée) : {_fcfa(plafond_avant_modele)}",
+            f"Plafond proposé : {_fcfa(plafond)}, risque d'impayé annoncé {_pc(risque)}",
         ],
     }
     res["conseils"] = conseils(res, p)
     if montant_souhaite:
-        res["souhait"] = souhait(montant_souhaite, hebdo, seuils, c_p, p, decote * facteur_modele)
+        if calibre:
+            base = decision.profil(ind, hebdo, fv)
+            r_souhait = float(decision.risque(mod, decision.lignes_montant(
+                base, hebdo, seuils, [montant_souhaite / annuite(p.i, p.n)], c_p / (1 + choc_ventes), choc_ventes))[0])
+        else:
+            r_souhait = risque_pour_montant(seuils, montant_souhaite, p)
+        res["souhait"] = souhait(montant_souhaite, hebdo, r_souhait, c_p, p, decote * facteur_modele)
     return res
 
 
-def _raisons(hebdo, p, graine, choc, decote, plafond, ind, c_p, lmax, l_sim):
-    """Effet de chaque facteur : plafond recalculé en neutralisant ce facteur, moins plafond actuel."""
+def _raisons(hebdo, p, graine, choc, decote, plafond, ind, fv, c_p, lmax, l_sim, mod=None):
+    """Effet de chaque facteur : plafond recalculé (chaîne complète, modèle compris) en neutralisant ce facteur,
+    moins plafond actuel."""
+    def _plafond(h, p, graine, choc, decote):  # noqa: F811 - même signature, chaîne complète
+        return plafond_complet(h, p, graine, ind, fv, choc, decote, mod)
+
     if len(hebdo) == 0:
         return [{"code": "historique_vide", "effet": 0, "texte": "Aucun encaissement vérifié : pas d'estimation possible pour l'instant."}]
     med = float(np.median(hebdo)) or 1.0
@@ -314,16 +349,15 @@ def conseils(res: dict, p: Parametres) -> list[str]:
     return out[:4]
 
 
-def souhait(montant: int, hebdo, seuils, c_p, p: Parametres, decote: float) -> dict:
-    """Ce qui manque pour obtenir le montant souhaité."""
-    risque = risque_pour_montant(seuils, montant, p)
+def souhait(montant: int, hebdo, risque: float, c_p, p: Parametres, decote: float) -> dict:
+    """Ce qui manque pour obtenir le montant souhaité (risque : celui annoncé par le moteur pour ce montant)."""
     c_p_requis = montant / (p.m * p.s * annuite(p.i, p.n) * max(decote, 1e-9))
     manque = []
     if c_p_requis > c_p:
         manque.append(f"Un encaissement prudent de {_fcfa(c_p_requis)} par semaine (aujourd'hui {_fcfa(c_p)}), "
                       f"soit +{_pc((c_p_requis / c_p - 1) if c_p else 0)} de chiffre d'affaires vérifié sur les mauvaises semaines.")
     if risque > p.seuil_risque:
-        manque.append(f"Des encaissements plus réguliers : à ce montant, {_pc(risque)} des avenirs simulés comptent une échéance manquée "
+        manque.append(f"Des encaissements plus réguliers : à ce montant, le risque d'au moins une échéance manquée est estimé à {_pc(risque)} "
                       f"(limite de l'institution : {_pc(p.seuil_risque)}).")
     if decote < 1:
         manque.append(f"Un historique plus long : {SEMAINES_PLEINES} semaines au lieu de {len(hebdo)}.")

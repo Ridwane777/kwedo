@@ -53,7 +53,38 @@ def carac_prevision(hebdo: np.ndarray) -> np.ndarray:
                      np.log(an + 1) - np.log(med), rec.std() / med])
 
 
-def appliquer(ind: dict, prudent: float, hebdo: np.ndarray, fv: dict) -> dict | None:
+def _prevision_v2(hebdo: np.ndarray, prev: dict) -> float:
+    h = np.pad(hebdo[-52:], (max(0, 52 - len(hebdo)), 0)).astype(float)
+    rec = h[-12:]
+    med = np.median(rec) + 1
+    pente = np.polyfit(np.arange(12), rec / med, 1)[0]
+    x = np.array([1, np.log(med), np.log(h[-4:].mean() + 1), pente, np.log(h[-26:].mean() + 1), rec.std() / med])
+    if prev["moteur"] == "lightgbm":
+        from .decision import charger as charger_risque
+        bst = charger_risque()["prevision"]
+        return float(np.exp(bst.predict(x[None, 1:], num_threads=1)[0]) - 1)
+    return float(np.exp(x @ np.array(prev["ridge"])) - 1)
+
+
+def appliquer(ind: dict, prudent: float, hebdo: np.ndarray, fv: dict, proba_calibree: float | None = None) -> dict | None:
+    """v2 : la probabilité affichée est le risque calibré au plafond, calculé par le moteur (ADR 0007/0008)."""
+    from .decision import charger as charger_risque
+    m2 = charger_risque()
+    if m2 is None:
+        return _appliquer_v1(ind, prudent, hebdo, fv)
+    if len(hebdo) < 12 or not fv["verifie"].any():
+        return None
+    mod = m2["tout"]
+    a = mod["anomalies"]
+    z = carac_anomalie(hebdo, fv) - np.array(a["mu"])
+    score = float(np.sqrt(z @ np.array(a["icov"]) @ z))
+    return {"version": mod["version"], "simule": True,
+            "prevision_hebdo": round(_prevision_v2(hebdo, mod["prevision"])), "horizon_semaines": mod["prevision"]["horizon"],
+            "proba_defaut": round(proba_calibree or 0.0, 4), "score_anomalie": round(score, 2),
+            "alerte_anomalie": score > a["seuil"]}
+
+
+def _appliquer_v1(ind: dict, prudent: float, hebdo: np.ndarray, fv: dict) -> dict | None:
     mod = charger()
     if mod is None or len(hebdo) < 12 or not fv["verifie"].any():
         return None

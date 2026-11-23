@@ -1,0 +1,66 @@
+{
+ "avertissement": "Mesures sur données simulées (générateur de réglage, partition de validation).",
+ "lignes": {
+  "a": 42000,
+  "b": 21000,
+  "v": 21000
+ },
+ "defaut": {
+  "taux_validation": 0.3316,
+  "risque_simule_brut": {
+   "auc": 0.8857,
+   "brier": 0.119,
+   "ece_10": 0.077
+  },
+  "numpy_logistique": {
+   "auc": 0.9172,
+   "brier": 0.0949,
+   "ece_10": 0.0176
+  },
+  "numpy_logistique_isotonique": {
+   "auc": 0.9172,
+   "brier": 0.094,
+   "ece_10": 0.0079
+  },
+  "lightgbm_brut": {
+   "auc": 0.9225,
+   "brier": 0.0882,
+   "ece_10": 0.0094
+  },
+  "lightgbm_isotonique": {
+   "auc": 0.9225,
+   "brier": 0.0881,
+   "ece_10": 0.0085
+  },
+  "importance_gain": {
+   "echeance_sur_median": 94342.1,
+   "risque_simule": 65958.9,
+   "echeance_sur_p20": 44004.1,
+   "log_tx_semaine": 14127.5,
+   "log_median": 13090.4,
+   "log_ticket": 7352.3,
+   "saisonnalite": 1636.5,
+   "p20_sur_median": 1610.3,
+   "recent4_sur_median": 1520.4,
+   "regularite_cv": 1133.5,
+   "p10_sur_median": 1083.3,
+   "min12_sur_median": 1018.0,
+   "part_plus_gros_payeur": 999.7,
+   "part_sorties_sur_entrees": 994.1,
+   "jours_actifs": 895.7,
+   "log_payeurs": 791.9,
+   "part_flux_pro": 740.8,
+   "tendance_hebdo": 737.7,
+   "autocorr1": 553.1,
+   "moyenne_sur_median": 526.1,
+   "part_semaines_vides": 25.5,
+   "semaines": 0.0
+  }
+ },
+ "prevision": {
+  "erreur_relative_mediane_lightgbm": 0.1005,
+  "erreur_relative_mediane_numpy_ridge": 0.1027,
+  "erreur_relative_mediane_naive_mediane12": 0.0979,
+  "retenu": "lightgbm"
+ }
+}

@@ -1,0 +1,24 @@
+{
+ "jeu": "reglage_v",
+ "points_par_dossier": 6,
+ "moteur_v1 (m·min(1,2s) = 0,24 ; sans dépenses perso)": {
+  "risque_annonce_moyen": 0.2843,
+  "frequence_observee": 0.3372,
+  "ece_10": 0.1279
+ },
+ "+ dépenses personnelles (4 %/sem.)": {
+  "risque_annonce_moyen": 0.347,
+  "frequence_observee": 0.3372,
+  "ece_10": 0.0869
+ },
+ "+ marge réelle de l'activité (diagnostic)": {
+  "risque_annonce_moyen": 0.3134,
+  "frequence_observee": 0.3372,
+  "ece_10": 0.1076
+ },
+ "+ les deux (diagnostic)": {
+  "risque_annonce_moyen": 0.3704,
+  "frequence_observee": 0.3372,
+  "ece_10": 0.0719
+ }
+}
