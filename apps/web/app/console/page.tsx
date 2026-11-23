@@ -52,7 +52,8 @@ export default function File() {
       {erreur ? <Erreur message={erreur} reessayer={recharger} /> : charge && !donnees ? <Chargement lignes={6} /> : !lignes.length ? (
         <Vide titre="Aucun dossier à traiter">Les nouveaux dossiers arrivent ici dès qu'un commerçant donne son accord à votre institution.</Vide>
       ) : (
-        <table className="w-full border-collapse text-left">
+        <div className="overflow-x-auto">
+        <table className="w-full min-w-[900px] border-collapse text-left [&_th]:whitespace-nowrap">
           <thead className="border-b-2 border-encre text-xs uppercase tracking-wide text-encre-2">
             <tr>
               <th className="py-2 pr-3 font-medium">Commerçant</th>
@@ -91,6 +92,7 @@ export default function File() {
             ))}
           </tbody>
         </table>
+        </div>
       )}
       <p className="text-xs text-encre-2">Clavier : <kbd>j</kbd>/<kbd>k</kbd> pour se déplacer, <kbd>Entrée</kbd> pour ouvrir.</p>
     </section>

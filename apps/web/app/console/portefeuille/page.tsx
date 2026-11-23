@@ -72,7 +72,8 @@ export default function PagePortefeuille() {
       </dl>
 
       {!p.credits.length ? <Vide titre="Aucun crédit décaissé">Les crédits apparaissent ici dès qu'un commerçant accepte une offre.</Vide> : (
-        <table className="w-full text-left">
+        <div className="overflow-x-auto">
+        <table className="w-full min-w-[760px] text-left [&_th]:whitespace-nowrap [&_th]:pr-3 [&_td]:pr-3">
           <thead className="border-b-2 border-encre text-xs uppercase tracking-wide text-encre-2">
             <tr><th className="py-2">Commerçant</th><th className="text-right">Montant</th><th className="text-right">Restant dû</th><th className="text-right">Payées</th><th className="text-right">Partielles</th><th className="text-right">En retard</th><th className="text-right">Jours de retard</th><th className="text-right">Relances</th></tr>
           </thead>
@@ -91,6 +92,7 @@ export default function PagePortefeuille() {
             ))}
           </tbody>
         </table>
+        </div>
       )}
 
       <div className="grid gap-6 lg:grid-cols-2">
