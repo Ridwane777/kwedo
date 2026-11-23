@@ -31,7 +31,7 @@ export default function Activite() {
         <div><dt className="text-sm text-encre-2">Encaissé ces 4 semaines</dt><dd className="montant text-2xl">{fcfa(d4 * 4)}</dd></div>
         <div>
           <dt className="text-sm text-encre-2">Par rapport aux 4 précédentes</dt>
-          <dd className={`montant text-2xl ${evol < 0 ? "text-terre" : "text-feuille"}`}>{evol >= 0 ? "+" : ""}{pct(evol)}</dd>
+          <dd className={`montant text-2xl ${evol < 0 ? "text-alerte" : "text-bon"}`}>{evol >= 0 ? "+" : ""}{pct(evol)}</dd>
         </div>
       </dl>
       <CourbeFlux serie={s.slice(-26)} prudent={e.encaissement_prudent} median={e.indicateurs.encaissement_median} hauteur={190}
@@ -44,18 +44,18 @@ export default function Activite() {
             <p>Restant à rembourser : <strong className="chiffres">{fcfa(donnees.credits.reduce((a, c) => a + c.restant, 0))}</strong></p>
             <ul className="divide-y divide-trait border-y border-trait">
               {prochaines.map((x) => (
-                <li key={x.id} className="flex justify-between py-2.5"><span>{date(x.date_due)}</span><span className={`chiffres ${x.statut === "en_retard" ? "text-terre" : ""}`}>{fcfa(x.montant_attendu - x.montant_recu)}</span></li>
+                <li key={x.id} className="flex justify-between py-2.5"><span>{date(x.date_due)}</span><span className={`chiffres ${x.statut === "en_retard" ? "text-alerte" : ""}`}>{fcfa(x.montant_attendu - x.montant_recu)}</span></li>
               ))}
             </ul>
-            <Link href="/app/credit" className="inline-block min-h-10 py-2 font-medium text-indigo">Payer ou voir l'échéancier</Link>
+            <Link href="/app/credit" className="inline-block min-h-10 py-2 font-medium text-marque">Payer ou voir l'échéancier</Link>
           </>
         ) : <p className="text-encre-2">Pas de crédit en cours. Votre plafond estimé : <strong className="chiffres text-encre">{fcfa(e.plafond)}</strong>.</p>}
       </div>
 
       <div className="space-y-2">
         <h2 className="titre text-xl">Pour augmenter mon plafond</h2>
-        <ul className="space-y-2">{e.conseils.slice(0, 2).map((c) => <li key={c} className="border-l-2 border-safran pl-3">{c}</li>)}</ul>
-        <Link href="/app/conseils" className="inline-block min-h-10 py-2 font-medium text-indigo">Tous mes conseils</Link>
+        <ul className="space-y-2">{e.conseils.slice(0, 2).map((c) => <li key={c} className="border-l-2 border-ambre pl-3">{c}</li>)}</ul>
+        <Link href="/app/conseils" className="inline-block min-h-10 py-2 font-medium text-marque">Tous mes conseils</Link>
       </div>
     </section>
   );

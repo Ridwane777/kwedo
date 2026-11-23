@@ -35,11 +35,11 @@ export default function Flux() {
         <li><strong>Qui le voit :</strong> personne d'autre, tant que vous n'envoyez pas votre dossier à une institution.</li>
       </ul>
       <label className="flex min-h-14 items-start gap-3 rounded-xl border border-trait p-4">
-        <input type="checkbox" checked={accord} onChange={(e) => setAccord(e.target.checked)} className="mt-1 h-5 w-5 accent-[var(--indigo)]" />
+        <input type="checkbox" checked={accord} onChange={(e) => setAccord(e.target.checked)} className="mt-1 h-5 w-5 accent-[var(--marque)]" />
         <span>J'autorise mon opérateur à transmettre l'historique de mon compte marchand à Kwedo. Je peux retirer cet accord à tout moment.</span>
       </label>
-      {etat === "fait" && <p role="status" className="text-feuille">{msg}</p>}
-      {etat === "erreur" && <p role="alert" className="text-terre">{msg}</p>}
+      {etat === "fait" && <p role="status" className="text-bon">{msg}</p>}
+      {etat === "erreur" && <p role="alert" className="text-alerte">{msg}</p>}
       <Bouton grand className="w-full" disabled={!accord || etat === "envoi" || etat === "fait"} onClick={connecter}>
         {etat === "envoi" ? "Connexion…" : "Autoriser et connecter"}
       </Bouton>

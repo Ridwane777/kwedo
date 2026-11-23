@@ -45,7 +45,7 @@ export default function Simulateur() {
 
       <label className="block">
         <span className="text-encre-2">Le montant que je souhaite</span>
-        <span className="mt-1 flex items-center rounded-xl border border-trait bg-papier-2 focus-within:outline focus-within:outline-3 focus-within:outline-[var(--focus)]">
+        <span className="mt-1 flex items-center rounded-xl border border-trait bg-surface-2 focus-within:outline focus-within:outline-3 focus-within:outline-[var(--focus)]">
           <input inputMode="numeric" value={souhait === null ? "" : nombre(souhait)}
             onChange={(e) => { const v = Number(e.target.value.replace(/\D/g, "")); setSouhait(Number.isFinite(v) ? Math.min(v, 50_000_000) : 0); }}
             className="montant min-h-16 w-full bg-transparent px-4 text-3xl outline-none" aria-describedby="aide-montant" />
@@ -56,15 +56,15 @@ export default function Simulateur() {
 
       {!s && <p role="status" className="chargement h-24 rounded-2xl"><span className="sr-only">Calcul en cours</span></p>}
       {s && (
-        <div aria-live="polite" className={`apparait rounded-2xl p-5 ${s.atteignable ? "bg-feuille-doux" : "bg-papier-2"}`}>
+        <div aria-live="polite" className={`apparait rounded-2xl p-5 ${s.atteignable ? "bg-bon-doux" : "bg-surface-2"}`}>
           {s.atteignable ? (
-            <p className="text-lg"><strong className="text-feuille">C'est possible.</strong> Échéance de {fcfa(s.echeance)} par semaine.</p>
+            <p className="text-lg"><strong className="text-bon">C'est possible.</strong> Échéance de {fcfa(s.echeance)} par semaine.</p>
           ) : (
             <>
               <p className="text-lg">Pour obtenir <strong className="chiffres">{fcfa(s.montant)}</strong>, il manque :</p>
               <ul className="mt-3 space-y-2 text-[15px]">
                 {s.manque.map((m) => (
-                  <li key={m} className="flex gap-2"><span aria-hidden="true" className="mt-2 h-1.5 w-1.5 shrink-0 rotate-45 bg-terre" />{m}</li>
+                  <li key={m} className="flex gap-2"><span aria-hidden="true" className="mt-2 h-1.5 w-1.5 shrink-0 rotate-45 bg-alerte" />{m}</li>
                 ))}
               </ul>
             </>
@@ -75,9 +75,9 @@ export default function Simulateur() {
       <div className="space-y-3 border-t border-trait pt-5">
         <h2 className="titre text-xl">Test de résistance</h2>
         <label className="block text-[15px]">
-          Et si mes ventes baissaient de <strong className="chiffres text-terre">{baisse} %</strong> ?
+          Et si mes ventes baissaient de <strong className="chiffres text-alerte">{baisse} %</strong> ?
           <input type="range" min={0} max={60} step={5} value={baisse} onChange={(e) => setBaisse(Number(e.target.value))}
-            className="mt-3 h-8 w-full accent-[var(--terre)]" aria-valuetext={`${baisse} pour cent de baisse`} />
+            className="mt-3 h-8 w-full accent-[var(--alerte)]" aria-valuetext={`${baisse} pour cent de baisse`} />
         </label>
         {a && (
           <>
@@ -86,11 +86,11 @@ export default function Simulateur() {
               <div>
                 <dt className="text-sm text-encre-2">Plafond</dt>
                 <dd className="montant text-2xl">{fcfa(a.plafond)}</dd>
-                {base && baisse > 0 && <dd className="text-xs text-terre">{fcfa(a.plafond - base.plafond)}</dd>}
+                {base && baisse > 0 && <dd className="text-xs text-alerte">{fcfa(a.plafond - base.plafond)}</dd>}
               </div>
               <div>
                 <dt className="text-sm text-encre-2">Au montant souhaité</dt>
-                <dd className={`titre text-2xl ${s?.au_dessus_du_seuil ? "text-terre" : "text-feuille"}`}>{s ? (s.au_dessus_du_seuil ? "Trop risqué" : "Supportable") : "—"}</dd>
+                <dd className={`titre text-2xl ${s?.au_dessus_du_seuil ? "text-alerte" : "text-bon"}`}>{s ? (s.au_dessus_du_seuil ? "Trop risqué" : "Supportable") : "—"}</dd>
                 <dd className="text-xs text-encre-2">selon la limite de risque de l'institution</dd>
               </div>
             </dl>

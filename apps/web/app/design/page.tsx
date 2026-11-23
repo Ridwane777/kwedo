@@ -22,7 +22,7 @@ export default function Design() {
       <section className="space-y-3">
         <h2 className="titre text-2xl">Palette</h2>
         <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
-          {["papier", "encre", "indigo", "terre", "feuille", "safran"].map((c) => (
+          {["fond", "surface", "encre", "marque", "bon", "ambre", "alerte"].map((c) => (
             <div key={c} className="space-y-1 text-xs">
               <div className="h-14 rounded-lg border border-trait" style={{ background: `var(--${c})` }} />
               <p>{c}</p>
@@ -33,14 +33,14 @@ export default function Design() {
       <section className="space-y-2">
         <h2 className="titre text-2xl">Typographie</h2>
         <p className="montant text-6xl">{fcfa(865000)}</p>
-        <p className="text-base">Interface en IBM Plex Sans, chiffres tabulaires : 1 234 567 / 7 654 321.</p>
+        <p className="text-base">Titres et montants en Bricolage Grotesque, interface en Instrument Sans, chiffres tabulaires : 1 234 567 / 7 654 321.</p>
       </section>
       <section className="space-y-4">
         <h2 className="titre text-2xl">Courbe de flux</h2>
         <CourbeFlux serie={SERIE} prudent={225000} median={268000} choc={choc} debut="2026-05-04" />
         <label className="block text-sm">
           Mes ventes baissent de <strong className="chiffres">{Math.round(-choc * 100)} %</strong>
-          <input type="range" min={-60} max={0} step={5} value={Math.round(choc * 100)} onChange={(e) => setChoc(Number(e.target.value) / 100)} className="mt-2 w-full accent-[var(--terre)]" />
+          <input type="range" min={-60} max={0} step={5} value={Math.round(choc * 100)} onChange={(e) => setChoc(Number(e.target.value) / 100)} className="mt-2 w-full accent-[var(--alerte)]" />
         </label>
         <CourbeFlux serie={SERIE} prudent={225000} median={268000} dense hauteur={140} debut="2026-05-04" />
       </section>

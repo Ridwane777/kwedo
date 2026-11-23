@@ -80,16 +80,16 @@ export function CourbeFlux({ serie, prudent, median, choc = 0, debut, hauteur = 
       <svg viewBox={`0 0 ${L} ${H}`} className="block h-auto w-full overflow-visible" role="img" aria-label={resume}>
         <defs>
           <linearGradient id={`g${id}`} x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0" stopColor="var(--indigo)" stopOpacity=".16" />
-            <stop offset="1" stopColor="var(--indigo)" stopOpacity="0" />
+            <stop offset="0" stopColor="var(--marque)" stopOpacity=".16" />
+            <stop offset="1" stopColor="var(--marque)" stopOpacity="0" />
           </linearGradient>
           <pattern id={`h${id}`} width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-            <path d="M0 0v6" stroke="var(--feuille)" strokeWidth="1.4" opacity=".35" />
+            <path d="M0 0v6" stroke="var(--bon)" strokeWidth="1.4" opacity=".35" />
           </pattern>
         </defs>
         {/* Bande prudente : ce sur quoi on peut compter, même une mauvaise semaine. */}
         <rect x="0" width={L - droite} y={Math.min(yM, yP)} height={Math.abs(yP - yM)} fill={`url(#h${id})`} style={{ transition: "all .35s ease" }} />
-        <line x1="0" x2={L - droite} y1={yP} y2={yP} stroke="var(--feuille)" strokeWidth="1.5" style={{ transition: "all .35s ease" }} />
+        <line x1="0" x2={L - droite} y1={yP} y2={yP} stroke="var(--bon)" strokeWidth="1.5" style={{ transition: "all .35s ease" }} />
         <line x1="0" x2={L - droite} y1={yM} y2={yM} stroke="var(--encre-3)" strokeWidth="1" strokeDasharray="3 4" style={{ transition: "all .35s ease" }} />
         {choc !== 0 && <path d={lisse(ptsBase)} fill="none" stroke="var(--encre-3)" strokeWidth="1.2" strokeDasharray="2 4" opacity=".7" />}
         <path d={aire} fill={`url(#g${id})`} style={{ transition: "d .35s ease" }} />
@@ -97,27 +97,27 @@ export function CourbeFlux({ serie, prudent, median, choc = 0, debut, hauteur = 
           ref={ref}
           d={d}
           fill="none"
-          stroke="var(--indigo)"
+          stroke="var(--marque)"
           strokeWidth={dense ? 1.8 : 2.4}
           strokeLinejoin="round"
           className={trace ? "trace" : ""}
           style={{ ["--longueur" as string]: longueur, transition: "d .35s ease" }}
         />
-        <circle cx={pts[pts.length - 1]![0]} cy={pts[pts.length - 1]![1]} r="4" fill="var(--safran)" stroke="var(--papier)" strokeWidth="2" style={{ transition: "all .35s ease" }} />
+        <circle cx={pts[pts.length - 1]![0]} cy={pts[pts.length - 1]![1]} r="4" fill="var(--ambre)" stroke="var(--fond)" strokeWidth="2" style={{ transition: "all .35s ease" }} />
         {mois.map((m) => (
           <text key={m.k} x={x(m.k)} y={H - 4} fontSize={dense ? 11 : 17} fill="var(--encre-2)">{m.label}</text>
         ))}
         {dense && (
           <>
-            <text x={L - droite + 6} y={Math.max(yP + 4, yM + 17)} fontSize="11" fill="var(--feuille)" className="chiffres">{Math.round((prudent * f) / 1000)} k</text>
+            <text x={L - droite + 6} y={Math.max(yP + 4, yM + 17)} fontSize="11" fill="var(--bon)" className="chiffres">{Math.round((prudent * f) / 1000)} k</text>
             <text x={L - droite + 6} y={yM + 4} fontSize="11" fill="var(--encre-2)" className="chiffres">{Math.round((median * f) / 1000)} k</text>
           </>
         )}
       </svg>
       {!dense && (
         <figcaption className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-xs text-encre-2">
-          <span className="inline-flex items-center gap-1.5"><span className="h-0.5 w-4 bg-indigo" />Vos encaissements vérifiés, par semaine</span>
-          <span className="inline-flex items-center gap-1.5"><span className="h-0.5 w-4 bg-feuille" />Niveau prudent : {fcfa(prudent * f)}</span>
+          <span className="inline-flex items-center gap-1.5"><span className="h-0.5 w-4 bg-marque" />Vos encaissements vérifiés, par semaine</span>
+          <span className="inline-flex items-center gap-1.5"><span className="h-0.5 w-4 bg-bon" />Niveau prudent : {fcfa(prudent * f)}</span>
           <span className="inline-flex items-center gap-1.5"><span className="h-0 w-4 border-t border-dashed border-encre-3" />Niveau habituel : {fcfa(median * f)}</span>
         </figcaption>
       )}

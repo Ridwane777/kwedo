@@ -60,8 +60,8 @@ export default function Dossier() {
                 <p className="text-xs text-encre-2">{c.actif ? `Accord donné le ${date(c.historique.at(-1)?.horodatage, true)}` : c.historique.length ? "Accord retiré" : "Pas d'accord"}</p>
               </div>
               <button role="switch" aria-checked={c.actif} aria-label={`Accord pour ${c.nom}`} disabled={occupe === c.id} onClick={() => basculer(c.id, c.actif)}
-                className={`relative h-8 w-14 shrink-0 rounded-full transition ${c.actif ? "bg-feuille" : "bg-papier-3"}`}>
-                <span className={`absolute top-1 h-6 w-6 rounded-full bg-papier shadow transition-all ${c.actif ? "left-7" : "left-1"}`} />
+                className={`relative h-8 w-14 shrink-0 rounded-full transition ${c.actif ? "bg-bon" : "bg-surface-3"}`}>
+                <span className={`absolute top-1 h-6 w-6 rounded-full bg-fond shadow transition-all ${c.actif ? "left-7" : "left-1"}`} />
               </button>
             </li>
           ))}
@@ -69,7 +69,7 @@ export default function Dossier() {
         <p className="text-xs text-encre-2">Retirer l'accord coupe l'accès aux nouvelles données. L'historique d'un crédit en cours reste chez le prêteur, comme la loi l'y oblige.</p>
       </div>
 
-      {erreur && <p role="alert" className="text-terre">{erreur}</p>}
+      {erreur && <p role="alert" className="text-alerte">{erreur}</p>}
       <Bouton grand className="w-full" disabled={!aEnvoyer.length || occupe === "envoi"} onClick={envoyer}>
         {occupe === "envoi" ? "Envoi…" : aEnvoyer.length ? `Envoyer à ${aEnvoyer.length} institution${aEnvoyer.length > 1 ? "s" : ""}` : "Donnez votre accord pour envoyer"}
       </Bouton>
@@ -79,7 +79,7 @@ export default function Dossier() {
         {!dossiers.length ? <Vide titre="Aucun dossier envoyé">Vos demandes apparaîtront ici avec leur état.</Vide> : (
           <ul className="space-y-4">
             {dossiers.map((d) => (
-              <li key={d.id} className="border-l-2 border-indigo pl-3">
+              <li key={d.id} className="border-l-2 border-marque pl-3">
                 <div className="flex items-center justify-between gap-2">
                   <p className="font-medium">{d.institution}</p>
                   <Pastille ton={d.statut === "accorde" ? "bon" : d.statut === "refuse" ? "alerte" : "info"}>{STATUTS[d.statut]}</Pastille>
@@ -87,12 +87,12 @@ export default function Dossier() {
                 <ol className="mt-2 flex gap-1" aria-label="Étapes">
                   {SUIVI.map((s, k) => {
                     const fait = SUIVI.indexOf(d.statut) >= k || ["offre_acceptee", "refuse", "offre_refusee", "accorde"].includes(d.statut);
-                    return <li key={s} className={`h-1.5 flex-1 rounded ${fait ? "bg-indigo" : "bg-papier-3"}`} title={STATUTS[s]} />;
+                    return <li key={s} className={`h-1.5 flex-1 rounded ${fait ? "bg-marque" : "bg-surface-3"}`} title={STATUTS[s]} />;
                   })}
                 </ol>
                 <p className="mt-1 text-xs text-encre-2">Envoyé le {date(d.cree_le, true)}</p>
                 {["accorde", "refuse", "offre_acceptee", "complement"].includes(d.statut) && (
-                  <Link href={`/app/offre/${d.id}`} className="mt-1 inline-block min-h-10 py-2 font-medium text-indigo underline-offset-4 hover:underline">
+                  <Link href={`/app/offre/${d.id}`} className="mt-1 inline-block min-h-10 py-2 font-medium text-marque underline-offset-4 hover:underline">
                     {d.statut === "accorde" ? `Voir l'offre : ${fcfa(d.montant_offre)}` : "Voir la réponse"}
                   </Link>
                 )}
@@ -100,7 +100,7 @@ export default function Dossier() {
             ))}
           </ul>
         )}
-        {offres.length > 1 && <p className="rounded-xl bg-indigo-doux p-3 text-indigo">Vous avez {offres.length} offres : comparez-les avant d'accepter.</p>}
+        {offres.length > 1 && <p className="rounded-xl bg-marque-doux p-3 text-marque">Vous avez {offres.length} offres : comparez-les avant d'accepter.</p>}
       </div>
     </section>
   );

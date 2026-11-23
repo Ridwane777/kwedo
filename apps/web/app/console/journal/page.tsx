@@ -24,9 +24,9 @@ export default function Journal() {
         <p className="text-encre-2">En ajout seul : la base refuse toute modification ou suppression (déclencheurs SQLite). Chaque décision garde la version du moteur, la graine et les paramètres, et se rejoue à l'identique.</p>
       </header>
       <div className="flex flex-wrap gap-2" role="group" aria-label="Filtrer par type">
-        <button onClick={() => setFiltre(null)} aria-pressed={!filtre} className={`rounded-lg border px-3 py-1 ${!filtre ? "border-indigo bg-indigo-doux text-indigo" : "border-trait"}`}>Tout ({donnees.length})</button>
+        <button onClick={() => setFiltre(null)} aria-pressed={!filtre} className={`rounded-lg border px-3 py-1 ${!filtre ? "border-marque bg-marque-doux text-marque" : "border-trait"}`}>Tout ({donnees.length})</button>
         {Object.entries(TYPES).map(([k, v]) => (
-          <button key={k} onClick={() => setFiltre(k)} aria-pressed={filtre === k} className={`rounded-lg border px-3 py-1 ${filtre === k ? "border-indigo bg-indigo-doux text-indigo" : "border-trait"}`}>
+          <button key={k} onClick={() => setFiltre(k)} aria-pressed={filtre === k} className={`rounded-lg border px-3 py-1 ${filtre === k ? "border-marque bg-marque-doux text-marque" : "border-trait"}`}>
             {v.l} ({donnees.filter((e) => e.type === k).length})
           </button>
         ))}
@@ -34,7 +34,7 @@ export default function Journal() {
       {!lignes.length ? <Vide titre="Aucun événement" /> : (
         <div className="overflow-x-auto">
         <table className="w-full min-w-[720px] text-left">
-          <thead className="border-b-2 border-encre text-xs uppercase tracking-wide text-encre-2">
+          <thead className="border-b border-trait bg-surface-2/60 text-xs font-semibold text-encre-2 [&_th]:px-3 [&_th]:font-semibold">
             <tr><th className="w-36 py-1.5">Date</th><th className="w-28">Type</th><th className="w-40">Acteur</th><th className="w-28">Dossier</th><th>Détail</th></tr>
           </thead>
           <tbody>
@@ -43,7 +43,7 @@ export default function Journal() {
                 <td className="chiffres py-1.5 text-encre-2">{date(e.horodatage, true)}</td>
                 <td><Pastille ton={TYPES[e.type]?.ton}>{TYPES[e.type]?.l ?? e.type}</Pastille></td>
                 <td>{e.acteur}</td>
-                <td>{e.dossier_id ? <a className="text-indigo hover:underline" href={`/console/dossiers/${e.dossier_id}`}>{e.dossier_id}</a> : "—"}</td>
+                <td>{e.dossier_id ? <a className="text-marque hover:underline" href={`/console/dossiers/${e.dossier_id}`}>{e.dossier_id}</a> : "—"}</td>
                 <td>{e.detail}</td>
               </tr>
             ))}

@@ -1,84 +1,93 @@
 @import "tailwindcss";
 
-/* Kwedo — « le registre vivant ». Tokens clair / sombre, contrastes vérifiés AA (voir docs/design.md). */
+/*
+ * Kwedo — système « comptoir » (ADR 0010, docs/design.md).
+ * Fond minéral froid, encre vert-noir, un seul vert de marque pour l'action et les montants.
+ * La couleur est réservée au sens : vert = validé / à jour, ambre = à vérifier, rouge = retard / refus.
+ */
 :root {
-  --papier: #f6f0e4;        /* papier chaud */
-  --papier-2: #ede4d3;
-  --papier-3: #e2d6c0;
-  /* Contrastes mesurés sur --papier (script dans docs/design.md) */
-  --encre: #1c1a24;         /* 15,13:1 */
-  --encre-2: #4a4554;       /* 8,15:1 */
-  --encre-3: #6b6474;       /* 5,00:1 — jamais sur --papier-3 (3,95:1) */
-  --indigo: #27367a;        /* 9,76:1 ; sur indigo-doux 8,14:1 */
-  --indigo-doux: #d9dcef;
-  --terre: #a4442a;         /* 5,38:1 ; sur terre-doux 4,52:1 */
-  --terre-doux: #f1d9cc;
-  --feuille: #2f6b3c;       /* 5,63:1 ; sur feuille-doux 4,98:1 */
-  --feuille-doux: #d7e8d4;
-  --safran: #e0a21b;        /* safran : attention (fond et traits, jamais texte sur papier) */
-  --safran-encre: #6e4b00;  /* sur safran-doux 6,36:1 */
-  --safran-doux: #f8e6b5;
-  --trait: #cdbfa6;
-  --focus: #27367a;
+  --fond: #f2f4f3;
+  --surface: #ffffff;
+  --surface-2: #e7ecea;
+  --surface-3: #d9e0dd;
+  --trait: #c9d2ce;
+  --encre: #0e1d18;
+  --encre-2: #3b4a44;
+  --encre-3: #56645e;
+  --marque: #0a5a47;
+  --marque-doux: #d7ebe3;
+  --alerte: #b0261c;
+  --alerte-doux: #fadeda;
+  --bon: #1d6b35;
+  --bon-doux: #daeedd;
+  --ambre: #c98a0b;          /* fonds et traits uniquement, jamais texte */
+  --ambre-encre: #6b4500;
+  --ambre-doux: #faebc8;
+  --focus: #0a5a47;
+  --ombre: 0 1px 0 rgb(14 29 24 / 0.04), 0 8px 24px -12px rgb(14 29 24 / 0.18);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --papier: #16141c;
-    --papier-2: #1f1c27;
-    --papier-3: #2a2634;
-    --encre: #f1ebdf;
-    --encre-2: #c9c1b4;
-    --encre-3: #a39b90;
-    --indigo: #a9b6f2;
-    --indigo-doux: #26305e;
-    --terre: #f09a7c;
-    --terre-doux: #4a2419;
-    --feuille: #8fcc9b;
-    --feuille-doux: #1d3a24;
-    --safran: #f2bd4b;
-    --safran-encre: #f6d58a;
-    --safran-doux: #3d2f0c;
-    --trait: #3a3545;
-    --focus: #f2bd4b;
+    --fond: #0c1613;
+    --surface: #13201c;
+    --surface-2: #1a2925;
+    --surface-3: #23352f;
+    --trait: #2e423b;
+    --encre: #e8efec;
+    --encre-2: #b5c3bd;
+    --encre-3: #93a39c;
+    --marque: #6fd0ae;
+    --marque-doux: #10362b;
+    --alerte: #ff9a8f;
+    --alerte-doux: #42140f;
+    --bon: #87d49a;
+    --bon-doux: #143220;
+    --ambre: #e9b54a;
+    --ambre-encre: #f3d38a;
+    --ambre-doux: #3a2b08;
+    --focus: #6fd0ae;
+    --ombre: 0 1px 0 rgb(0 0 0 / 0.3), 0 8px 24px -12px rgb(0 0 0 / 0.6);
   }
 }
 
 @theme inline {
-  --color-papier: var(--papier);
-  --color-papier-2: var(--papier-2);
-  --color-papier-3: var(--papier-3);
+  --color-fond: var(--fond);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-trait: var(--trait);
   --color-encre: var(--encre);
   --color-encre-2: var(--encre-2);
   --color-encre-3: var(--encre-3);
-  --color-indigo: var(--indigo);
-  --color-indigo-doux: var(--indigo-doux);
-  --color-terre: var(--terre);
-  --color-terre-doux: var(--terre-doux);
-  --color-feuille: var(--feuille);
-  --color-feuille-doux: var(--feuille-doux);
-  --color-safran: var(--safran);
-  --color-safran-encre: var(--safran-encre);
-  --color-safran-doux: var(--safran-doux);
-  --color-trait: var(--trait);
-  --font-serif: var(--font-fraunces), Georgia, serif;
-  --font-sans: var(--font-plex), system-ui, sans-serif;
+  --color-marque: var(--marque);
+  --color-marque-doux: var(--marque-doux);
+  --color-alerte: var(--alerte);
+  --color-alerte-doux: var(--alerte-doux);
+  --color-bon: var(--bon);
+  --color-bon-doux: var(--bon-doux);
+  --color-ambre: var(--ambre);
+  --color-ambre-encre: var(--ambre-encre);
+  --color-ambre-doux: var(--ambre-doux);
+  --font-serif: var(--font-titre), system-ui, sans-serif;
+  --font-sans: var(--font-texte), system-ui, sans-serif;
+  --shadow-carte: var(--ombre);
 }
 
-html { background: var(--papier); color: var(--encre); }
-body { font-family: var(--font-sans); font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; text-rendering: geometricPrecision; }
+html { background: var(--fond); color: var(--encre); color-scheme: light dark; }
+body { font-family: var(--font-sans); font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; }
 .chiffres { font-variant-numeric: tabular-nums lining-nums; }
-.titre { font-family: var(--font-serif); font-variation-settings: "SOFT" 50, "WONK" 1; letter-spacing: -0.01em; }
-.montant { font-family: var(--font-serif); font-variant-numeric: tabular-nums lining-nums; font-variation-settings: "SOFT" 0; letter-spacing: -0.02em; }
+.titre { font-family: var(--font-serif); font-weight: 600; letter-spacing: -0.02em; font-variation-settings: "wdth" 92; }
+.montant { font-family: var(--font-serif); font-weight: 700; font-variant-numeric: tabular-nums lining-nums; letter-spacing: -0.035em; font-variation-settings: "wdth" 85; }
 
-:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 6px; }
 
 @keyframes tracer { from { stroke-dashoffset: var(--longueur); } to { stroke-dashoffset: 0; } }
-.trace { stroke-dasharray: var(--longueur); animation: tracer 1.4s cubic-bezier(.3,.7,.2,1) both; }
-@keyframes apparaitre { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
-.apparait { animation: apparaitre .4s ease-out both; }
-@keyframes pulse-doux { 0%,100% { opacity: .55 } 50% { opacity: 1 } }
-.chargement { animation: pulse-doux 1.2s ease-in-out infinite; background: var(--papier-3); border-radius: 6px; }
+.trace { stroke-dasharray: var(--longueur); animation: tracer 1.2s cubic-bezier(.3,.7,.2,1) both; }
+@keyframes apparaitre { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
+.apparait { animation: apparaitre .35s ease-out both; }
+@keyframes pulse-doux { 0%,100% { opacity: .5 } 50% { opacity: 1 } }
+.chargement { animation: pulse-doux 1.2s ease-in-out infinite; background: var(--surface-3); border-radius: 6px; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }

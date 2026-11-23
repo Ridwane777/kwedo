@@ -14,7 +14,7 @@ export default function Inscription() {
   const [f, setF] = useState({ nom: "", telephone: "+229 ", type_activite: "tissus", piece: "" });
   const [erreur, setErreur] = useState<string | null>(null);
   const [envoi, setEnvoi] = useState(false);
-  const champ = "mt-1 block min-h-14 w-full rounded-xl border border-trait bg-papier-2 px-4 text-lg";
+  const champ = "mt-1 block min-h-14 w-full rounded-xl border border-trait bg-surface-2 px-4 text-lg";
 
   async function valider(e: React.FormEvent) {
     e.preventDefault();
@@ -46,7 +46,7 @@ export default function Inscription() {
         <input value={f.piece} onChange={(e) => setF({ ...f, piece: e.target.value })} className={champ} />
         <span className="mt-1 flex items-center gap-2 text-sm text-encre-2"><Simule quoi="Vérification simulée" /> rien n'est transmis, le numéro n'est pas conservé.</span>
       </label>
-      {erreur && <p role="alert" className="text-terre">{erreur}</p>}
+      {erreur && <p role="alert" className="text-alerte">{erreur}</p>}
       <Bouton type="submit" grand className="w-full" disabled={envoi}>{envoi ? "Création…" : "Créer mon profil"}</Bouton>
     </form>
   );

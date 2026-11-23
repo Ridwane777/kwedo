@@ -115,7 +115,7 @@ export default function Demo() {
             {TEMPS.map((x, i) => (
               <li key={x.titre}>
                 <button onClick={() => setK(i)} aria-current={i === k ? "step" : undefined} title={x.titre}
-                  className={`h-9 w-full rounded-md text-sm font-medium ${i === k ? "bg-indigo text-papier" : i < k ? "bg-indigo-doux text-indigo" : "bg-papier-2 text-encre-2"}`}>{i + 1}</button>
+                  className={`h-9 w-full rounded-md text-sm font-medium ${i === k ? "bg-marque text-fond" : i < k ? "bg-marque-doux text-marque" : "bg-surface-2 text-encre-2"}`}>{i + 1}</button>
               </li>
             ))}
           </ol>
@@ -125,7 +125,7 @@ export default function Demo() {
             <p className="text-lg leading-relaxed">{t.dire}</p>
           </div>
           {t.action && <Bouton grand className="w-full" onClick={agir} disabled={etat.t === "occupe"}>{etat.t === "occupe" ? "…" : t.action.label}</Bouton>}
-          {etat.m && <p role={etat.t === "erreur" ? "alert" : "status"} className={etat.t === "erreur" ? "text-terre" : "text-feuille"}>{etat.m}</p>}
+          {etat.m && <p role={etat.t === "erreur" ? "alert" : "status"} className={etat.t === "erreur" ? "text-alerte" : "text-bon"}>{etat.m}</p>}
           <div className="flex justify-between">
             <Bouton variante="discret" onClick={() => setK(Math.max(k - 1, 0))} disabled={k === 0}>← Précédent</Bouton>
             <Bouton variante="trait" onClick={() => setK(Math.min(k + 1, TEMPS.length - 1))} disabled={k === TEMPS.length - 1}>Suivant →</Bouton>
@@ -135,7 +135,7 @@ export default function Demo() {
         <section className="flex min-w-0 flex-wrap items-start justify-center gap-6" aria-label="Écrans">
           {pret && ecran.telephone && (
             <figure className="w-[380px] max-w-full space-y-2">
-              <div className="h-[760px] w-full overflow-hidden rounded-[2.2rem] border-[10px] border-encre bg-papier shadow-xl">
+              <div className="h-[760px] w-full overflow-hidden rounded-[2.2rem] border-[10px] border-encre bg-fond shadow-xl">
                 <iframe key={`t${cle}${ecran.telephone}`} src={ecran.telephone} title="Application commerçant" className="h-full w-full" />
               </div>
               <figcaption className="text-center text-xs text-encre-2">Application commerçant · 360 px</figcaption>

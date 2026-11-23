@@ -1,94 +1,116 @@
 import Link from "next/link";
 import { CourbeFlux } from "@/components/courbe-flux";
-import { Lisiere, Marque } from "@/components/motif";
+import { Marque } from "@/components/motif";
 import { Simule } from "@/components/ui";
 
-// Série d'exemple, simulée, uniquement illustrative.
+// Série d'exemple, simulée, uniquement illustrative (même forme que l'écran commerçant).
 const EXEMPLE = [182, 205, 176, 230, 214, 198, 252, 268, 231, 219, 204, 246, 262, 289, 255, 237, 221, 249, 301, 334, 276, 258, 247, 266, 281, 240]
   .map((v) => v * 1000);
 
-const ETAPES = [
-  { t: "Les encaissements", d: "Le commerçant autorise l'accès à son compte marchand. Seuls les paiements de clients comptent : ni transferts vers soi-même, ni allers-retours." },
-  { t: "La capacité", d: "On part d'une mauvaise semaine, pas de la moyenne. Échéance supportable R = Cₚ × m × s, plafond L_max = R × (1 − (1 + i)⁻ⁿ) / i." },
-  { t: "Le test de résistance", d: "Deux mille avenirs plausibles, avec chocs. Le plafond proposé est le plus gros montant dont le risque reste sous le seuil de l'institution." },
-  { t: "La décision humaine", d: "L'agent valide, ajuste ou refuse, avec un justificatif obligatoire. Tout est tracé, rien ne se réécrit." },
+const COMMERCANT = [
+  { t: "Connecter son compte marchand", d: "Seuls les paiements de clients comptent : ni transferts vers soi-même, ni allers-retours." },
+  { t: "Voir combien, et à quel prix", d: "Un plafond calculé sur une mauvaise semaine, l'échéance et le coût total, avant tout engagement." },
+  { t: "Choisir son institution", d: "Le commerçant décide à qui il envoie son dossier, et peut retirer son accord." },
+  { t: "Rembourser au fil des ventes", d: "Un paiement en deux gestes, un reçu, des rappels sur le canal choisi, trois au plus." },
 ];
+const PRETEUR = [
+  { t: "Une file triée par urgence", d: "Les dossiers avec alertes de cohérence passent devant ; le reste attend en retrait." },
+  { t: "Une fiche de décision", d: "Montant proposé, facteurs qui ont pesé, points à vérifier. Utilisable au clavier." },
+  { t: "Une décision humaine, tracée", d: "Valider, ajuster ou refuser, avec un justificatif obligatoire. Le journal ne se réécrit pas." },
+  { t: "Un portefeuille suivi", d: "Échéances, retards et relances respectueuses, institution par institution." },
+];
+
+function Apercu() {
+  return (
+    <figure className="mx-auto w-full max-w-[340px]">
+      <div className="rounded-[2.2rem] border border-trait bg-surface p-2.5 shadow-carte">
+        <div className="rounded-[1.8rem] bg-fond px-4 pb-5 pt-4">
+          <div className="mb-4 flex items-center justify-between gap-2">
+            <Marque taille={22} />
+            <Simule quoi="Exemple simulé" />
+          </div>
+          <p className="text-sm text-encre-2">Bonjour Afiavi, vous pourriez emprunter</p>
+          <p className="montant mt-1 text-[2.5rem] leading-none text-marque">400 000 FCFA</p>
+          <dl className="mt-4 grid grid-cols-2 gap-2 text-sm">
+            <div className="rounded-xl bg-surface p-3"><dt className="text-encre-2">Par semaine</dt><dd className="chiffres font-semibold">35 000 FCFA</dd></div>
+            <div className="rounded-xl bg-surface p-3"><dt className="text-encre-2">Sur</dt><dd className="chiffres font-semibold">12 semaines</dd></div>
+          </dl>
+          <div className="mt-4"><CourbeFlux serie={EXEMPLE} prudent={210000} median={247000} debut="2026-05-25" /></div>
+          <div aria-hidden="true" className="mt-4 flex min-h-12 items-center justify-center rounded-xl bg-marque text-sm font-semibold text-fond">Demander ce crédit</div>
+        </div>
+      </div>
+      <figcaption className="mt-3 text-center text-xs text-encre-2">Maquette de l'écran commerçant, chiffres d'illustration.</figcaption>
+    </figure>
+  );
+}
+
+function Parcours({ titre, qui, etapes, action }: { titre: string; qui: string; etapes: typeof COMMERCANT; action: string }) {
+  return (
+    <section className="rounded-3xl border border-trait bg-surface p-6 sm:p-8">
+      <p className="text-sm font-semibold text-marque">{qui}</p>
+      <h2 className="titre mt-1 text-[1.75rem] leading-tight">{titre}</h2>
+      <ol className="mt-6 space-y-5">
+        {etapes.map((e, k) => (
+          <li key={e.t} className="grid grid-cols-[2rem_1fr] gap-3">
+            <span aria-hidden="true" className="chiffres flex h-8 w-8 items-center justify-center rounded-full border border-trait text-sm font-semibold text-encre-2">{k + 1}</span>
+            <div><h3 className="font-semibold">{e.t}</h3><p className="text-encre-2">{e.d}</p></div>
+          </li>
+        ))}
+      </ol>
+      <Link href="/connexion" className="mt-7 inline-flex min-h-12 items-center rounded-xl border border-trait px-5 font-semibold hover:border-encre-3">{action}</Link>
+    </section>
+  );
+}
 
 export default function Accueil() {
   return (
     <div className="mx-auto max-w-6xl px-5 sm:px-8">
-      <header className="flex items-center justify-between py-5">
+      <header className="flex items-center justify-between gap-3 py-5">
         <Marque />
-        <nav className="flex gap-1 text-sm sm:gap-4" aria-label="Accès">
-          <Link href="/connexion" className="whitespace-nowrap rounded-lg px-2 py-2 hover:bg-papier-2">Se connecter</Link>
-          <Link href="/demo" className="whitespace-nowrap rounded-lg bg-indigo px-3 py-2 font-medium text-papier">Démo guidée</Link>
+        <nav className="flex items-center gap-1 text-sm sm:gap-2" aria-label="Accès">
+          <Link href="/connexion" className="whitespace-nowrap rounded-lg px-2 py-2.5 font-medium hover:bg-surface-2 sm:px-3">Se connecter</Link>
+          <Link href="/demo" className="whitespace-nowrap rounded-lg bg-encre px-2.5 py-2.5 font-semibold text-fond sm:px-3">Démo guidée</Link>
         </nav>
       </header>
-      <Lisiere />
 
-      <section className="grid items-center gap-10 py-12 lg:grid-cols-[1fr_1.1fr] lg:py-20">
-        <div className="space-y-6">
-          <h1 className="titre text-[2.6rem] leading-[1.05] sm:text-6xl">Ce que vos ventes disent de ce que vous pouvez rembourser.</h1>
-          <p className="max-w-xl text-lg text-encre-2">
-            Kwedo lit les encaissements mobile money d'un commerçant sans historique bancaire, en tire un plafond prudent et expliqué,
-            et donne à l'agent de crédit un dossier prêt à décider.
+      <section className="grid items-center gap-12 pb-16 pt-8 lg:grid-cols-[1.15fr_1fr] lg:pb-24 lg:pt-14">
+        <div>
+          <h1 className="titre text-[2.5rem] leading-[1.02] sm:text-[4.2rem]">Le crédit qui suit le rythme de vos ventes.</h1>
+          <p className="mt-6 max-w-[34rem] text-lg leading-relaxed text-encre-2">
+            Kwedo lit les encaissements mobile money d'un petit commerçant, en tire un plafond prudent, son prix et ses
+            raisons, puis donne à l'institution de crédit un dossier prêt à décider.
           </p>
-          <div className="flex flex-wrap gap-3">
-            <Link href="/demo" className="inline-flex min-h-12 items-center rounded-xl bg-indigo px-5 font-medium text-papier">Voir la démo en 4 minutes</Link>
-            <Link href="/connexion" className="inline-flex min-h-12 items-center rounded-xl border border-indigo px-5 font-medium text-indigo">Ouvrir l'application</Link>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Link href="/demo" className="inline-flex min-h-12 items-center rounded-xl bg-marque px-5 font-semibold text-fond shadow-carte">Voir la démo guidée</Link>
+            <Link href="/connexion" className="inline-flex min-h-12 items-center rounded-xl border border-trait bg-surface px-5 font-semibold">Ouvrir l'application</Link>
           </div>
-          <Simule quoi="Prototype · données 100 % simulées · personnes et institutions fictives" />
+          <dl className="mt-10 grid max-w-lg grid-cols-1 gap-4 border-t border-trait pt-6 text-sm sm:grid-cols-3">
+            <div><dt className="font-semibold">Aucun frais Kwedo</dt><dd className="text-encre-2">pour le commerçant</dd></div>
+            <div><dt className="font-semibold">Le prix d'abord</dt><dd className="text-encre-2">échéance et coût total</dd></div>
+            <div><dt className="font-semibold">Un humain décide</dt><dd className="text-encre-2">avec justificatif tracé</dd></div>
+          </dl>
         </div>
-        <figure className="space-y-3">
-          <CourbeFlux serie={EXEMPLE} prudent={210000} median={247000} debut="2026-05-25" />
-          <p className="text-xs text-encre-2">Courbe d'encaissements d'illustration, simulée. La bande hachurée : ce sur quoi on peut compter, même une mauvaise semaine.</p>
-        </figure>
+        <Apercu />
       </section>
 
-      <section className="border-t border-trait py-12">
-        <h2 className="titre mb-8 text-3xl">Comment le plafond est calculé</h2>
-        <ol className="grid gap-8 md:grid-cols-4">
-          {ETAPES.map((e, k) => (
-            <li key={e.t} className="space-y-2">
-              <span className="montant block text-4xl text-terre">{k + 1}</span>
-              <h3 className="titre text-xl">{e.t}</h3>
-              <p className="text-encre-2">{e.d}</p>
-            </li>
-          ))}
-        </ol>
+      <div className="grid gap-5 pb-16 lg:grid-cols-2">
+        <Parcours qui="Pour le commerçant" titre="Savoir combien, à quel prix, et quoi faire." etapes={COMMERCANT} action="Essayer comme commerçant" />
+        <Parcours qui="Pour l'institution" titre="Décider vite, sans décider à l'aveugle." etapes={PRETEUR} action="Ouvrir la console prêteur" />
+      </div>
+
+      <section className="grid gap-8 border-t border-trait py-14 md:grid-cols-[1fr_1.4fr]">
+        <h2 className="titre text-[1.75rem] leading-tight">Ce que Kwedo ne fait pas</h2>
+        <ul className="grid gap-x-8 gap-y-4 text-encre-2 sm:grid-cols-2">
+          <li><strong className="text-encre">Prêter.</strong> Les institutions agréées prêtent ; Kwedo les outille.</li>
+          <li><strong className="text-encre">Prendre une commission</strong> sur le montant prêté, ni de frais de dossier.</li>
+          <li><strong className="text-encre">Accuser automatiquement.</strong> Une alerte va à l'agent, qui tranche.</li>
+          <li><strong className="text-encre">Lire genre, origine ou religion.</strong> Le moteur ne lit que des flux d'activité.</li>
+        </ul>
       </section>
 
-      <section className="grid gap-10 border-t border-trait py-12 md:grid-cols-2">
-        <div className="space-y-3">
-          <h2 className="titre text-3xl">Deux volets, une même courbe</h2>
-          <p><strong>Le commerçant</strong> voit combien il peut emprunter et pourquoi, teste « et si mes ventes baissaient », reçoit des conseils et choisit à quelle institution il envoie son dossier. Gratuitement.</p>
-          <p><strong>L'agent de crédit</strong> reçoit un dossier analysé : indicateurs, alertes de cohérence, montant proposé et raisons. Il décide, puis suit échéances et relances.</p>
-        </div>
-        <div className="space-y-3">
-          <h2 className="titre text-3xl">Ce que nous ne faisons pas</h2>
-          <ul className="list-disc space-y-1.5 pl-5 text-encre-2">
-            <li>Prêter : les institutions agréées prêtent, Kwedo outille.</li>
-            <li>Prendre une commission sur le montant prêté ou des frais de dossier au commerçant.</li>
-            <li>Accuser automatiquement : une alerte va à l'agent, qui tranche.</li>
-            <li>Utiliser genre, origine ou religion : le moteur ne lit que des flux d'activité.</li>
-            <li>Relancer l'entourage : canal choisi, trois messages au plus, heures raisonnables.</li>
-          </ul>
-        </div>
-      </section>
-
-      <section className="border-t border-trait py-12">
-        <h2 className="titre mb-2 text-3xl">Le contexte</h2>
-        <p className="mb-6 text-sm text-encre-2">Chiffres issus de la recherche préalable de l'équipe, sans source conservée pour chacun : <strong>à recontrôler</strong> avant toute publication.</p>
-        <dl className="grid gap-6 sm:grid-cols-3">
-          <div><dt className="text-encre-2">Comptes mobile money actifs au Bénin (2025)</dt><dd className="montant text-3xl">≈ 11,66 millions <span className="ml-1 rounded bg-safran-doux px-1.5 py-0.5 align-middle font-sans text-xs text-safran-encre">à recontrôler</span></dd></div>
-          <div><dt className="text-encre-2">Montant moyen d'une opération (2025)</dt><dd className="montant text-3xl">≈ 5 222 FCFA <span className="ml-1 rounded bg-safran-doux px-1.5 py-0.5 align-middle font-sans text-xs text-safran-encre">à recontrôler</span></dd></div>
-          <div><dt className="text-encre-2">Inclusion financière au sens strict</dt><dd className="montant text-3xl">39,8 % <span className="ml-1 rounded bg-safran-doux px-1.5 py-0.5 align-middle font-sans text-xs text-safran-encre">à recontrôler</span></dd></div>
-        </dl>
-      </section>
-
-      <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-trait py-8 text-sm text-encre-2">
-        <p>Kwedo · prototype GPU Challenge, cas d'usage 3. Ne prouve pas la performance sur données réelles : un pilote avec une institution est la prochaine étape.</p>
-        <Link href="/design" className="hover:underline">Système de design</Link>
+      <footer className="flex flex-col gap-3 border-t border-trait py-8 text-sm text-encre-2 sm:flex-row sm:items-center sm:justify-between">
+        <Simule quoi="Prototype, données simulées, personnes et institutions fictives" />
+        <p className="max-w-md">Ne prouve pas la performance sur données réelles : un pilote avec une institution est la prochaine étape. <Link href="/design" className="underline">Système de design</Link></p>
       </footer>
     </div>
   );

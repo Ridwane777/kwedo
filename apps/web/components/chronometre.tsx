@@ -60,27 +60,27 @@ export function Chronometre({ dossier, agent = "agent.demo" }: { dossier: string
 
   return (
     <section aria-labelledby="t-chrono" className="rounded-xl border border-trait p-3">
-      <h2 id="t-chrono" className="mb-1 text-xs font-medium uppercase tracking-wide text-encre-2">Chronomètre de traitement</h2>
+      <h2 id="t-chrono" className="mb-1 text-sm font-semibold text-encre">Chronomètre de traitement</h2>
       <div className="flex flex-wrap items-center gap-2">
         <span className="chiffres text-lg" aria-live="off">{debut === null ? "--:--" : fmt((maintenant - debut) / 1000)}</span>
         <label className="text-[12px]">
           <span className="sr-only">Condition</span>
           <select value={condition} onChange={(e) => setCondition(e.target.value as Mesure["condition"])} disabled={debut !== null}
-            className="rounded border border-trait bg-papier px-1 py-0.5">
+            className="rounded border border-trait bg-fond px-1 py-0.5">
             <option value="avec_outil">avec l'outil</option>
             <option value="sans_outil">sans l'outil</option>
           </select>
         </label>
         {debut === null
-          ? <button type="button" onClick={() => { setDebut(Date.now()); setMaintenant(Date.now()); }} className="rounded border border-indigo px-2 py-0.5 text-indigo">Démarrer</button>
-          : <button type="button" onClick={arreter} className="rounded border border-indigo bg-indigo px-2 py-0.5 text-papier">Arrêter et enregistrer</button>}
+          ? <button type="button" onClick={() => { setDebut(Date.now()); setMaintenant(Date.now()); }} className="rounded border border-marque px-2 py-0.5 text-marque">Démarrer</button>
+          : <button type="button" onClick={arreter} className="rounded border border-marque bg-marque px-2 py-0.5 text-fond">Arrêter et enregistrer</button>}
       </div>
       <p className="mt-1 text-[12px] text-encre-2">
         Temps humain avec l'outil : <strong>{resume(mesures, "avec_outil")}</strong> · sans l'outil : <strong>{resume(mesures, "sans_outil")}</strong>
       </p>
       <div className="mt-1 flex gap-2 text-[12px]">
-        <button type="button" onClick={() => exporter(mesures, "csv")} disabled={!mesures.length} className="text-indigo underline disabled:text-encre-2 disabled:no-underline">Exporter CSV</button>
-        <button type="button" onClick={() => exporter(mesures, "json")} disabled={!mesures.length} className="text-indigo underline disabled:text-encre-2 disabled:no-underline">Exporter JSON</button>
+        <button type="button" onClick={() => exporter(mesures, "csv")} disabled={!mesures.length} className="text-marque underline disabled:text-encre-2 disabled:no-underline">Exporter CSV</button>
+        <button type="button" onClick={() => exporter(mesures, "json")} disabled={!mesures.length} className="text-marque underline disabled:text-encre-2 disabled:no-underline">Exporter JSON</button>
       </div>
       <p className="mt-1 text-[11px] text-encre-2">Démarré et arrêté par l'agent uniquement ; rien n'est estimé. Protocole : docs/evaluation/protocole-temps.md.</p>
     </section>

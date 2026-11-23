@@ -26,7 +26,7 @@ export default function Compte() {
         {e && <div className="flex justify-between py-3"><dt>Part professionnelle</dt><dd className="chiffres">{pct(e.indicateurs.part_flux_pro)}</dd></div>}
       </dl>
       {!c.compte_separe && (
-        <p className="rounded-xl bg-safran-doux p-4 text-safran-encre">Vos encaissements sont mélangés à des flux personnels. Ouvrez un compte marchand auprès de votre opérateur : la période de constitution de votre historique démarre dès l'ouverture.</p>
+        <p className="rounded-xl bg-ambre-doux p-4 text-ambre-encre">Vos encaissements sont mélangés à des flux personnels. Ouvrez un compte marchand auprès de votre opérateur : la période de constitution de votre historique démarre dès l'ouverture.</p>
       )}
       {c.nb_transactions ? <LienBouton href="/app" grand className="w-full">Voir mon estimation</LienBouton>
         : <LienBouton href="/app/flux" grand className="w-full">Connecter mes encaissements</LienBouton>}

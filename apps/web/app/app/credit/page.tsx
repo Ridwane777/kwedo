@@ -31,23 +31,23 @@ function CarteCredit({ c, canal, onChange }: { c: Credit; canal: string; onChang
       <div>
         <p className="text-encre-2">{c.institution} · {fcfa(c.montant)} sur {c.duree_semaines} semaines</p>
         <p className="montant text-4xl">{fcfa(c.restant)} <span className="text-base text-encre-2">restant</span></p>
-        <div className="mt-2 h-2 overflow-hidden rounded-full bg-papier-3" role="progressbar" aria-valuenow={Math.round(avance)} aria-valuemin={0} aria-valuemax={100} aria-label="Remboursé">
-          <div className="h-full bg-feuille transition-all" style={{ width: `${avance}%` }} />
+        <div className="mt-2 h-2 overflow-hidden rounded-full bg-surface-3" role="progressbar" aria-valuenow={Math.round(avance)} aria-valuemin={0} aria-valuemax={100} aria-label="Remboursé">
+          <div className="h-full bg-bon transition-all" style={{ width: `${avance}%` }} />
         </div>
       </div>
       {p ? (
-        <div className={`space-y-3 rounded-2xl p-5 ${c.echeances.some((e) => e.statut === "en_retard") ? "bg-terre-doux" : "bg-papier-2"}`}>
+        <div className={`space-y-3 rounded-2xl p-5 ${c.echeances.some((e) => e.statut === "en_retard") ? "bg-alerte-doux" : "bg-surface-2"}`}>
           <p>Prochaine échéance le <strong>{date(p.date_due)}</strong></p>
           <p className="montant text-3xl">{fcfa(du)}</p>
-          {recu && <p role="status" className="text-feuille">Paiement reçu. Reçu n° {recu}</p>}
-          {err && <p role="alert" className="text-terre">{err}</p>}
+          {recu && <p role="status" className="text-bon">Paiement reçu. Reçu n° {recu}</p>}
+          {err && <p role="alert" className="text-alerte">{err}</p>}
           <Bouton grand className="w-full" disabled={envoi || du <= 0} onClick={payer}>{envoi ? "Paiement…" : `Payer ${fcfa(du)} par mobile money`}</Bouton>
           <Simule quoi="Paiement simulé : aucun argent ne circule" />
         </div>
-      ) : <p className="rounded-2xl bg-feuille-doux p-5 text-feuille">Crédit entièrement remboursé. Bravo.</p>}
+      ) : <p className="rounded-2xl bg-bon-doux p-5 text-bon">Crédit entièrement remboursé. Bravo.</p>}
 
       <details>
-        <summary className="cursor-pointer font-medium text-indigo">Échéancier ({c.echeances.filter((e) => e.statut === "payee").length}/{c.echeances.length} payées)</summary>
+        <summary className="cursor-pointer font-medium text-marque">Échéancier ({c.echeances.filter((e) => e.statut === "payee").length}/{c.echeances.length} payées)</summary>
         <ol className="mt-2 divide-y divide-trait">
           {c.echeances.map((e) => (
             <li key={e.id} className="flex items-center justify-between py-2 text-sm">
@@ -61,14 +61,14 @@ function CarteCredit({ c, canal, onChange }: { c: Credit; canal: string; onChang
       </details>
       {c.paiements.length > 0 && (
         <details>
-          <summary className="cursor-pointer font-medium text-indigo">Mes reçus ({c.paiements.length})</summary>
+          <summary className="cursor-pointer font-medium text-marque">Mes reçus ({c.paiements.length})</summary>
           <ul className="mt-2 space-y-1 text-sm">{c.paiements.map((x) => <li key={x.id} className="flex justify-between"><span>{date(x.horodatage, true)} · {x.recu}</span><span className="chiffres">{fcfa(x.montant)}</span></li>)}</ul>
         </details>
       )}
       {c.relances.length > 0 && (
         <div className="space-y-2">
           <h3 className="titre text-lg">Messages reçus <Simule quoi={`${canal} simulé`} className="ml-1 align-middle" /></h3>
-          <ul className="space-y-2">{c.relances.map((r) => <li key={r.id} className="rounded-xl rounded-tl-none bg-indigo-doux px-3 py-2 text-sm text-indigo">{r.message}<span className="block pt-1 text-[11px] opacity-80">{date(r.horodatage, true)} · {r.canal}</span></li>)}</ul>
+          <ul className="space-y-2">{c.relances.map((r) => <li key={r.id} className="rounded-xl rounded-tl-none bg-marque-doux px-3 py-2 text-sm text-marque">{r.message}<span className="block pt-1 text-[11px] opacity-80">{date(r.horodatage, true)} · {r.canal}</span></li>)}</ul>
         </div>
       )}
     </article>
@@ -98,7 +98,7 @@ export default function PageCredit() {
         <legend className="titre text-lg">Comment recevoir mes rappels</legend>
         <div className="grid grid-cols-3 gap-2">
           {CANAUX.map((c) => (
-            <label key={c.v} className={`flex min-h-12 cursor-pointer items-center justify-center rounded-xl border text-sm ${canal === c.v ? "border-indigo bg-indigo-doux text-indigo" : "border-trait"}`}>
+            <label key={c.v} className={`flex min-h-12 cursor-pointer items-center justify-center rounded-xl border text-sm ${canal === c.v ? "border-marque bg-marque-doux text-marque" : "border-trait"}`}>
               <input type="radio" name="canal" className="sr-only" checked={canal === c.v} onChange={() => choisir(c.v)} />{c.l}
             </label>
           ))}
