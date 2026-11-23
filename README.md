@@ -32,10 +32,33 @@ L_max = R × (1 − (1 + i)^−n) / i         (plafond théorique)
 
 Le plafond proposé est le plus gros montant dont le risque simulé reste sous le seuil de l'institution **et** sous `L_max`.
 
-## Lancer les tests du moteur
+## Lancer
 
 ```
-npm run test:engine
+npm install                                          # dépendances web et tests
+python3 services/api/serveur.py                      # API sur 127.0.0.1:3460 (charge la démo figée au premier lancement)
+npm --workspace apps/web run build && npm --workspace apps/web run start   # web sur 127.0.0.1:3461
 ```
 
-Ports locaux réservés : API `127.0.0.1:3460`, web `127.0.0.1:3461`.
+Puis ouvrir `/demo` (scénario guidé), `/app` (commerçant, pensé pour 360 px) ou `/console` (prêteur).
+
+## Tester
+
+```
+npm run test:engine                                                   # moteur (14 tests)
+(cd packages/generator && python3 -m unittest discover -s tests -t .) # générateur (7)
+(cd services/api && python3 -m unittest discover -s tests -t .)       # API (5)
+npx playwright install chromium && npx playwright test                # E2E + accessibilité (19), ports 3462/3463
+```
+
+## Évaluer
+
+`ml/dataset.py` → `ml/train.py` → `ml/evaluate.py` (voir `docs/evaluation/README.md`).
+Résultat clé, à lire avant tout : **sur données simulées, le moteur ne classe pas mieux qu'une règle
+« médiane × k »** ; il apporte explicabilité, prudence bornée, traçabilité et détection des manipulations.
+
+## Documentation
+
+`docs/PLAN.md`, `docs/PROGRESS.md`, `docs/DEFINITION-DE-TERMINE.md`, `docs/adr/`, `docs/contracts/`,
+`docs/evaluation/`, `docs/performance/`, `docs/design.md`, `docs/legal/`, `docs/business/`, `docs/dependencies.md`,
+`docs/retrospective/`.
