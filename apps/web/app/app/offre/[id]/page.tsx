@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Raisons } from "@/components/estimation";
 import { Bouton, Chargement, Erreur, Simule } from "@/components/ui";
 import { api, useApi } from "@/lib/api";
@@ -23,16 +23,36 @@ export default function PageOffre() {
   const [contre, setContre] = useState<number | null>(null);
   const [envoi, setEnvoi] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [acceptee, setAcceptee] = useState(false);
+  // L'écran suivant est chargé d'avance : l'ouverture du crédit ne dépend pas d'un aller-retour après l'accord.
+  useEffect(() => { router.prefetch("/app/credit"); }, [router]);
 
   if (erreur) return <Erreur message={erreur} reessayer={recharger} />;
   if (!o) return <Chargement lignes={5} />;
+
+  if (acceptee) {
+    return (
+      <section role="status" className="space-y-4">
+        <h1 className="titre text-3xl">Offre acceptée</h1>
+        <p className="text-lg">Votre crédit auprès de {o.institution} est ouvert. Ouverture de votre échéancier…</p>
+        <Bouton grand className="w-full" onClick={() => router.push("/app/credit")}>Voir mon crédit</Bouton>
+      </section>
+    );
+  }
 
   async function repondre(reponse: "accepte" | "refuse") {
     setEnvoi(reponse); setErr(null);
     try {
       await api(`/dossiers/${did}/offre`, { body: { reponse, montant: reponse === "accepte" && contre ? contre : undefined } });
-      if (reponse === "accepte") router.push("/app/credit"); else await recharger();
-    } catch (e) { setErr(e instanceof Error ? e.message : "Erreur"); } finally { setEnvoi(null); }
+      if (reponse === "accepte") {
+        // L'accord est enregistré : on ne réaffiche jamais le bouton « Accepter » (un second clic renverrait une erreur 409).
+        setAcceptee(true);
+        router.push("/app/credit");
+        return;
+      }
+      await recharger();
+    } catch (e) { setErr(e instanceof Error ? e.message : "Erreur"); }
+    setEnvoi(null);
   }
 
   if (o.statut === "refuse") {
@@ -82,7 +102,7 @@ export default function PageOffre() {
           onChange={(e) => { const v = Number(e.target.value.replace(/\D/g, "")); setContre(v ? Math.min(v, o.montant_offre!) : null); }}
           className="montant mt-1 block min-h-14 w-full rounded-xl border border-trait bg-surface-2 px-4 text-2xl" />
       </label>
-      {err && <p role="alert" className="text-alerte">{err}</p>}
+      {err && <Erreur message={err} reessayer={recharger} />}
       <Bouton grand className="w-full" disabled={!!envoi} onClick={() => repondre("accepte")}>
         {envoi === "accepte" ? "Acceptation…" : `Accepter ${fcfa(montant)}`}
       </Bouton>

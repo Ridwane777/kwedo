@@ -30,12 +30,14 @@ export function CadreConsole({ children }: { children: React.ReactNode }) {
 function NavConsole({ u }: { u: Utilisateur }) {
   const chemin = usePathname();
   return (
-    <nav aria-label="Console" className="border-b border-trait bg-surface px-4 pt-3 md:sticky md:top-0 md:flex md:h-dvh md:w-60 md:shrink-0 md:flex-col md:gap-1 md:border-b-0 md:border-r md:p-4">
+    // Le fond et le filet sont portés par la colonne (pleine hauteur de la page) ; seul le contenu reste collé en haut.
+    <div className="border-b border-trait bg-surface md:w-64 md:shrink-0 md:self-stretch md:border-b-0 md:border-r">
+    <nav aria-label="Console" className="px-4 pt-3 md:sticky md:top-0 md:flex md:h-dvh md:flex-col md:gap-1 md:p-4">
       <div className="flex items-start justify-between gap-3 md:block">
         <div className="min-w-0">
           <Link href="/console" className="mb-3 inline-block"><Marque taille={26} /></Link>
           <div className="mb-3 rounded-xl md:mb-5 md:bg-fond md:p-3">
-            <p className="truncate font-semibold">{u.institution}</p>
+            <p className="font-semibold leading-snug">{u.institution}</p>
             <p className="text-xs text-encre-2">{ROLES[u.role]} · {u.login}</p>
           </div>
         </div>
@@ -48,8 +50,8 @@ function NavConsole({ u }: { u: Utilisateur }) {
             <Link key={l.href} href={l.href} aria-current={actif ? "page" : undefined}
               className={`flex min-h-11 shrink-0 items-center gap-3 whitespace-nowrap rounded-xl px-3 py-2 font-medium ${actif ? "bg-marque-doux text-marque" : "text-encre-2 hover:bg-surface-2 hover:text-encre"}`}>
               <svg aria-hidden="true" className="hidden shrink-0 md:block" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d={l.icone} /></svg>
-              <span className="flex-1">{l.label}</span>
-              <kbd title={`Raccourci clavier : ${l.touche}`} className="hidden rounded border border-trait px-1.5 text-[11px] font-normal text-encre-2 md:inline">{l.touche}</kbd>
+              <span className="min-w-0 flex-1 md:whitespace-normal">{l.label}</span>
+              <kbd title={`Raccourci clavier : ${l.touche}`} className="hidden shrink-0 rounded border border-trait px-1.5 text-[11px] font-normal text-encre-2 md:inline">{l.touche}</kbd>
             </Link>
           );
         })}
@@ -60,5 +62,6 @@ function NavConsole({ u }: { u: Utilisateur }) {
         <button onClick={() => void deconnecter("pro")} className="min-h-11 w-full rounded-xl border border-trait px-3 text-left font-medium hover:bg-surface-2">Changer de profil</button>
       </div>
     </nav>
+    </div>
   );
 }

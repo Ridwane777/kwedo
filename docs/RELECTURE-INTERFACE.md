@@ -1,10 +1,11 @@
 # Relecture de la refonte : corrections à faire
 
-Reprends sur `~/kwedo-acces`, branche `cloisonnement`. Les règles et interdits de `docs/MISSION-INTERFACE.md` restent valables.
+Reprends sur `~/kwedo-acces`, branche `finition` (partie de main après la PR #1). Pousse avec `git push origin finition`, jamais sur main. Les règles et interdits de `docs/MISSION-INTERFACE.md` restent valables.
 Les 40 E2E passent, mais les captures montrent des défauts qu'ils ne voient pas. Charge le skill `frontend-design`.
 
 ## Bloquants
-1. **Mots collés dans tous les petits textes.** Exemples sur captures : « Unealertedemandeun examen », « Démosimulée »,
+0. **Acceptation de l offre instable** : le parcours E2E a échoué une fois, la page restant sur `/app/offre/...` après le clic sur Accepter. Cherche la cause réelle (clic avant hydratation, erreur non affichée, lenteur). Corrige le produit, pas seulement le délai du test, et rejoue le parcours au moins 5 fois.
+1. **FAIT (police remplacée), à contrôler seulement.** Mots collés dans tous les petits textes.** Exemples sur captures : « Unealertedemandeun examen », « Démosimulée »,
    « Exemplesimulé », « Maquettedel'écran », « Démarréetarrêtépar ». Trouve la cause (police, `text-rendering`, crénage, sous-ensemble,
    espaces de la police) et corrige-la globalement. Contrôle en zoomant sur des captures à 360 et 1440 px. Change de police de texte
    si elle en est la cause.
@@ -30,4 +31,4 @@ C'est l'écran central côté prêteur et il reste un mur de chiffres en 3 colon
   après avoir joué leurs actions. Supprime d'abord les anciennes captures `.captures/q-*` et `.captures/ecrans-*`, qui mélangent les versions.
 - Build, tests API et tous les E2E doivent passer.
 - Dépose les captures finales dans `~/kwedo-ops/revue-interface/` (obligatoire, le dossier était vide), complète `docs/PROGRESS.md`,
-  commite, `git push origin cloisonnement`, puis `touch /home/ridwane/kwedo-ops/DONE`.
+  commite, `git push origin finition`, puis `touch /home/ridwane/kwedo-ops/DONE`.

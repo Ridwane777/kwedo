@@ -50,7 +50,10 @@ Le mode sombre suit `prefers-color-scheme` avec les mêmes rôles.
 
 - **Bricolage Grotesque** (titres et montants, largeur resserrée `wdth` 85–92) : une grotesque à caractère, qui
   donne aux montants leur poids sans effet décoratif.
-- **Instrument Sans** (interface) : lisible en petit corps, chiffres tabulaires partout (`.chiffres`).
+- **Public Sans** (interface) : lisible en petit corps, chiffres tabulaires partout (`.chiffres`).
+  Elle remplace Instrument Sans, dont l'espace de mot ne mesure que 0,17 em : à 12 px, 2 px seulement, ce qui collait
+  les mots des petits textes (« Démosimulée »). Mesure : avec Public Sans, « a b » fait 18 px contre 15 px pour « ab » à 12 px.
+- Contrôle : zoomer sur les captures à 360 et 1440 px (`e2e/ecrans.spec.ts`) avant toute nouvelle police.
 - Pas de capitales espacées pour les étiquettes ni d'en-têtes de tableau en capitales.
 
 ## Composants (`apps/web/components/ui.tsx`)

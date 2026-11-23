@@ -72,15 +72,39 @@ for (const largeur of LARGEURS) {
     const actions: Record<number, string> = { 4: "Donner l'accord et envoyer", 5: "Ajuster avec justificatif", 6: "Accepter l'offre", 7: "Payer, puis avancer de 15 jours" };
     for (let n = 1; n <= 9; n++) {
       await expect(page.getByText(`Temps ${n} sur 9`)).toBeVisible();
+      if (n === 6) {
+        // Offre en attente, vue par le commerçant, avant de jouer « Accepter l'offre ».
+        const com = await page.context().browser()!.newPage({ viewport: { width: largeur, height: largeur < 500 ? 780 : 900 } });
+        await connecter(com.request, "commercant");
+        await com.goto("/app/dossier");
+        await com.getByRole("link", { name: /Voir l'offre/ }).first().click();
+        await expect(com.getByText("vous propose")).toBeVisible();
+        await com.waitForTimeout(800);
+        await com.screenshot({ path: `${CAP}/ecrans-commercant_offre-${largeur}.png`, fullPage: true });
+        expect.soft(await com.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1), `débordement : offre @${largeur}`).toBe(false);
+        await com.close();
+      }
       if (actions[n]) {
         await page.getByRole("button", { name: actions[n] }).click();
         await expect(page.getByText("Fait.")).toBeVisible({ timeout: 30_000 });
       }
-      await page.waitForTimeout(2000);
+      await page.waitForTimeout(1000);
+      // Capture une fois les deux écrans chargés (ni squelette ni « Chargement » dans les iframes).
+      for (const titre of ["Application commerçant", "Console prêteur"]) {
+        const f = page.frameLocator(`iframe[title="${titre}"]`);
+        if (await page.locator(`iframe[title="${titre}"]`).count()) await expect(f.locator('[role="status"][aria-label^="Chargement"]')).toHaveCount(0, { timeout: 20_000 });
+      }
+      await page.waitForTimeout(800);
       await page.screenshot({ path: `${CAP}/ecrans-demo-${n}-${largeur}.png`, fullPage: true });
       const deborde = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
       expect.soft(deborde, `débordement horizontal : démo temps ${n} @${largeur}`).toBe(false);
       if (n < 9) await page.getByRole("button", { name: "Suivant →" }).click();
     }
+    // Crédit en cours, avec paiement et échéancier, une fois la démo jouée.
+    const com = await page.context().browser()!.newPage();
+    await connecter(com.request, "commercant");
+    await verifier(com, "/app/credit", "commercant_credit_en_cours", largeur);
+    await expect(com.getByText(/échéance/i).first()).toBeVisible();
+    await com.close();
   });
 }

@@ -104,7 +104,8 @@ export default function Demo() {
       <header className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
         <Link href="/"><Marque /></Link>
         <div className="flex items-center gap-3">
-          <Simule quoi="Scénario de démonstration · données figées et simulées" />
+          <span className="sm:hidden"><Simule quoi="Données simulées" /></span>
+          <span className="hidden sm:inline"><Simule quoi="Scénario de démonstration, données figées et simulées" /></span>
           <Bouton variante="trait" onClick={reinitialiser} disabled={etat.t === "occupe"}>Réinitialiser la démo</Bouton>
         </div>
       </header>
