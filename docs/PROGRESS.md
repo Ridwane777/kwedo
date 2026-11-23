@@ -8,7 +8,8 @@
 | 3 | Moteur | fait | voir git log | 11 tests unitaires OK ; démo : alertes sur les 2 cas injectés, 0 sur les honnêtes ; 0,01–0,21 s par dossier | — |
 | 4 | Modèles | fait (écart ADR 0003) | voir git log | `ml/artifacts/metriques-v1.json` : défaut AUC 0,737 vs règle naïve 0,497 (0,80 hors réglage) ; prévision erreur 12,2 % vs 13,3 % (15,3 % vs 20,3 % hors réglage) ; détection règles+modèle 100 % des 58 cas injectés, 6,1 % de fausses alertes | `pip install` refusé → NumPy pur |
 | 5 | API | fait (écart ADR 0004) | voir git log | 5 tests : parcours estimation → consentement → dossier → décision ajustée → offre → échéancier → paiement → retard → relances → portefeuille → rejeu identique ; triggers refusent UPDATE/DELETE ; 403 sans consentement | FastAPI absent → stdlib |
-| 6–13 | Web, démo, qualité | à faire | | | `npm install` à vérifier |
+| 6 | Design system | fait | voir git log | `next build` OK ; `/design` capturé à 360 et 1440 px et relu (correctifs : espace insécable des montants, crénage) ; contrastes mesurés dans `docs/design.md` | navigateur Playwright installé dans `~/.cache/ms-playwright` (≈ 330 Mo, hors `~/kwedo`, emplacement par défaut de l'outil) |
+| 7–13 | Web, démo, qualité | à faire | | | |
 | 14 | Dossier final | à faire | | | |
 
 ## Environnement constaté (2026-11-23)

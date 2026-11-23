@@ -1,0 +1,85 @@
+@import "tailwindcss";
+
+/* Kwedo — « le registre vivant ». Tokens clair / sombre, contrastes vérifiés AA (voir docs/design.md). */
+:root {
+  --papier: #f6f0e4;        /* papier chaud */
+  --papier-2: #ede4d3;
+  --papier-3: #e2d6c0;
+  /* Contrastes mesurés sur --papier (script dans docs/design.md) */
+  --encre: #1c1a24;         /* 15,13:1 */
+  --encre-2: #4a4554;       /* 8,15:1 */
+  --encre-3: #6b6474;       /* 5,00:1 — jamais sur --papier-3 (3,95:1) */
+  --indigo: #27367a;        /* 9,76:1 ; sur indigo-doux 8,14:1 */
+  --indigo-doux: #d9dcef;
+  --terre: #a4442a;         /* 5,38:1 ; sur terre-doux 4,52:1 */
+  --terre-doux: #f1d9cc;
+  --feuille: #2f6b3c;       /* 5,63:1 ; sur feuille-doux 4,98:1 */
+  --feuille-doux: #d7e8d4;
+  --safran: #e0a21b;        /* safran : attention (fond et traits, jamais texte sur papier) */
+  --safran-encre: #6e4b00;  /* sur safran-doux 6,36:1 */
+  --safran-doux: #f8e6b5;
+  --trait: #cdbfa6;
+  --focus: #27367a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --papier: #16141c;
+    --papier-2: #1f1c27;
+    --papier-3: #2a2634;
+    --encre: #f1ebdf;
+    --encre-2: #c9c1b4;
+    --encre-3: #a39b90;
+    --indigo: #a9b6f2;
+    --indigo-doux: #26305e;
+    --terre: #f09a7c;
+    --terre-doux: #4a2419;
+    --feuille: #8fcc9b;
+    --feuille-doux: #1d3a24;
+    --safran: #f2bd4b;
+    --safran-encre: #f6d58a;
+    --safran-doux: #3d2f0c;
+    --trait: #3a3545;
+    --focus: #f2bd4b;
+  }
+}
+
+@theme inline {
+  --color-papier: var(--papier);
+  --color-papier-2: var(--papier-2);
+  --color-papier-3: var(--papier-3);
+  --color-encre: var(--encre);
+  --color-encre-2: var(--encre-2);
+  --color-encre-3: var(--encre-3);
+  --color-indigo: var(--indigo);
+  --color-indigo-doux: var(--indigo-doux);
+  --color-terre: var(--terre);
+  --color-terre-doux: var(--terre-doux);
+  --color-feuille: var(--feuille);
+  --color-feuille-doux: var(--feuille-doux);
+  --color-safran: var(--safran);
+  --color-safran-encre: var(--safran-encre);
+  --color-safran-doux: var(--safran-doux);
+  --color-trait: var(--trait);
+  --font-serif: var(--font-fraunces), Georgia, serif;
+  --font-sans: var(--font-plex), system-ui, sans-serif;
+}
+
+html { background: var(--papier); color: var(--encre); }
+body { font-family: var(--font-sans); font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; }
+.chiffres { font-variant-numeric: tabular-nums lining-nums; }
+.titre { font-family: var(--font-serif); font-variation-settings: "SOFT" 50, "WONK" 1; letter-spacing: -0.01em; }
+.montant { font-family: var(--font-serif); font-variant-numeric: tabular-nums lining-nums; font-variation-settings: "SOFT" 0; letter-spacing: -0.02em; }
+
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
+
+@keyframes tracer { from { stroke-dashoffset: var(--longueur); } to { stroke-dashoffset: 0; } }
+.trace { stroke-dasharray: var(--longueur); animation: tracer 1.4s cubic-bezier(.3,.7,.2,1) both; }
+@keyframes apparaitre { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.apparait { animation: apparaitre .4s ease-out both; }
+@keyframes pulse-doux { 0%,100% { opacity: .55 } 50% { opacity: 1 } }
+.chargement { animation: pulse-doux 1.2s ease-in-out infinite; background: var(--papier-3); border-radius: 6px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
+}

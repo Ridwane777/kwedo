@@ -172,7 +172,7 @@ def alertes(ind: dict, hebdo: np.ndarray, fv: dict) -> list[dict]:
 
 
 def _fcfa(x: float) -> str:
-    return f"{int(round(x)):,}".replace(",", " ") + " FCFA"
+    return f"{int(round(x)):,}".replace(",", " ") + " FCFA"
 
 
 def analyser(transactions: list[dict], parametres: dict | Parametres | None = None, graine: int = 0,

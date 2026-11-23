@@ -396,7 +396,7 @@ class Service:
             if len(deja) >= MAX_RELANCES:
                 continue
             reste = e["montant_attendu"] - e["montant_recu"]
-            montant = f"{reste:,}".replace(",", " ")
+            montant = f"{reste:,}".replace(",", " ")
             prenom = e["nom"].split()[0]
             if -2 <= ecart < 0 and not any("rappel" in r["message"] for r in deja):
                 msg = f"Bonjour {prenom}, petit rappel : votre échéance de {montant} FCFA arrive le {due:%d/%m}. Merci et bonne vente !"
