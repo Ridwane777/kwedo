@@ -3,7 +3,39 @@
 > **Tout est mesuré sur données simulées.** Les impayés sont ceux du simulateur : ces chiffres montrent que la
 > chaîne fonctionne et où elle est faible, **pas** une performance sur de vrais commerçants.
 
-## Reproduire
+## Passe de correction (moteur 0.2.0) — à lire en premier
+
+Protocole figé avant tout run : `protocole-final.md` ; graines : `graines-finales.json` ; runs : `runs/`.
+**Nombre de runs finaux effectués : 1 (sur 3 autorisés). Résultat : échec publié.**
+
+```
+nice -n 10 .venv/bin/python ml/dataset.py reglage_a 3000    # + reglage_b 1500, reglage_v 1500 (réglage uniquement)
+nice -n 10 .venv/bin/python ml/train.py                     # LightGBM + isotonique (≈ 2 min, 4 fils)
+nice -n 10 .venv/bin/python ml/diagnostic_calibration.py    # C3 : cause de la sous-estimation
+nice -n 10 .venv/bin/python ml/evaluate_final.py dev        # contrôle sur le réglage
+nice -n 10 .venv/bin/python ml/construire_final.py 1        # jeux finaux du run 1 (10 × 400)
+nice -n 10 .venv/bin/python ml/evaluate_final.py final 1    # → runs/run-1.json (≈ 40 s)
+```
+
+| Run 1 (générateur de test, 10 graines neuves) | Moteur | Moyenne × k | Médiane × k |
+|---|---|---|---|
+| Échéances manquées, test complet (n = 4 000), exposition égale | **0,93 %** | 1,25 % | 1,23 % |
+| IC 95 % de la différence moteur − règle | | [−0,43 ; −0,21] pt ✅ | [−0,42 ; −0,19] pt ✅ |
+| Échéances manquées, archétypes jamais vus (n = 1 130) | 1,41 % | 1,43 % | 1,40 % |
+| IC 95 % de la différence | | [−0,15 ; +0,10] pt ❌ | [−0,11 ; +0,12] pt ❌ |
+
+- **Calibration** : ECE 0,089, écart moyen 7,9 pts ❌ (contre 0,017 et 1,6 pt sur le réglage). Le risque reste
+  sous-estimé quand le générateur change, surtout pour les petits risques (1 % annoncé, 8 % observé).
+- **Détection** 100 %, 4,9 % de fausses alertes ✅. **Stabilité** p90 4,6 % ✅. **Raisons** 100 % fidèles ✅.
+  **Équité** 40/40, aucune variable sensible ✅.
+- **Cause (C3)**, mesurée sur le réglage : la simulation ignorait les dépenses personnelles imprévues (principale
+  cause) et supposait une marge de 0,30 trop haute pour certaines activités (`ADR 0008`). La calibration apprise
+  corrige le biais **sur le générateur où elle est apprise**, pas sous une dérive (plus de dépenses personnelles,
+  bruit différent, activités inconnues) que les flux ne laissent pas voir.
+- **Lecture** : le moteur classe mieux que les règles naïves sur des profils proches de ceux du réglage, pas sur des
+  activités nouvelles ; le risque annoncé n'est une probabilité fiable que dans le domaine du réglage.
+
+## Reproduire (évaluation v0.1, historique)
 
 ```
 nice -n 10 python3 ml/dataset.py reglage 600   # générateur de réglage
@@ -12,6 +44,9 @@ nice -n 10 python3 ml/train.py                 # modèles (réglage seulement)
 nice -n 10 python3 ml/balayage.py              # balayage de paramètres (réglage seulement)
 nice -n 10 python3 ml/evaluate.py              # → docs/evaluation/resultats.json
 ```
+
+> Les sections ci-dessous décrivent le moteur **0.1.0** (avant la passe de correction). Les scripts `train.py` et
+> `dataset.py` ont depuis évolué ; ces chiffres restent pour mémoire.
 
 Machine : x86_64, 8 cœurs, 4 utilisés, **pas de GPU**, Python 3.12.3, NumPy 1.26.4. Graines fixes : la sortie est
 identique d'une exécution à l'autre. Durée de l'évaluation : ≈ 40 s.
@@ -93,7 +128,9 @@ décisions identiques 40/40 (l'activité n'est pas une entrée). Plafond / médi
 ### 8. Fait-il gagner du temps ?
 
 Machine : analyse complète 0,07 s par dossier ; 2 000 trajectoires en 6 ms (≈ 330 000 trajectoires/s sur CPU).
-**Temps humain : non mesuré.** Il faut des agents réels ; protocole dans `protocole-temps.md`.
+**Temps humain : non mesuré.** Il faut des agents réels ; protocole dans `protocole-temps.md`. Depuis C5, la fiche
+dossier de la console propose un chronomètre démarré et arrêté par l'agent (avec ou sans l'outil), exportable en
+CSV/JSON ; tant que personne ne l'a utilisé, il affiche « non mesuré ».
 
 ## Ce qu'il faut retenir
 

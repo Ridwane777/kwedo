@@ -24,6 +24,20 @@ Les 15 étapes sont réalisées, vérifiées et poussées. **`~/kwedo-ops/DONE` 
 terminé du cahier n'est pas entièrement satisfaite (critère 5). Option prudente : laisser la décision à l'équipe
 (accepter la limite documentée, ou retravailler le moteur — pistes dans `docs/retrospective/README.md`).
 
+## Passe de correction (`docs/CORRECTIONS.md`)
+
+| # | Correction | Statut | Commit | Preuve | Blocages |
+|---|---|---|---|---|---|
+| C1 | Stack | fait | voir git log (« C1 Stack ») | `requirements.txt` épinglé, `.venv` ; API FastAPI, contrat inchangé (test des codes 404/422/201) ; ADR 0006 remplace 0004 ; 6 tests API + 19 E2E OK | **push refusé par la session** |
+| C2 | Modèles | fait | 9cd2a17 | LightGBM (4 fils, `nice -n 10`) vs NumPy sur le réglage : AUC 0,923 vs 0,917, Brier 0,088 vs 0,094 ; prévision 10,05 % vs 10,27 % ; ADR 0007 remplace 0003 | — |
+| C3 | Calibration | fait (réglage) / ❌ au run final | 9cd2a17 | Cause : dépenses perso absentes de la simulation + marge supposée trop haute (`ml/artifacts/diagnostic-calibration.json`) ; isotonique sur partition b : ECE 0,017 sur le réglage, **0,089 au run final** | dérive du générateur de test |
+| C4 | Décision | fait / ❌ hors réglage | 9cd2a17, 5ea6a00 | Run final 1 : 0,93 % vs 1,25 / 1,23 % sur le test complet (IC excluant 0) ; hors réglage 1,41 % vs 1,43 / 1,40 % (non significatif) ; plafond ≤ L_max ; raisons 100 % fidèles ; équité 40/40 | critères 1-2 non atteints hors réglage |
+| C5 | Temps de traitement | fait | ac8ff67 | Chronomètre dans la fiche dossier, « non mesuré » par défaut, export CSV/JSON ; `e2e/chronometre.spec.ts` OK. Temps humain : **non mesuré** | — |
+| C6 | Mise à jour | fait | voir git log | Évaluation, performance, Définition de terminé, rétrospective, README, ce fichier | — |
+
+**Runs finaux : 1 sur 3, en échec** (`docs/evaluation/runs/run-1.json`). Pas de run 2 : voir la rétrospective (corriger
+la dérive demanderait de rapprocher le réglage des réglages connus du générateur de test). Fin : `~/kwedo-ops/BLOCKED`.
+
 ## Environnement constaté (2026-11-23)
 
 - Node 22.22.3, npm 10.9.8, Python 3.12.3, NumPy 1.26.4 (système). 8 cœurs, pas de GPU.

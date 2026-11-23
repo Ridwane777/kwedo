@@ -45,5 +45,17 @@ de la démo (hors seuil : action d'animateur, recharge ≈ 20 000 transactions e
 
 ## Moteur (calcul)
 
-Voir `docs/evaluation/README.md` §8 : analyse complète 0,07 s par dossier ; ≈ 330 000 trajectoires/s sur CPU.
+Voir `docs/evaluation/README.md` §8 : analyse complète 0,07 s par dossier (v0.1) ; ≈ 330 000 trajectoires/s sur CPU.
+
+### Après la passe de correction (moteur 0.2.0, FastAPI, LightGBM), 2026-11-23
+
+Mesuré en processus (client de test FastAPI, sans réseau), 30 appels, machine partagée :
+
+| Mesure | p50 | p95 | Seuil |
+|---|---|---|---|
+| Analyse complète d'un dossier (modèle + 3 raisons recalculées) | 86 ms (moyenne) | — | — |
+| `GET /commercants/{id}/estimation` avec choc | 112 ms | 281 ms | < 500 ms ✅ |
+| `GET /dossiers` | 17 ms | 105 ms | < 200 ms ✅ |
+
+Les pages web n'ont pas été remesurées : seul le chronomètre a été ajouté à la fiche dossier (aucune requête réseau).
 Un backend `cupy` est prévu dans `simuler_seuils` mais **n'a jamais tourné** (pas de GPU).

@@ -18,7 +18,7 @@ Avancement : `docs/PROGRESS.md`.
 |---|---|
 | `apps/web` | Next.js : `/` présentation, `/app` commerçant, `/console` prêteur, `/demo` scénario guidé |
 | `services/api` | FastAPI + SQLite (WAL), journal en ajout seul |
-| `packages/engine` | Moteur d'analyse, Python pur + NumPy, sans état, déterministe |
+| `packages/engine` | Moteur d'analyse (NumPy + LightGBM), sans état, déterministe |
 | `packages/generator` | Générateurs de commerçants simulés (réglage et test) |
 | `ml/` | Entraînement et évaluation des modèles (CPU, 4 threads max) |
 | `docs/` | Plan, ADR, contrats, légal, performance, business, rétrospective |
@@ -30,7 +30,8 @@ R     = C_p × m × s                      (échéance hebdomadaire supportable)
 L_max = R × (1 − (1 + i)^−n) / i         (plafond théorique)
 ```
 
-Le plafond proposé est le plus gros montant dont le risque simulé reste sous le seuil de l'institution **et** sous `L_max`.
+Le plafond proposé est le plus gros montant dont le risque d'impayé **calibré** (simulation + modèle LightGBM +
+calibration isotonique, ADR 0007/0008) reste sous le seuil de l'institution **et** sous `L_max`, jamais au-dessus.
 
 ## Lancer
 
@@ -49,14 +50,16 @@ Puis ouvrir `/demo` (scénario guidé), `/app` (commerçant, pensé pour 360 px)
 npm run test:engine                                                   # moteur (14 tests)
 npm run test:gen                                                      # générateur (7)
 npm run test:api                                                      # API FastAPI (6)
-npx playwright install chromium && npx playwright test                # E2E + accessibilité (19), ports 3462/3463
+npx playwright install chromium && npx playwright test                # E2E + accessibilité + chronomètre (20), ports 3462/3463
 ```
 
 ## Évaluer
 
-`ml/dataset.py` → `ml/train.py` → `ml/evaluate.py` (voir `docs/evaluation/README.md`).
-Résultat clé, à lire avant tout : **sur données simulées, le moteur ne classe pas mieux qu'une règle
-« médiane × k »** ; il apporte explicabilité, prudence bornée, traçabilité et détection des manipulations.
+`ml/dataset.py` → `ml/train.py` → `ml/evaluate_final.py` (voir `docs/evaluation/README.md` et
+`docs/evaluation/protocole-final.md`). Résultat clé, à lire avant tout (run final 1, données simulées) : le moteur
+manque **0,93 %** des échéances contre ≈ 1,24 % pour les règles « moyenne/médiane × k » à exposition égale sur
+l'ensemble du test (écart significatif), **mais pas mieux qu'elles sur les activités jamais vues**, et son risque
+annoncé reste sous-estimé hors du domaine de réglage. Critères de la passe de correction **non atteints**.
 
 ## Documentation
 
