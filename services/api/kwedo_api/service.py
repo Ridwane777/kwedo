@@ -47,6 +47,27 @@ def _f(montant) -> str:
     return "—" if montant is None else f"{int(montant):,}".replace(",", " ") + " FCFA"
 
 
+RAISON_FORMULE = "La formule de l'institution limite la part de vos encaissements consacrée au remboursement : c'est elle qui fixe le plafond."
+
+
+def raisons_commercant(raisons: list[dict]) -> list[dict]:
+    """Le texte moteur de la raison « formule » cite la part prélevable s de l'institution : remplacé côté commerçant."""
+    return [{**r, "texte": RAISON_FORMULE} if r["code"] == "formule" else r for r in raisons]
+
+
+def manque_commercant(manque: list[str], c_p: int) -> list[str]:
+    """Les textes moteur citent le risque simulé, le seuil de l'institution, et un encaissement requis dont on
+    déduirait m × s. Côté commerçant : mêmes conseils, sans ces valeurs."""
+    out = []
+    for t in manque:
+        if t.startswith("Un encaissement prudent"):
+            t = f"Des encaissements plus élevés sur les mauvaises semaines (aujourd'hui {_f(c_p)} par semaine au moins)."
+        elif t.startswith("Des encaissements plus réguliers"):
+            t = "Des encaissements plus réguliers : à ce montant, le risque d'une échéance manquée dépasse la limite de l'institution."
+        out.append(t)
+    return out
+
+
 def _g(*parts) -> int:
     return int(hashlib.sha256(":".join(map(str, parts)).encode()).hexdigest()[:8], 16)
 
@@ -193,11 +214,14 @@ class Service:
         res["institution_id"] = inst
         # Le commerçant ne voit jamais les alertes de manipulation : elles vont à l'agent.
         res.pop("alertes"); res.pop("modeles")
-        # Réglages internes de l'institution (m, s, percentile, seuil) : ils ne sortent pas vers l'espace commerçant.
+        # Réglages internes de l'institution (m, s, percentile, seuil, L_max) et risque simulé R : ils ne sortent pas
+        # vers l'espace commerçant. Seul un indicateur binaire « au-dessus du seuil » accompagne le montant souhaité.
         if res.get("souhait"):
-            res["souhait"]["au_dessus_du_seuil"] = res["souhait"]["risque"] > p["seuil_risque"]
+            res["souhait"]["au_dessus_du_seuil"] = res["souhait"].pop("risque") > p["seuil_risque"]
+            res["souhait"]["manque"] = manque_commercant(res["souhait"]["manque"], res["encaissement_prudent"])
+        res["raisons"] = raisons_commercant(res["raisons"])
         res["parametres"] = {"n": res["parametres"]["n"], "i": res["parametres"]["i"]}
-        for interne in ("l_max", "l_simulation", "echeance_supportable", "decote_anciennete"):
+        for interne in ("l_max", "l_simulation", "echeance_supportable", "decote_anciennete", "risque", "recommandation", "graine"):
             res.pop(interne)
         res["chaine_calcul"] = [f"Niveau prudent de vos encaissements : {_f(res['encaissement_prudent'])} par semaine",
                                 f"Échéance pour ce montant : {_f(res['echeance_hebdo'])} par semaine, sur {res['duree_semaines']} semaines",
@@ -331,7 +355,7 @@ class Service:
         a = json.loads(d.pop("analyse_json"))
         dec = self.un("SELECT type, motif, montant_decide, duree_semaines, horodatage FROM decisions WHERE dossier_id = ? ORDER BY id DESC LIMIT 1", did)
         out = {k: d[k] for k in ("id", "institution_id", "institution", "statut", "cree_le", "montant_offre", "duree_offre", "decide_le")}
-        out.update({"plafond_estime": a["plafond"], "raisons": a["raisons"], "conseils": a["conseils"],
+        out.update({"plafond_estime": a["plafond"], "raisons": raisons_commercant(a["raisons"]), "conseils": a["conseils"],
                     "decision": dec, "credit": self.un("SELECT id FROM credits WHERE dossier_id = ?", did)})
         if d["montant_offre"]:
             p = Parametres.depuis({**a["parametres"], "n": d["duree_offre"]})

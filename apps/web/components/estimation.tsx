@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { Analyse, InstitutionPublique } from "@/lib/types";
+import type { Analyse, Estimation, InstitutionPublique } from "@/lib/types";
 import { fcfa, pct } from "@/lib/format";
 
 export function ChoixInstitution({ institutions, valeur, onChange }: { institutions: InstitutionPublique[]; valeur: string; onChange: (v: string) => void }) {
@@ -36,7 +36,7 @@ export function Raisons({ raisons }: { raisons: Analyse["raisons"] }) {
   );
 }
 
-export function ChaineCalcul({ a }: { a: Analyse }) {
+export function ChaineCalcul({ a }: { a: Estimation }) {
   const [ouvert, setOuvert] = useState(false);
   return (
     <div className="text-sm">
@@ -46,7 +46,7 @@ export function ChaineCalcul({ a }: { a: Analyse }) {
       {ouvert && (
         <ol className="apparait mt-2 space-y-1.5 border-l-2 border-safran pl-3 text-encre-2">
           {a.chaine_calcul.map((l) => <li key={l}>{l}</li>)}
-          <li className="text-xs">Moteur {a.version_moteur} · graine {a.graine} · risque simulé au plafond {pct(a.risque, 1)}</li>
+          <li className="text-xs">Moteur {a.version_moteur} · durée {a.duree_semaines} semaines · taux {pct(a.parametres.i, 2)} par semaine</li>
         </ol>
       )}
     </div>

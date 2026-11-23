@@ -4,13 +4,13 @@ import { Chargement, Erreur, LienBouton, Simule } from "@/components/ui";
 import { useApi } from "@/lib/api";
 import { useCommercant } from "@/lib/commercant";
 import { fcfa, pct } from "@/lib/format";
-import type { Analyse } from "@/lib/types";
+import type { Estimation } from "@/lib/types";
 
 const PALIERS = [13, 26, 52];
 
 export default function Conseils() {
   const { id } = useCommercant();
-  const { donnees: a, erreur, recharger } = useApi<Analyse>(`/commercants/${id}/estimation`);
+  const { donnees: a, erreur, recharger } = useApi<Estimation>(`/commercants/${id}/estimation`);
   if (erreur) return <Erreur message={erreur} reessayer={recharger} />;
   if (!a) return <Chargement lignes={6} />;
   const W = a.indicateurs.semaines;

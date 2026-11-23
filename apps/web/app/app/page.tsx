@@ -7,7 +7,7 @@ import { Chargement, Erreur, LienBouton, Simule } from "@/components/ui";
 import { useApi } from "@/lib/api";
 import { useCommercant } from "@/lib/commercant";
 import { fcfa } from "@/lib/format";
-import type { Analyse, Commercant, InstitutionPublique } from "@/lib/types";
+import type { Estimation as VueEstimation, Commercant, InstitutionPublique } from "@/lib/types";
 
 export default function Estimation() {
   const { id } = useCommercant();
@@ -16,7 +16,7 @@ export default function Estimation() {
   const com = useApi<{ commercant: Commercant }>(`/commercants/${id}`);
   const nbTx = com.donnees?.commercant.nb_transactions ?? 0;
   // Lancée en parallèle du profil : le montant (LCP) n'attend pas une seconde requête.
-  const est = useApi<Analyse>(`/commercants/${id}/estimation?institution_id=${inst}`);
+  const est = useApi<VueEstimation>(`/commercants/${id}/estimation?institution_id=${inst}`);
 
   if (com.erreur) return <Erreur message={com.erreur} reessayer={com.recharger} />;
   if (!com.donnees) return <Chargement lignes={5} label="Chargement de votre estimation" />;

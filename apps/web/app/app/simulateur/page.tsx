@@ -5,19 +5,19 @@ import { CourbeFlux } from "@/components/courbe-flux";
 import { Erreur, LienBouton, Simule } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useCommercant } from "@/lib/commercant";
-import { fcfa, nombre, pct } from "@/lib/format";
-import type { Analyse } from "@/lib/types";
+import { fcfa, nombre } from "@/lib/format";
+import type { Estimation } from "@/lib/types";
 
 export default function Simulateur() {
   const { id } = useCommercant();
   const [souhait, setSouhait] = useState<number | null>(null);
   const [baisse, setBaisse] = useState(0);
-  const [a, setA] = useState<Analyse | null>(null);
-  const [base, setBase] = useState<Analyse | null>(null);
+  const [a, setA] = useState<Estimation | null>(null);
+  const [base, setBase] = useState<Estimation | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
 
   useEffect(() => {
-    api<Analyse>(`/commercants/${id}/estimation`).then((r) => {
+    api<Estimation>(`/commercants/${id}/estimation`).then((r) => {
       setBase(r);
       setSouhait((s) => s ?? (Math.round((r.plafond * 1.5) / 50_000) * 50_000 || 100_000));
     }).catch((e) => setErreur(e.message));
@@ -26,7 +26,7 @@ export default function Simulateur() {
   useEffect(() => {
     if (souhait === null) return;
     const t = setTimeout(() => {
-      api<Analyse>(`/commercants/${id}/estimation?choc_ventes=${-baisse / 100}&montant_souhaite=${souhait}`)
+      api<Estimation>(`/commercants/${id}/estimation?choc_ventes=${-baisse / 100}&montant_souhaite=${souhait}`)
         .then((r) => { setA(r); setErreur(null); })
         .catch((e) => setErreur(e.message));
     }, 180);
@@ -58,7 +58,7 @@ export default function Simulateur() {
       {s && (
         <div aria-live="polite" className={`apparait rounded-2xl p-5 ${s.atteignable ? "bg-feuille-doux" : "bg-papier-2"}`}>
           {s.atteignable ? (
-            <p className="text-lg"><strong className="text-feuille">C'est possible.</strong> Échéance de {fcfa(s.echeance)} par semaine, risque simulé {pct(s.risque, 1)}.</p>
+            <p className="text-lg"><strong className="text-feuille">C'est possible.</strong> Échéance de {fcfa(s.echeance)} par semaine.</p>
           ) : (
             <>
               <p className="text-lg">Pour obtenir <strong className="chiffres">{fcfa(s.montant)}</strong>, il manque :</p>
@@ -89,9 +89,9 @@ export default function Simulateur() {
                 {base && baisse > 0 && <dd className="text-xs text-terre">{fcfa(a.plafond - base.plafond)}</dd>}
               </div>
               <div>
-                <dt className="text-sm text-encre-2">Risque au montant souhaité</dt>
-                <dd className={`montant text-2xl ${s?.au_dessus_du_seuil ? "text-terre" : ""}`}>{pct(s?.risque ?? 0, 1)}</dd>
-                <dd className="text-xs text-encre-2">part des avenirs simulés avec une échéance manquée</dd>
+                <dt className="text-sm text-encre-2">Au montant souhaité</dt>
+                <dd className={`titre text-2xl ${s?.au_dessus_du_seuil ? "text-terre" : "text-feuille"}`}>{s ? (s.au_dessus_du_seuil ? "Trop risqué" : "Supportable") : "—"}</dd>
+                <dd className="text-xs text-encre-2">selon la limite de risque de l'institution</dd>
               </div>
             </dl>
           </>

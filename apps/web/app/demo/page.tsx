@@ -61,7 +61,7 @@ const TEMPS: Temps[] = [
       await enAdmin(() => api("/demo/avancer", { body: { jours: 15 } }));
     } } },
   { titre: "Test de résistance", duree: 20, ecran: () => ({ telephone: "/app/simulateur" }),
-    dire: "Le curseur baisse les ventes de 30 % : la courbe descend, le plafond diminue et le risque monte, en direct." },
+    dire: "Le curseur baisse les ventes de 30 % : la courbe descend et le plafond diminue, en direct." },
   { titre: "Clôture", duree: 15, ecran: () => ({ telephone: "/app", console: "/console/journal" }),
     dire: "Tout ce que vous avez vu est simulé et étiqueté comme tel. Sur ces données, le moteur est stable, explicable et détecte les manipulations injectées ; il ne classe pas encore mieux qu'une règle simple. La suite : un pilote avec une institution de microfinance, sur de vrais remboursements." },
 ];

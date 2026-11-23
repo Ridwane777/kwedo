@@ -29,8 +29,13 @@ export type Analyse = {
   chaine_calcul: string[];
   alertes?: Alerte[];
   modeles?: { version: string; prevision_hebdo: number; horizon_semaines: number; proba_defaut: number; score_anomalie: number; alerte_anomalie: boolean } | null;
-  souhait?: { montant: number; risque: number; echeance: number; atteignable: boolean; manque: string[]; au_dessus_du_seuil?: boolean };
   institution_id?: string;
+};
+
+/** Vue commerçant de l'estimation : ni R, ni recommandation, ni réglages de l'institution (ADR 0009). */
+export type Estimation = Omit<Analyse, "graine" | "parametres" | "echeance_supportable" | "l_max" | "l_simulation" | "decote_anciennete" | "risque" | "recommandation" | "alertes" | "modeles"> & {
+  parametres: { n: number; i: number };
+  souhait?: { montant: number; echeance: number; atteignable: boolean; manque: string[]; au_dessus_du_seuil: boolean };
 };
 
 export type Commercant = {
@@ -70,6 +75,6 @@ export type InstitutionPublique = { id: string; nom: string };
 export type Institution = { id: string; nom: string; parametres: { id: number; m: number; s: number; n: number; i: number; percentile: number; seuil_risque: number; auteur: string; cree_le: string } };
 
 export type TableauDeBord = {
-  commercant: Commercant; estimation: Analyse | null; credits: Credit[];
+  commercant: Commercant; estimation: Estimation | null; credits: Credit[];
   dossiers: { id: string; institution_id: string; institution: string; statut: string; montant_offre: number | null; duree_offre: number | null; cree_le: string }[];
 };

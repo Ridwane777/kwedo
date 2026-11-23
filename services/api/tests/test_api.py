@@ -169,6 +169,59 @@ class TestCloisonnement(unittest.TestCase):
             self.assertNotIn(interne, e)
         self.assertEqual(c.post("/commercants", json={"nom": "Afiavi Houngbo", "telephone": self.s.commercant("com-afiavi")["telephone"]}).status_code, 409)
 
+    def test_commercant_ne_recoit_ni_risque_ni_seuil(self):
+        """Audit : R, la recommandation (dérivée du seuil) et les textes moteur citant R, le seuil ou s ne sortent pas."""
+        c = client(self.s, "commercant")
+        for url in ("/commercants/com-afiavi/estimation?montant_souhaite=5000000&choc_ventes=-0.5",
+                    "/commercants/com-afiavi/estimation?montant_souhaite=200000", "/commercants/com-afiavi"):
+            r = c.get(url)
+            self.assertEqual(r.status_code, 200, url)
+            self.assertNotIn('"risque"', r.text, url)
+            for interne in ("recommandation", "graine", "seuil_risque", "percentile", "limite de l'institution :", "prélèvement à"):
+                self.assertNotIn(interne, r.text, url)
+        s = c.get("/commercants/com-afiavi/estimation?montant_souhaite=5000000").json()["souhait"]
+        self.assertTrue(s["au_dessus_du_seuil"])
+        self.assertFalse(s["atteignable"])
+
+    def test_raison_formule_reecrite(self):
+        from kwedo_api.service import raisons_commercant
+        r = raisons_commercant([{"code": "formule", "effet": 0, "texte": "… limite le prélèvement à 35 % de la marge …"}])
+        self.assertNotIn("35", r[0]["texte"])
+
+    def test_credits_echeances_et_offres_cloisonnes(self):
+        s = self.s
+        did = [r for r in s.file("inst-lagune") if r["commercant_id"] == "com-rachidi"][0]["id"]
+        s.decider(did, "valide", "agent.lagune", "Dossier régulier, accord au plafond.")
+        cr = s.repondre_offre(did, "accepte")
+        eid = cr["echeances"][0]["id"]
+        # Offre : vue commerçant sans réglages, et inaccessible à un autre commerçant.
+        o = client(s, commercant="com-rachidi").get(f"/commercants/com-rachidi/dossiers/{did}")
+        self.assertEqual(o.status_code, 200)
+        self.assertNotIn("risque", o.text)
+        self.assertNotIn("alertes", o.text)
+        autre = client(s, "commercant")
+        self.assertEqual(autre.get(f"/commercants/com-afiavi/dossiers/{did}").status_code, 404)
+        self.assertEqual(autre.get(f"/credits/{cr['id']}").status_code, 404)
+        self.assertEqual(autre.post(f"/credits/{cr['id']}/paiements", json={"montant": 1000}).status_code, 404)
+        self.assertEqual(autre.post(f"/dossiers/{did}/offre", json={"reponse": "refuse"}).status_code, 404)
+        # Autre institution et admin : ni lecture du crédit, ni intervention sur l'échéance.
+        for p in ("agent-baobab", "responsable-baobab", "admin"):
+            c = client(s, p)
+            self.assertEqual(c.get(f"/credits/{cr['id']}").status_code, 404, p)
+            self.assertIn(c.post(f"/echeances/{eid}/interventions", json={"motif": "tentative hors périmètre"}).status_code, (403, 404), p)
+            self.assertNotIn(cr["id"], c.get("/portefeuille").text if p != "admin" else "")
+        self.assertEqual(client(s, "agent-lagune").get(f"/credits/{cr['id']}").status_code, 200)
+        # Le commerçant ne paie pas à la place du prêteur et ne décide pas.
+        self.assertEqual(client(s, commercant="com-rachidi").post(f"/dossiers/{did}/decisions", json={}).status_code, 401)
+        # Le responsable de Baobab ne voit pas les noms des commerçants de Lagune dans son journal.
+        self.assertNotIn("com-rachidi", client(s, "responsable-baobab").get("/journal").text)
+
+    def test_commandes_demo_reservees_a_l_admin(self):
+        for p in ("agent-lagune", "responsable-lagune", "commercant"):
+            c = client(self.s, p)
+            for chemin in ("/demo/avancer", "/demo/reinitialiser", "/relances/executer"):
+                self.assertIn(c.post(chemin, json={"jours": 1}).status_code, (401, 403), (p, chemin))
+
 
 if __name__ == "__main__":
     unittest.main()
