@@ -1,0 +1,85 @@
+openapi: 3.1.0
+info:
+  title: Kwedo API (prototype, données simulées)
+  version: 0.1.0
+servers:
+  - url: http://127.0.0.1:3460
+paths:
+  /commercants/{id}/estimation:
+    get:
+      summary: Estimation (indicateurs, plafond, risque, raisons, conseils)
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string}}
+        - {name: institution_id, in: query, schema: {type: string}}
+        - {name: choc_ventes, in: query, schema: {type: number, minimum: -0.9, maximum: 0}}
+        - {name: montant_souhaite, in: query, schema: {type: integer}}
+      responses: {'200': {content: {application/json: {schema: {$ref: '#/components/schemas/Analyse'}}}}}
+  /commercants/{id}/consentements:
+    get: {summary: Liste des consentements, responses: {'200': {description: ok}}}
+    post:
+      summary: Accorder ou retirer un consentement
+      requestBody: {content: {application/json: {schema: {type: object, required: [institution_id, action], properties: {institution_id: {type: string}, action: {enum: [accorde, retire]}}}}}}
+      responses: {'201': {description: enregistré}}
+  /dossiers:
+    get: {summary: File de dossiers (filtre institution, statut, tri), responses: {'200': {description: ok}}}
+    post:
+      summary: Envoi du dossier (exige un consentement actif)
+      requestBody: {content: {application/json: {schema: {type: object, required: [commercant_id, institution_id], properties: {commercant_id: {type: string}, institution_id: {type: string}}}}}}
+      responses: {'201': {description: créé}, '403': {description: pas de consentement}}
+  /dossiers/{id}:
+    get: {summary: Fiche analysée (journalise l'accès), responses: {'200': {description: ok}}}
+  /dossiers/{id}/decisions:
+    post:
+      summary: Décision humaine (ajout seul)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [type, auteur, motif]
+              properties:
+                type: {enum: [valide, ajuste, refuse, complement]}
+                montant_decide: {type: integer}
+                duree_semaines: {type: integer}
+                auteur: {type: string}
+                motif: {type: string, minLength: 10}
+      responses: {'201': {description: enregistrée}, '422': {description: justificatif manquant}}
+  /dossiers/{id}/offre:
+    post:
+      summary: Réponse du commerçant à l'offre (accepte crée crédit + échéancier + décaissement simulé)
+      requestBody: {content: {application/json: {schema: {type: object, properties: {reponse: {enum: [accepte, refuse]}}}}}}
+      responses: {'200': {description: ok}}
+  /credits/{id}:
+    get: {summary: Crédit, échéancier, paiements, relances, responses: {'200': {description: ok}}}
+  /credits/{id}/paiements:
+    post: {summary: Paiement mobile money simulé, responses: {'201': {description: reçu}}}
+  /portefeuille:
+    get: {summary: Indicateurs portefeuille (payées, retard, PAR30), responses: {'200': {description: ok}}}
+  /relances/executer:
+    post: {summary: Tâche planifiée de relance (journal, simulé), responses: {'200': {description: ok}}}
+  /institutions/{id}/parametres:
+    get: {summary: Paramètres actifs, responses: {'200': {description: ok}}}
+    post: {summary: Nouvelle version de paramètres, responses: {'201': {description: ok}}}
+  /journal:
+    get: {summary: Journal d'audit (décisions, accès, interventions), responses: {'200': {description: ok}}}
+  /demo/reinitialiser:
+    post: {summary: Recharge le jeu de démo figé, responses: {'200': {description: ok}}}
+components:
+  schemas:
+    Analyse:
+      type: object
+      properties:
+        version_moteur: {type: string}
+        graine: {type: integer}
+        parametres: {type: object}
+        provisoire: {type: boolean}
+        indicateurs: {type: object}
+        echeance_hebdo: {type: integer}
+        l_max: {type: integer}
+        plafond: {type: integer}
+        risque: {type: number}
+        recommandation: {enum: [accord, examen_renforce, refus_motive]}
+        raisons: {type: array, items: {type: object, properties: {code: {type: string}, texte: {type: string}, effet: {type: integer}}}}
+        conseils: {type: array, items: {type: string}}
+        alertes: {type: array, items: {type: object, properties: {code: {type: string}, texte: {type: string}}}}
+        serie_hebdo: {type: array, items: {type: integer}}
