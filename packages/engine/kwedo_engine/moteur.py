@@ -35,6 +35,7 @@ class Parametres:
     bloc: int = 4
     p_choc_durable: float = 0.15
     p_semaine_vide: float = 0.03
+    gamma_modele: float = 4.0   # modulation par la probabilité de défaut (0 = désactivée), choisie par balayage sur le réglage
 
     @classmethod
     def depuis(cls, d: dict | None) -> "Parametres":
@@ -189,10 +190,16 @@ def analyser(transactions: list[dict], parametres: dict | Parametres | None = No
     plafond, c_p, lmax, l_sim, seuils = _plafond(hebdo, p, graine, choc_ventes, decote)
     risque = risque_pour_montant(seuils, plafond, p) if plafond else 0.0
     al = alertes(ind, hebdo, fv)
-    ml = appliquer(ind, c_p, hebdo, fv) if avec_modeles else None
+    # Le modèle lit l'historique réel : le choc de ventes est un scénario sur l'avenir, pas un nouvel historique.
+    ml = appliquer(ind, c_p / (1 + choc_ventes), hebdo, fv) if avec_modeles else None
     if ml and ml["alerte_anomalie"]:
         al.append({"code": "anomalie_modele", "texte": f"Le modèle d'anomalies juge ce profil de flux inhabituel "
                    f"(score {ml['score_anomalie']:.1f}). À examiner : cela ne prouve aucune manipulation."})
+    plafond_avant_modele = plafond
+    if ml and p.gamma_modele > 0 and plafond:
+        # Le modèle ne peut que BAISSER le montant : la formule reste le garde-fou.
+        plafond = int(plafond * float(np.exp(-p.gamma_modele * ml["proba_defaut"])) // PAS * PAS)
+        risque = risque_pour_montant(seuils, plafond, p) if plafond else 0.0
     provisoire = W < SEMAINES_MIN
 
     if plafond < PLAFOND_MIN:
@@ -202,7 +209,13 @@ def analyser(transactions: list[dict], parametres: dict | Parametres | None = No
     else:
         reco = "accord"
 
-    raisons = _raisons(hebdo, p, graine, choc_ventes, decote, plafond, ind, c_p, lmax, l_sim) if avec_raisons else []
+    raisons = _raisons(hebdo, p, graine, choc_ventes, decote, plafond_avant_modele, ind, c_p, lmax, l_sim) if avec_raisons else []
+    effet_modele = plafond_avant_modele - plafond
+    if avec_raisons and effet_modele > 0:
+        raisons = raisons[:2] + [{"code": "modele_risque", "effet": int(effet_modele),
+                                  "texte": f"Le modèle de risque (entraîné sur données simulées) estime la probabilité d'impayé à "
+                                           f"{_pc(ml['proba_defaut'])} et réduit le montant de {_fcfa(effet_modele)}."}]
+    facteur_modele = plafond / plafond_avant_modele if plafond_avant_modele else 1.0
     res = {
         "version_moteur": VERSION,
         "graine": int(graine),
@@ -231,12 +244,15 @@ def analyser(transactions: list[dict], parametres: dict | Parametres | None = No
             f"Sur {p.n} semaines au taux {p.i:.2%} par semaine → plafond théorique {_fcfa(lmax)}",
             f"Simulation de {p.trajectoires} avenirs : montant au risque ≤ {_pc(p.seuil_risque)} → {_fcfa(l_sim)}",
             *( [f"Historique de {W} semaines : décote d'ancienneté × {decote:.2f}"] if decote < 1 else [] ),
-            f"Plafond proposé (le plus bas, arrondi à {_fcfa(PAS)}) : {_fcfa(plafond)}",
+            f"Le plus bas des deux, arrondi à {_fcfa(PAS)} : {_fcfa(plafond_avant_modele)}",
+            *( [f"Modèle de risque : probabilité d'impayé {_pc(ml['proba_defaut'])} → × {facteur_modele:.2f} (ne peut que baisser)"]
+               if effet_modele > 0 else [] ),
+            f"Plafond proposé : {_fcfa(plafond)}",
         ],
     }
     res["conseils"] = conseils(res, p)
     if montant_souhaite:
-        res["souhait"] = souhait(montant_souhaite, hebdo, seuils, c_p, p, decote)
+        res["souhait"] = souhait(montant_souhaite, hebdo, seuils, c_p, p, decote * facteur_modele)
     return res
 
 

@@ -1,0 +1,223 @@
+{
+ "jeu": "reglage (600)",
+ "critere": "défaut à exposition égale (60 % du total brut du moteur)",
+ "resultats": [
+  {
+   "percentile": 10,
+   "seuil_risque": 0.05,
+   "bloc": 2,
+   "defaut_moteur": 0.0617,
+   "defaut_naive": 0.05
+  },
+  {
+   "percentile": 10,
+   "seuil_risque": 0.05,
+   "bloc": 4,
+   "defaut_moteur": 0.0667,
+   "defaut_naive": 0.05
+  },
+  {
+   "percentile": 10,
+   "seuil_risque": 0.1,
+   "bloc": 2,
+   "defaut_moteur": 0.15,
+   "defaut_naive": 0.1467
+  },
+  {
+   "percentile": 10,
+   "seuil_risque": 0.1,
+   "bloc": 4,
+   "defaut_moteur": 0.1583,
+   "defaut_naive": 0.1483
+  },
+  {
+   "percentile": 10,
+   "seuil_risque": 0.2,
+   "bloc": 2,
+   "defaut_moteur": 0.24,
+   "defaut_naive": 0.2167
+  },
+  {
+   "percentile": 10,
+   "seuil_risque": 0.2,
+   "bloc": 4,
+   "defaut_moteur": 0.2367,
+   "defaut_naive": 0.2167
+  },
+  {
+   "percentile": 20,
+   "seuil_risque": 0.05,
+   "bloc": 2,
+   "defaut_moteur": 0.0617,
+   "defaut_naive": 0.05
+  },
+  {
+   "percentile": 20,
+   "seuil_risque": 0.05,
+   "bloc": 4,
+   "defaut_moteur": 0.0667,
+   "defaut_naive": 0.05
+  },
+  {
+   "percentile": 20,
+   "seuil_risque": 0.1,
+   "bloc": 2,
+   "defaut_moteur": 0.15,
+   "defaut_naive": 0.1467
+  },
+  {
+   "percentile": 20,
+   "seuil_risque": 0.1,
+   "bloc": 4,
+   "defaut_moteur": 0.1583,
+   "defaut_naive": 0.1483
+  },
+  {
+   "percentile": 20,
+   "seuil_risque": 0.2,
+   "bloc": 2,
+   "defaut_moteur": 0.2417,
+   "defaut_naive": 0.2217
+  },
+  {
+   "percentile": 20,
+   "seuil_risque": 0.2,
+   "bloc": 4,
+   "defaut_moteur": 0.24,
+   "defaut_naive": 0.22
+  },
+  {
+   "percentile": 30,
+   "seuil_risque": 0.05,
+   "bloc": 2,
+   "defaut_moteur": 0.0617,
+   "defaut_naive": 0.05
+  },
+  {
+   "percentile": 30,
+   "seuil_risque": 0.05,
+   "bloc": 4,
+   "defaut_moteur": 0.0667,
+   "defaut_naive": 0.05
+  },
+  {
+   "percentile": 30,
+   "seuil_risque": 0.1,
+   "bloc": 2,
+   "defaut_moteur": 0.15,
+   "defaut_naive": 0.1467
+  },
+  {
+   "percentile": 30,
+   "seuil_risque": 0.1,
+   "bloc": 4,
+   "defaut_moteur": 0.1583,
+   "defaut_naive": 0.1483
+  },
+  {
+   "percentile": 30,
+   "seuil_risque": 0.2,
+   "bloc": 2,
+   "defaut_moteur": 0.2417,
+   "defaut_naive": 0.2217
+  },
+  {
+   "percentile": 30,
+   "seuil_risque": 0.2,
+   "bloc": 4,
+   "defaut_moteur": 0.24,
+   "defaut_naive": 0.22
+  },
+  {
+   "percentile": 40,
+   "seuil_risque": 0.05,
+   "bloc": 2,
+   "defaut_moteur": 0.0617,
+   "defaut_naive": 0.05
+  },
+  {
+   "percentile": 40,
+   "seuil_risque": 0.05,
+   "bloc": 4,
+   "defaut_moteur": 0.0667,
+   "defaut_naive": 0.05
+  },
+  {
+   "percentile": 40,
+   "seuil_risque": 0.1,
+   "bloc": 2,
+   "defaut_moteur": 0.15,
+   "defaut_naive": 0.1467
+  },
+  {
+   "percentile": 40,
+   "seuil_risque": 0.1,
+   "bloc": 4,
+   "defaut_moteur": 0.1583,
+   "defaut_naive": 0.1483
+  },
+  {
+   "percentile": 40,
+   "seuil_risque": 0.2,
+   "bloc": 2,
+   "defaut_moteur": 0.2417,
+   "defaut_naive": 0.2217
+  },
+  {
+   "percentile": 40,
+   "seuil_risque": 0.2,
+   "bloc": 4,
+   "defaut_moteur": 0.24,
+   "defaut_naive": 0.22
+  },
+  {
+   "percentile": 50,
+   "seuil_risque": 0.05,
+   "bloc": 2,
+   "defaut_moteur": 0.0617,
+   "defaut_naive": 0.05
+  },
+  {
+   "percentile": 50,
+   "seuil_risque": 0.05,
+   "bloc": 4,
+   "defaut_moteur": 0.0667,
+   "defaut_naive": 0.05
+  },
+  {
+   "percentile": 50,
+   "seuil_risque": 0.1,
+   "bloc": 2,
+   "defaut_moteur": 0.15,
+   "defaut_naive": 0.1467
+  },
+  {
+   "percentile": 50,
+   "seuil_risque": 0.1,
+   "bloc": 4,
+   "defaut_moteur": 0.1583,
+   "defaut_naive": 0.1483
+  },
+  {
+   "percentile": 50,
+   "seuil_risque": 0.2,
+   "bloc": 2,
+   "defaut_moteur": 0.2417,
+   "defaut_naive": 0.2217
+  },
+  {
+   "percentile": 50,
+   "seuil_risque": 0.2,
+   "bloc": 4,
+   "defaut_moteur": 0.24,
+   "defaut_naive": 0.22
+  }
+ ],
+ "retenu": {
+  "percentile": 10,
+  "seuil_risque": 0.1,
+  "bloc": 2,
+  "defaut_moteur": 0.15,
+  "defaut_naive": 0.1467
+ }
+}

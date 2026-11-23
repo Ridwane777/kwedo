@@ -31,9 +31,21 @@ class TestMoteur(unittest.TestCase):
         self.assertEqual(analyser(self.honnete["transactions"], P, graine=1), self.res)
 
     def test_choc_baisse_plafond_et_monte_risque(self):
-        bas = analyser(self.honnete["transactions"], P, graine=1, choc_ventes=-0.3, montant_souhaite=self.res["plafond"])
+        montant = self.res["plafond"] * 2
+        ref = analyser(self.honnete["transactions"], P, graine=1, montant_souhaite=montant)
+        bas = analyser(self.honnete["transactions"], P, graine=1, choc_ventes=-0.3, montant_souhaite=montant)
         self.assertLess(bas["plafond"], self.res["plafond"])
-        self.assertGreater(bas["souhait"]["risque"], self.res["risque"])
+        self.assertGreater(bas["souhait"]["risque"], ref["souhait"]["risque"])
+
+    def test_choc_monotone(self):
+        plafonds = [analyser(self.honnete["transactions"], P, graine=1, choc_ventes=-c / 100)["plafond"] for c in range(0, 61, 10)]
+        self.assertEqual(plafonds, sorted(plafonds, reverse=True))
+
+    def test_modele_ne_depasse_jamais_la_formule(self):
+        for g in range(50, 60):
+            c = generer_commercant("f", g)
+            r = analyser(c["transactions"], P, graine=g)
+            self.assertLessEqual(r["plafond"], r["l_max"])
 
     def test_raisons_et_conseils(self):
         self.assertEqual(len(self.res["raisons"]), 3)

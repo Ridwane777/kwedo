@@ -1,0 +1,364 @@
+{
+ "avertissement": "Mesures sur données simulées. Les impayés sont ceux du simulateur, pas une performance réelle.",
+ "machine": {
+  "processeur": "x86_64",
+  "python": "3.12.3",
+  "numpy": "1.26.4",
+  "gpu": "aucun (pas de GPU sur la machine ; aucun calcul GPU)",
+  "fils": 4
+ },
+ "jeux": {
+  "reglage": 600,
+  "test": 400,
+  "archetypes_hors_reglage": [
+   "artisanat",
+   "quincaillerie"
+  ]
+ },
+ "q1_decide_mieux": {
+  "test_complet": {
+   "n": 400,
+   "moteur": {
+    "accordes": 384,
+    "montant_total": 117820000,
+    "montant_moyen": 306822,
+    "taux_defaut": 0.0807,
+    "part_echeances_manquees": 0.0038
+   },
+   "naive_moyenne_x_k": {
+    "accordes": 400,
+    "montant_total": 117312289,
+    "montant_moyen": 293280,
+    "taux_defaut": 0.09,
+    "part_echeances_manquees": 0.0051
+   },
+   "naive_mediane_x_k": {
+    "accordes": 400,
+    "montant_total": 117590202,
+    "montant_moyen": 293975,
+    "taux_defaut": 0.085,
+    "part_echeances_manquees": 0.0048
+   },
+   "a_montant_total_egal": [
+    {
+     "montant_total": 100043368,
+     "defaut_moteur": 0.068,
+     "defaut_moteur_sans_modele": 0.0782,
+     "defaut_naive_mediane": 0.0627
+    },
+    {
+     "montant_total": 141384000,
+     "defaut_moteur": 0.125,
+     "defaut_moteur_sans_modele": 0.1218,
+     "defaut_naive_mediane": 0.1006
+    },
+    {
+     "montant_total": 184848929,
+     "defaut_moteur": 0.1603,
+     "defaut_moteur_sans_modele": 0.1744,
+     "defaut_naive_mediane": 0.1586
+    }
+   ]
+  },
+  "archetypes_hors_reglage": {
+   "n": 116,
+   "moteur": {
+    "accordes": 114,
+    "montant_total": 40075000,
+    "montant_moyen": 351535,
+    "taux_defaut": 0.0789,
+    "part_echeances_manquees": 0.0037
+   },
+   "naive_moyenne_x_k": {
+    "accordes": 116,
+    "montant_total": 30386287,
+    "montant_moyen": 261950,
+    "taux_defaut": 0.069,
+    "part_echeances_manquees": 0.0033
+   },
+   "naive_mediane_x_k": {
+    "accordes": 116,
+    "montant_total": 29969258,
+    "montant_moyen": 258355,
+    "taux_defaut": 0.069,
+    "part_echeances_manquees": 0.0033
+   },
+   "a_montant_total_egal": [
+    {
+     "montant_total": 28303477,
+     "defaut_moteur": 0.0614,
+     "defaut_moteur_sans_modele": 0.0526,
+     "defaut_naive_mediane": 0.0671
+    },
+    {
+     "montant_total": 40075000,
+     "defaut_moteur": 0.0789,
+     "defaut_moteur_sans_modele": 0.0965,
+     "defaut_naive_mediane": 0.0862
+    },
+    {
+     "montant_total": 51451649,
+     "defaut_moteur": 0.1623,
+     "defaut_moteur_sans_modele": 0.1652,
+     "defaut_naive_mediane": 0.1495
+    }
+   ]
+  },
+  "dossiers_manipules": {
+   "n": 58,
+   "moteur": {
+    "montant_sur_capacite_median": 0.447,
+    "part_au_dessus_capacite": 0.19,
+    "taux_defaut": 0.1897,
+    "alerte_agent": 0.948
+   },
+   "naive_mediane": {
+    "montant_sur_capacite_median": 0.473,
+    "part_au_dessus_capacite": 0.19,
+    "taux_defaut": 0.1897,
+    "alerte_agent": 0.0
+   }
+  },
+  "coefficients_naifs": {
+   "k_moyenne": 1.14,
+   "k_mediane": 1.174,
+   "methode": "k choisi sur le générateur de réglage pour prêter le même total que le moteur"
+  },
+  "courbe_accord_impayes": [
+   {
+    "echelle": 0.4,
+    "moteur": {
+     "accordes": 376,
+     "montant_total": 46982000,
+     "montant_moyen": 124952,
+     "taux_defaut": 0.0505,
+     "part_echeances_manquees": 0.0021
+    },
+    "naive_mediane": {
+     "accordes": 398,
+     "montant_total": 46998045,
+     "montant_moyen": 118085,
+     "taux_defaut": 0.0553,
+     "part_echeances_manquees": 0.0025
+    }
+   },
+   {
+    "echelle": 0.6,
+    "moteur": {
+     "accordes": 381,
+     "montant_total": 70638000,
+     "montant_moyen": 185401,
+     "taux_defaut": 0.0525,
+     "part_echeances_manquees": 0.0022
+    },
+    "naive_mediane": {
+     "accordes": 399,
+     "montant_total": 70533313,
+     "montant_moyen": 176775,
+     "taux_defaut": 0.0576,
+     "part_echeances_manquees": 0.0026
+    }
+   },
+   {
+    "echelle": 0.8,
+    "moteur": {
+     "accordes": 382,
+     "montant_total": 94216000,
+     "montant_moyen": 246638,
+     "taux_defaut": 0.0628,
+     "part_echeances_manquees": 0.0027
+    },
+    "naive_mediane": {
+     "accordes": 400,
+     "montant_total": 94072162,
+     "montant_moyen": 235180,
+     "taux_defaut": 0.0625,
+     "part_echeances_manquees": 0.0031
+    }
+   },
+   {
+    "echelle": 1.0,
+    "moteur": {
+     "accordes": 384,
+     "montant_total": 117820000,
+     "montant_moyen": 306822,
+     "taux_defaut": 0.0807,
+     "part_echeances_manquees": 0.0038
+    },
+    "naive_mediane": {
+     "accordes": 400,
+     "montant_total": 117590202,
+     "montant_moyen": 293975,
+     "taux_defaut": 0.085,
+     "part_echeances_manquees": 0.0048
+    }
+   },
+   {
+    "echelle": 1.2,
+    "moteur": {
+     "accordes": 384,
+     "montant_total": 141384000,
+     "montant_moyen": 368187,
+     "taux_defaut": 0.125,
+     "part_echeances_manquees": 0.0074
+    },
+    "naive_mediane": {
+     "accordes": 400,
+     "montant_total": 141108243,
+     "montant_moyen": 352770,
+     "taux_defaut": 0.1,
+     "part_echeances_manquees": 0.0076
+    }
+   },
+   {
+    "echelle": 1.5,
+    "moteur": {
+     "accordes": 385,
+     "montant_total": 176760000,
+     "montant_moyen": 459116,
+     "taux_defaut": 0.1558,
+     "part_echeances_manquees": 0.0136
+    },
+    "naive_mediane": {
+     "accordes": 400,
+     "montant_total": 176385303,
+     "montant_moyen": 440963,
+     "taux_defaut": 0.15,
+     "part_echeances_manquees": 0.0141
+    }
+   }
+  ]
+ },
+ "q2_finance_assez": {
+  "n_solvables": 380,
+  "moteur": {
+   "part_solvables_finances": 0.9632,
+   "montant_moyen_solvables": 303524,
+   "utilisation_capacite_mediane": 0.3039,
+   "part_montants_au_dessus_capacite": 0.0355
+  },
+  "naive_mediane": {
+   "part_solvables_finances": 1.0,
+   "montant_moyen_solvables": 291307,
+   "utilisation_capacite_mediane": 0.2584,
+   "part_montants_au_dessus_capacite": 0.0368
+  }
+ },
+ "q3_calibration": {
+  "points": 870,
+  "fiabilite": [
+   {
+    "risque_annonce": "2%–5%",
+    "moyenne_annoncee": 0.0366,
+    "frequence_observee": 0.0922,
+    "n": 141
+   },
+   {
+    "risque_annonce": "5%–10%",
+    "moyenne_annoncee": 0.0755,
+    "frequence_observee": 0.1913,
+    "n": 366
+   },
+   {
+    "risque_annonce": "10%–20%",
+    "moyenne_annoncee": 0.1375,
+    "frequence_observee": 0.3041,
+    "n": 217
+   },
+   {
+    "risque_annonce": "20%–40%",
+    "moyenne_annoncee": 0.3137,
+    "frequence_observee": 0.506,
+    "n": 83
+   },
+   {
+    "risque_annonce": "40%–100%",
+    "moyenne_annoncee": 0.4832,
+    "frequence_observee": 0.6032,
+    "n": 63
+   }
+  ],
+  "ecart_moyen_absolu": 0.1301
+ },
+ "q4_stabilite": {
+  "perturbation_donnees_5pct": {
+   "mediane": 0.0149,
+   "p90": 0.0363,
+   "max": 0.0517
+  },
+  "perturbation_m_s_10pct": {
+   "mediane": 0.1,
+   "p90": 0.1084,
+   "max": 0.2
+  },
+  "seuil_propose": "variation ≤ 10 % pour une perturbation de 5 % des données (à fixer avec le prêteur)",
+  "respecte": true
+ },
+ "q5_detection": {
+  "n_test": 400,
+  "n_manipules": 58,
+  "detection_regles": 0.948,
+  "detection_modele": 0.845,
+  "detection_combinee": 1.0,
+  "fausses_alertes_regles": 0.003,
+  "fausses_alertes_modele": 0.061,
+  "fausses_alertes_combinees": 0.061,
+  "par_type": {
+   "circulaire": {
+    "n": 10,
+    "regles": 1.0,
+    "modele": 0.1,
+    "combine": 1.0
+   },
+   "concentration": {
+    "n": 15,
+    "regles": 0.8,
+    "modele": 1.0,
+    "combine": 1.0
+   },
+   "pic_avant_demande": {
+    "n": 22,
+    "regles": 1.0,
+    "modele": 1.0,
+    "combine": 1.0
+   },
+   "rafale_ronds": {
+    "n": 11,
+    "regles": 1.0,
+    "modele": 1.0,
+    "combine": 1.0
+   }
+  },
+  "sans_regles": {
+   "detection": 0.0,
+   "fausses_alertes": 0.0,
+   "note": "sans contrôle, aucun cas injecté n'est signalé"
+  }
+ },
+ "q6_raisons_fideles": {
+  "dossiers": 39,
+  "effets_recalcules_identiques": 1.0,
+  "raisons_triees_par_effet": 1.0,
+  "raison_formule_coherente": 1.0
+ },
+ "q7_equite": {
+  "variables_sensibles_dans_le_code_du_moteur": [],
+  "decisions_identiques_a_flux_egaux": "40/40",
+  "plafond_sur_mediane_hebdo_par_archetype": {
+   "alimentation": 1.188,
+   "artisanat": 1.836,
+   "cosmetique": 1.579,
+   "quincaillerie": 1.711,
+   "restauration": 1.242,
+   "telephonie": 1.386,
+   "tissus": 1.15
+  }
+ },
+ "q8_temps": {
+  "analyse_complete_par_dossier_s": 0.087,
+  "simulation_2000_trajectoires_par_dossier_s": 0.0068,
+  "trajectoires_par_seconde": 293482,
+  "temps_humain": "NON MESURÉ : le chronométrage avec et sans l'outil demande des agents de crédit réels (protocole dans docs/evaluation/protocole-temps.md). Aucun chiffre n'est avancé."
+ },
+ "duree_evaluation_s": 49.6
+}

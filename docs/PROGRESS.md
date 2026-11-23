@@ -13,7 +13,8 @@
 | 8 | Console P1 | fait | voir git log | `/console` (file triée, filtres, j/k/Entrée) et fiche `/console/dossiers/[id]` (indicateurs, courbe, raisons, chaîne de calcul, alertes, décision v/a/r/c avec justificatif) capturées à 1440 px ; relecture → bogue moteur corrigé (raison « tendance » de signe inversé) + test de non-régression | — |
 | 9 | Priorité 2 | fait | voir git log | Écrans inscription, compte, flux, dossier/consentements/suivi, offre (contre-proposition), crédit (échéancier, paiement, reçus, canal), portefeuille/relances/reprogrammation. `e2e/parcours.spec.ts` passe (43 s) ; relecture des captures → marqueurs internes « [J+n] » retirés des messages | — |
 | 10 | Priorité 3 | fait | voir git log | `/app/activite`, `/console/parametres` (versions, jamais de réécriture), `/console/journal` (filtrable), `/` présentation ; captures relues → horloge simulée rendue continue (journal ordonné), montants formatés, mention « à recontrôler » lisible ; E2E repassé (38,6 s) | — |
-| 11–13 | Évaluation, démo, qualité | à faire | | | |
+| 11 | Évaluation | fait | voir git log | `ml/evaluate.py` reproductible (≈ 40 s) → `docs/evaluation/resultats.json` + `README.md`. **Constat : à exposition égale, le moteur ne bat pas de façon démontrée la règle « médiane × k »** (écarts dans le bruit) ; risque annoncé sous-estimé (13 pts) ; stabilité, fidélité des raisons, détection (100 % combinée) et équité OK ; temps humain non mesuré (protocole écrit). Défauts trouvés et corrigés : comparaison initiale à exposition inégale (retirée), plafond qui montait avec le curseur de baisse (modèle nourri du scénario) | critère « bat la règle naïve » non atteint |
+| 12–13 | Démo, qualité | à faire | | | |
 | 14 | Dossier final | à faire | | | |
 
 ## Environnement constaté (2026-11-23)
