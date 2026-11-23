@@ -85,6 +85,11 @@ def consentir(s, q, b, h, cid):
     return s.consentir(cid, b.get("institution_id", ""), b.get("action", ""))
 
 
+@route("GET", r"/commercants/(?P<cid>[\w-]+)/dossiers/(?P<did>[\w-]+)")
+def offre_commercant(s, q, b, h, cid, did):
+    return s.offre(cid, did)
+
+
 @route("GET", r"/dossiers")
 def file(s, q, b, h):
     return s.file(q.get("institution_id"), q.get("statut"), q.get("tri", "priorite"))

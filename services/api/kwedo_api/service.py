@@ -297,6 +297,23 @@ class Service:
         res = analyser(self.transactions(d["commercant_id"]), d["analyse"]["parametres"], graine=d["graine"])
         return {"identique": json.loads(json.dumps(res)) == d["analyse"], "plafond": res["plafond"]}
 
+    def offre(self, cid: str, did: str) -> dict:
+        """Vue commerçant d'un dossier : statut, offre, raisons. Jamais les alertes ni les modèles."""
+        d = self.un("SELECT d.*, i.nom AS institution FROM dossiers d JOIN institutions i ON i.id = d.institution_id "
+                    "WHERE d.id = ? AND d.commercant_id = ?", did, cid)
+        if not d:
+            raise ErreurMetier(404, "dossier inconnu")
+        a = json.loads(d.pop("analyse_json"))
+        dec = self.un("SELECT type, motif, montant_decide, duree_semaines, horodatage FROM decisions WHERE dossier_id = ? ORDER BY id DESC LIMIT 1", did)
+        out = {k: d[k] for k in ("id", "institution_id", "institution", "statut", "cree_le", "montant_offre", "duree_offre", "decide_le")}
+        out.update({"plafond_estime": a["plafond"], "raisons": a["raisons"], "conseils": a["conseils"],
+                    "decision": dec, "credit": self.un("SELECT id FROM credits WHERE dossier_id = ?", did)})
+        if d["montant_offre"]:
+            p = Parametres.depuis({**a["parametres"], "n": d["duree_offre"]})
+            e = echeance(d["montant_offre"], p)
+            out.update({"echeance": round(e), "cout_total": round(e * p.n - d["montant_offre"]), "taux_periode": p.i})
+        return out
+
     # ---------- offre, crédit, échéancier ----------
     def repondre_offre(self, did: str, reponse: str, montant: int | None = None) -> dict:
         d = self.dossier(did, acteur=None)
@@ -392,17 +409,18 @@ class Service:
         for e in rows:
             due = datetime.fromisoformat(e["date_due"]).date()
             ecart = (now.date() - due).days
-            deja = self.q("SELECT message FROM relances WHERE echeance_id = ?", e["id"])
+            deja = self.q("SELECT horodatage FROM relances WHERE echeance_id = ?", e["id"])
             if len(deja) >= MAX_RELANCES:
                 continue
+            jours_deja = {(datetime.fromisoformat(r["horodatage"]).date() - due).days for r in deja}
             reste = e["montant_attendu"] - e["montant_recu"]
             montant = f"{reste:,}".replace(",", " ")
             prenom = e["nom"].split()[0]
-            if -2 <= ecart < 0 and not any("rappel" in r["message"] for r in deja):
-                msg = f"Bonjour {prenom}, petit rappel : votre échéance de {montant} FCFA arrive le {due:%d/%m}. Merci et bonne vente !"
-            elif ecart >= 1 and len(deja) < MAX_RELANCES and not any(f"[J+{ecart}]" in r["message"] for r in deja) and ecart in (1, 3, 7):
-                msg = (f"Bonjour {prenom}, votre échéance du {due:%d/%m} ({montant} FCFA) n'est pas encore réglée. "
-                       f"Si vous rencontrez une difficulté, répondez à ce message : nous pouvons en parler. [J+{ecart}]")
+            if -2 <= ecart < 0 and not any(j < 0 for j in jours_deja):
+                msg = f"Bonjour {prenom}, petit rappel : votre échéance de {montant} FCFA arrive le {due:%d/%m}. Merci et bonne vente !"
+            elif ecart in (1, 3, 7) and ecart not in jours_deja:
+                msg = (f"Bonjour {prenom}, votre échéance du {due:%d/%m} ({montant} FCFA) n'est pas encore réglée. "
+                       "Si vous rencontrez une difficulté, répondez à ce message : nous pouvons en parler.")
             else:
                 continue
             self.notif.envoyer(e["canal"], e["telephone"], msg)  # destinataire : le commerçant seul, jamais l'entourage
@@ -431,7 +449,13 @@ class Service:
                            "payees": sum(e["statut"] == "payee" for e in c["echeances"]),
                            "en_retard": len(retard), "partielles": sum(e["statut"] == "partielle" for e in c["echeances"]),
                            "jours_retard": jours, "echeances": len(c["echeances"]), "relances": len(c["relances"])})
-        return {"credits": lignes, "encours": encours, "par30": round(encours30 / encours, 4) if encours else 0.0,
+        relances = self.q("SELECT r.*, e.rang, e.credit_id, m.nom FROM relances r JOIN echeances e ON e.id = r.echeance_id "
+                          "JOIN credits c ON c.id = e.credit_id JOIN commercants m ON m.id = c.commercant_id "
+                          "WHERE (? IS NULL OR c.institution_id = ?) ORDER BY r.id DESC LIMIT 30", inst, inst)
+        retards = self.q("SELECT e.id, e.rang, e.date_due, e.montant_attendu, e.montant_recu, e.credit_id, m.nom FROM echeances e "
+                         "JOIN credits c ON c.id = e.credit_id JOIN commercants m ON m.id = c.commercant_id "
+                         "WHERE e.statut = 'en_retard' AND (? IS NULL OR c.institution_id = ?) ORDER BY e.date_due", inst, inst)
+        return {"maintenant": self._iso(), "relances": relances, "retards": retards, "credits": lignes, "encours": encours, "par30": round(encours30 / encours, 4) if encours else 0.0,
                 "taux_recouvrement": round(recu_echu / du_echu, 4) if du_echu else None,
                 "part_en_retard": round(sum(l["restant"] for l in lignes if l["en_retard"]) / encours, 4) if encours else 0.0}
 
