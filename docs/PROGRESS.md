@@ -71,3 +71,16 @@ peut inférer approximativement les réglages d'une institution par essais rép�
 
 Calculs, droits d'accès et contrat d'API inchangés. Limite : le test du chronomètre a échoué une fois par délai
 d'attente sous charge (passé seul puis dans la suite complète) ; à surveiller.
+
+## Relecture de l'interface (`docs/RELECTURE-INTERFACE.md`, branche `finition`)
+
+| # | Correction | Preuve |
+|---|---|---|
+| 0 | Acceptation de l'offre | Non reproduite en 5 passages. Faille du produit trouvée : après un accord réussi, le bouton se réactivait et la page attendait une navigation sans rien montrer ; si elle tardait, le commerçant restait sur l'offre (un second clic aurait renvoyé « aucune offre en attente »). Corrigé : `/app/credit` préchargé, écran « Offre acceptée » avec lien de secours, bouton jamais réactivé, erreur affichée avec « Réessayer ». Parcours rejoué 5 fois : 15/15 |
+| 1 | Mots collés | Cause mesurée : l'espace d'Instrument Sans vaut 0,17 em (2 px à 12 px). Police de texte remplacée par Public Sans (a2d9cb5) ; contrôlé sur captures 360 et 1440 px |
+| 2–4 | Barre latérale | Fond porté par la colonne pleine hauteur, raccourcis non compressibles, nom d'institution sur deux lignes au besoin |
+| 5 | « ← FileÉchap » | « ← Retour à la file » + touche Échap séparée |
+| — | Fiche de décision | Synthèse (montant, risque contre seuil, recommandation), alertes, « ce qui a pesé » (avec l'avertissement de hausse à côté de son montant) et décision au premier écran à 1440 × 900 ; indicateurs, courbe, chaîne de calcul, modèles et journal d'accès en onglets ARIA (flèches, Début, Fin). Sur téléphone, la décision suit les raisons |
+| — | Admin | Événements identiques consécutifs regroupés (« 5 fois »), institutions en liste compacte |
+| — | Démo | Étiquette courte à 360 px ; captures prises une fois les iframes chargées |
+| — | Vérification | build OK, `test:api` 16/16, `npx playwright test` **40/40** ; revue des écrans étendue à l'offre et au crédit en cours |
