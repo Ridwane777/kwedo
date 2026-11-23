@@ -105,7 +105,7 @@ export function CourbeFlux({ serie, prudent, median, choc = 0, debut, hauteur = 
         />
         <circle cx={pts[pts.length - 1]![0]} cy={pts[pts.length - 1]![1]} r="4" fill="var(--safran)" stroke="var(--papier)" strokeWidth="2" style={{ transition: "all .35s ease" }} />
         {mois.map((m) => (
-          <text key={m.k} x={x(m.k)} y={H - 6} fontSize="11" fill="var(--encre-2)">{m.label}</text>
+          <text key={m.k} x={x(m.k)} y={H - 4} fontSize={dense ? 11 : 17} fill="var(--encre-2)">{m.label}</text>
         ))}
         {dense && (
           <>

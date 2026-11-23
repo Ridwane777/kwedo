@@ -146,7 +146,7 @@ def alertes(ind: dict, hebdo: np.ndarray, fv: dict) -> list[dict]:
         out.append({"code": "circulaire", "texte": f"{fv['nb_circulaires']} entrée(s) suivie(s) d'un renvoi d'un montant proche "
                     "au même payeur sous 7 jours. Montants exclus du chiffre d'affaires vérifié."})
     if ind["part_plus_gros_payeur"] > SEUIL_CONCENTRATION:
-        out.append({"code": "concentration", "texte": f"Un seul payeur représente {ind['part_plus_gros_payeur']:.0%} des encaissements vérifiés."})
+        out.append({"code": "concentration", "texte": f"Un seul payeur représente {_pc(ind['part_plus_gros_payeur'])} des encaissements vérifiés."})
     if len(hebdo) >= 14:
         base = np.median(hebdo[-14:-2])
         if base > 0 and hebdo[-2:].mean() > 2 * base:
@@ -163,12 +163,16 @@ def alertes(ind: dict, hebdo: np.ndarray, fv: dict) -> list[dict]:
             part_ronds_rep = cnt[cnt >= 3].sum() / rec.sum() if len(cnt) else 0
             nouveaux = ~np.isin(fv["cp"][rec], fv["cp"][anc])
             if part_ronds_rep > 0.30 or nouveaux.mean() > 0.50:
-                out.append({"code": "rafale_ronds", "texte": f"Sur 4 semaines : {part_ronds_rep:.0%} de montants ronds répétés, "
-                            f"{nouveaux.mean():.0%} de payeurs jamais vus auparavant."})
+                out.append({"code": "rafale_ronds", "texte": f"Sur 4 semaines : {_pc(part_ronds_rep)} de montants ronds répétés, "
+                            f"{_pc(nouveaux.mean())} de payeurs jamais vus auparavant."})
         heures = (t[e].astype("datetime64[h]").astype(int) % 24)
         if len(heures) and (heures < 5).mean() > 0.20:
-            out.append({"code": "horaires", "texte": f"{(heures < 5).mean():.0%} des encaissements entre 0 h et 5 h, hors des horaires habituels."})
+            out.append({"code": "horaires", "texte": f"{_pc((heures < 5).mean())} des encaissements entre 0 h et 5 h, hors des horaires habituels."})
     return out
+
+
+def _pc(x: float) -> str:
+    return f"{x * 100:.0f}\u00a0%"
 
 
 def _fcfa(x: float) -> str:
@@ -225,7 +229,7 @@ def analyser(transactions: list[dict], parametres: dict | Parametres | None = No
             f"Encaissement prudent (percentile {p.percentile:g}) : {_fcfa(c_p)} par semaine",
             f"× part restant après coûts m = {p.m:g} × part prélevable s = {p.s:g} → échéance supportable {_fcfa(c_p * p.m * p.s)}",
             f"Sur {p.n} semaines au taux {p.i:.2%} par semaine → plafond théorique {_fcfa(lmax)}",
-            f"Simulation de {p.trajectoires} avenirs : montant au risque ≤ {p.seuil_risque:.0%} → {_fcfa(l_sim)}",
+            f"Simulation de {p.trajectoires} avenirs : montant au risque ≤ {_pc(p.seuil_risque)} → {_fcfa(l_sim)}",
             *( [f"Historique de {W} semaines : décote d'ancienneté × {decote:.2f}"] if decote < 1 else [] ),
             f"Plafond proposé (le plus bas, arrondi à {_fcfa(PAS)}) : {_fcfa(plafond)}",
         ],
@@ -267,7 +271,7 @@ def _raisons(hebdo, p, graine, choc, decote, plafond, ind, c_p, lmax, l_sim):
     choisis = base + autres[:2]
     if lmax < l_sim:
         choisis = choisis[:2] + [("formule", 0)]
-        textes["formule"] = lambda e: f"La formule de l'institution limite le prélèvement à {p.s:.0%} de la marge : c'est elle qui fixe le plafond."
+        textes["formule"] = lambda e: f"La formule de l'institution limite le prélèvement à {_pc(p.s)} de la marge : c'est elle qui fixe le plafond."
     return [{"code": c, "effet": int(e), "texte": textes[c](e)} for c, e in choisis]
 
 
@@ -298,10 +302,10 @@ def souhait(montant: int, hebdo, seuils, c_p, p: Parametres, decote: float) -> d
     manque = []
     if c_p_requis > c_p:
         manque.append(f"Un encaissement prudent de {_fcfa(c_p_requis)} par semaine (aujourd'hui {_fcfa(c_p)}), "
-                      f"soit +{(c_p_requis / c_p - 1) if c_p else 0:.0%} de chiffre d'affaires vérifié sur les mauvaises semaines.")
+                      f"soit +{_pc((c_p_requis / c_p - 1) if c_p else 0)} de chiffre d'affaires vérifié sur les mauvaises semaines.")
     if risque > p.seuil_risque:
-        manque.append(f"Des encaissements plus réguliers : à ce montant, {risque:.0%} des avenirs simulés comptent une échéance manquée "
-                      f"(limite de l'institution : {p.seuil_risque:.0%}).")
+        manque.append(f"Des encaissements plus réguliers : à ce montant, {_pc(risque)} des avenirs simulés comptent une échéance manquée "
+                      f"(limite de l'institution : {_pc(p.seuil_risque)}).")
     if decote < 1:
         manque.append(f"Un historique plus long : {SEMAINES_PLEINES} semaines au lieu de {len(hebdo)}.")
     return {"montant": montant, "risque": round(risque, 4), "echeance": round(echeance(montant, p)),
