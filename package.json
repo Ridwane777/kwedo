@@ -1,0 +1,17 @@
+{
+  "name": "kwedo",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Kwedo : prototype de plateforme de crédit pour petits commerçants (données 100 % synthétiques)",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "test:engine": "python3 -m unittest discover -s packages/engine/tests -t packages/engine",
+    "dev:web": "npm --workspace apps/web run dev",
+    "build:web": "npm --workspace apps/web run build"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
