@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { CourbeFlux } from "@/components/courbe-flux";
-import { Lisiere, Marque } from "@/components/motif";
+import { Cauri, CauriChargement, Lisiere, Marque, PileCauris, PISTES } from "@/components/motif";
 import { Bouton, Chargement, Erreur, Pastille, Simule, Vide } from "@/components/ui";
 import { fcfa } from "@/lib/format";
 
@@ -19,6 +19,29 @@ export default function Design() {
         <Simule quoi="Page interne · exemple simulé" />
       </header>
       <Lisiere />
+      <section className="space-y-4" aria-labelledby="t-marque">
+        <h2 id="t-marque" className="titre text-2xl">Marque : trois pistes autour du cauri</h2>
+        <p className="max-w-[65ch] text-encre-2">En fon, akwɛ́ signifie à la fois « cauri » et « argent ». Piste retenue : le cauri-K (ADR 0012).</p>
+        <div className="grid gap-4 md:grid-cols-3">
+          {PISTES.map((p) => (
+            <figure key={p.id} className={`rounded-2xl border p-4 ${p.retenue ? "border-marque" : "border-trait"}`}>
+              <div className="flex items-end gap-4">
+                {[16, 32, 64].map((t) => (
+                  <svg key={t} width={t} height={t} viewBox="0 0 32 32" aria-hidden="true" className="text-logo-cauri" fill="currentColor">{p.dessin}</svg>
+                ))}
+                <span className="rounded-lg bg-encre p-1.5 text-fond">
+                  <svg width={32} height={32} viewBox="0 0 32 32" aria-hidden="true" fill="currentColor">{p.dessin}</svg>
+                </span>
+              </div>
+              <figcaption className="mt-3 font-semibold">{p.titre}{p.retenue ? " (retenue)" : ""}</figcaption>
+            </figure>
+          ))}
+        </div>
+        <div className="flex flex-wrap items-center gap-6">
+          <Marque taille={16} /><Marque /><Marque taille={48} /><Marque mono /><Cauri taille={16} /><Cauri taille={64} />
+          <PileCauris part={0.6} className="h-20" /><CauriChargement />
+        </div>
+      </section>
       <section className="space-y-3">
         <h2 className="titre text-2xl">Palette</h2>
         <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">

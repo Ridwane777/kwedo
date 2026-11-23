@@ -11,6 +11,7 @@ export const SOMBRE = {
   bon: "#9ec4a6", "bon-doux": "#24302a",
   ambre: "#cfa55a", "ambre-encre": "#e5cc93", "ambre-doux": "#372f20",
   focus: "#a9c9bc", cadre: "#3b3936",
+  "logo-barre": "#ecebe7", "logo-cauri": "#d4c6a1",
   ombre: "0 0 0 1px rgb(255 255 255 / 0.04)",
 };
 

@@ -28,6 +28,8 @@
   --action: #0a5a47;        /* fond du bouton principal (= marque en clair) */
   --sur-action: #f2f4f3;
   --montant: #0a5a47;       /* gros montants (= marque en clair, texte neutre en sombre) */
+  --logo-barre: #0e1d18;    /* marque cauri : barre du K */
+  --logo-cauri: #0a5a47;    /* marque cauri : coquille (ivoire sable en sombre) */
   --ombre: 0 1px 0 rgb(14 29 24 / 0.04), 0 8px 24px -12px rgb(14 29 24 / 0.18);
 }
 
@@ -60,6 +62,8 @@
   --ambre-doux: #372f20;
   --focus: #a9c9bc;
   --cadre: #3b3936;
+  --logo-barre: #ecebe7;
+  --logo-cauri: #d4c6a1;
   --ombre: 0 0 0 1px rgb(255 255 255 / 0.04);
 }
 
@@ -88,6 +92,8 @@
     --ambre-doux: #372f20;
     --focus: #a9c9bc;
     --cadre: #3b3936;
+    --logo-barre: #ecebe7;
+    --logo-cauri: #d4c6a1;
     --ombre: 0 0 0 1px rgb(255 255 255 / 0.04);
   }
 }
@@ -114,6 +120,8 @@
   --color-action: var(--action);
   --color-sur-action: var(--sur-action);
   --color-montant: var(--montant);
+  --color-logo-cauri: var(--logo-cauri);
+  --color-logo-barre: var(--logo-barre);
   --font-serif: var(--font-titre), system-ui, sans-serif;
   --font-sans: var(--font-texte), system-ui, sans-serif;
   --shadow-carte: var(--ombre);
@@ -133,6 +141,11 @@ body { font-family: var(--font-sans); font-variant-numeric: tabular-nums; -webki
 .apparait { animation: apparaitre .35s ease-out both; }
 @keyframes pulse-doux { 0%,100% { opacity: .5 } 50% { opacity: 1 } }
 .chargement { animation: pulse-doux 1.2s ease-in-out infinite; background: var(--surface-3); border-radius: 6px; }
+
+/* Cauris : empilement (remboursements) et chargement. transform + opacity seulement. */
+@keyframes cauri-empile { from { opacity: 0; transform: translateY(-14px); } to { opacity: 1; transform: none; } }
+.cauri-empile { animation: cauri-empile .45s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes cauri-tourne { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-18deg) scale(.94); } }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
