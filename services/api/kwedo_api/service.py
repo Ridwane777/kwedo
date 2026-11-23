@@ -43,6 +43,10 @@ def connecter(chemin: str) -> sqlite3.Connection:
     return db
 
 
+def _f(montant) -> str:
+    return "—" if montant is None else f"{int(montant):,}".replace(",", " ") + " FCFA"
+
+
 def _g(*parts) -> int:
     return int(hashlib.sha256(":".join(map(str, parts)).encode()).hexdigest()[:8], 16)
 
@@ -63,8 +67,19 @@ class Service:
         return dict(r) if r else None
 
     def maintenant(self) -> datetime:
-        r = self.un("SELECT maintenant FROM horloge WHERE id = 1")
-        return datetime.fromisoformat(r["maintenant"] if r else DEBUT_DEMO)
+        r = self.un("SELECT maintenant, fixe_le_reel FROM horloge WHERE id = 1")
+        if not r:
+            return datetime.fromisoformat(DEBUT_DEMO)
+        base = datetime.fromisoformat(r["maintenant"])
+        if r["fixe_le_reel"]:
+            base += datetime.now() - datetime.fromisoformat(r["fixe_le_reel"])
+        return base
+
+    def _fixer_horloge(self, d: datetime | str):
+        d = d if isinstance(d, str) else d.isoformat(timespec="seconds")
+        self.db.execute("INSERT INTO horloge (id, maintenant, fixe_le_reel) VALUES (1, ?, ?) "
+                        "ON CONFLICT(id) DO UPDATE SET maintenant = excluded.maintenant, fixe_le_reel = excluded.fixe_le_reel",
+                        (d, datetime.now().isoformat()))
 
     def _iso(self, d: datetime | None = None) -> str:
         return (d or self.maintenant()).isoformat(timespec="seconds")
@@ -91,7 +106,7 @@ class Service:
                 Path(self.chemin + suffixe).unlink(missing_ok=True)
         self.db = connecter(self.chemin)
         self._tx.clear()
-        self.db.execute("INSERT INTO horloge VALUES (1, ?)", (DEBUT_DEMO,))
+        self._fixer_horloge(DEBUT_DEMO)
         for inst in d["institutions"]:
             self.db.execute("INSERT INTO institutions (id, nom) VALUES (?, ?)", (inst["id"], inst["nom"]))
             pr = inst["parametres"]
@@ -124,8 +139,9 @@ class Service:
             raise ErreurMetier(422, "entre 1 et 60 jours")
         rel = []
         for _ in range(jours):
-            nouv = self.maintenant() + timedelta(days=1)
-            self.db.execute("UPDATE horloge SET maintenant = ? WHERE id = 1", (self._iso(nouv),))
+            # Saut au lendemain 10 h : heure de passage de la tâche planifiée de relance.
+            nouv = (self.maintenant() + timedelta(days=1)).replace(hour=10, minute=0, second=0, microsecond=0)
+            self._fixer_horloge(nouv)
             self.mettre_a_jour_statuts()
             rel += self.executer_relances()
         return {"maintenant": self._iso(), "relances": rel}
@@ -474,7 +490,7 @@ class Service:
 
     def journal(self, limite: int = 200) -> list[dict]:
         ev = [{"type": "decision", "horodatage": r["horodatage"], "acteur": r["auteur"], "dossier_id": r["dossier_id"],
-               "detail": f"{r['type']} — proposé {r['montant_propose']} FCFA, décidé {r['montant_decide'] or '—'} FCFA — « {r['motif']} » "
+               "detail": f"{r['type']} — proposé {_f(r['montant_propose'])}, décidé {_f(r['montant_decide'])} — « {r['motif']} » "
                          f"(moteur {r['version_moteur']}, graine {r['graine']})"} for r in self.q("SELECT * FROM decisions")]
         ev += [{"type": "acces", "horodatage": r["horodatage"], "acteur": r["acteur"], "dossier_id": r["dossier_id"], "detail": r["action"]}
                for r in self.q("SELECT * FROM journal_acces")]
