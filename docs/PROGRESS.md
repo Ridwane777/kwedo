@@ -5,7 +5,7 @@
 | 0 | Socle | fait | 99b8fc1 | poussé sur origin/main | — |
 | 1 | Contrats | fait | (ce commit) | `schema.sql` chargé dans SQLite en mémoire sans erreur | — |
 | 2 | Générateur | fait | voir git log | 7 tests unitaires OK ; `data/demo/demo.json` d'empreinte `b6049c91…` stable | — |
-| 3 | Moteur | à faire | | | |
+| 3 | Moteur | fait | voir git log | 11 tests unitaires OK ; démo : alertes sur les 2 cas injectés, 0 sur les honnêtes ; 0,01–0,21 s par dossier | — |
 | 4 | Modèles | à faire | | | `pip install` refusé (approbation requise, session non interactive) : scikit-learn/LightGBM absents |
 | 5 | API | à faire | | | idem : FastAPI absent |
 | 6–13 | Web, démo, qualité | à faire | | | `npm install` à vérifier |
