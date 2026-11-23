@@ -1,5 +1,6 @@
 "use client";
 
+import { Check, CreditCard, X } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Raisons } from "@/components/estimation";
@@ -35,7 +36,7 @@ export default function PageOffre() {
       <section role="status" className="space-y-4">
         <h1 className="titre text-3xl">Offre acceptée</h1>
         <p className="text-lg">Votre crédit auprès de {o.institution} est ouvert. Ouverture de votre échéancier…</p>
-        <Bouton grand className="w-full" onClick={() => router.push("/app/credit")}>Voir mon crédit</Bouton>
+        <Bouton grand icone={CreditCard} className="w-full" onClick={() => router.push("/app/credit")}>Voir mon crédit</Bouton>
       </section>
     );
   }
@@ -72,7 +73,7 @@ export default function PageOffre() {
         <h1 className="titre text-3xl">{o.institution}</h1>
         <p className="text-lg">État : {STATUTS[o.statut]}.</p>
         {o.decision?.type === "complement" && <p className="border-l-2 border-ambre pl-3">« {o.decision.motif} »</p>}
-        {o.credit && <Bouton grand className="w-full" onClick={() => router.push("/app/credit")}>Voir mon crédit</Bouton>}
+        {o.credit && <Bouton grand icone={CreditCard} className="w-full" onClick={() => router.push("/app/credit")}>Voir mon crédit</Bouton>}
       </section>
     );
   }
@@ -103,10 +104,10 @@ export default function PageOffre() {
           className="montant mt-1 block min-h-14 w-full rounded-xl border border-trait bg-surface-2 px-4 text-2xl" />
       </label>
       {err && <Erreur message={err} reessayer={recharger} />}
-      <Bouton grand className="w-full" disabled={!!envoi} onClick={() => repondre("accepte")}>
+      <Bouton grand icone={Check} className="w-full" disabled={!!envoi} onClick={() => repondre("accepte")}>
         {envoi === "accepte" ? "Acceptation…" : `Accepter ${fcfa(montant)}`}
       </Bouton>
-      <Bouton variante="discret" className="w-full" disabled={!!envoi} onClick={() => repondre("refuse")}>Décliner l'offre</Bouton>
+      <Bouton variante="discret" icone={X} className="w-full" disabled={!!envoi} onClick={() => repondre("refuse")}>Décliner l'offre</Bouton>
       <details>
         <summary className="cursor-pointer text-marque">Pourquoi ce montant</summary>
         <div className="mt-2"><Raisons raisons={o.raisons} /></div>

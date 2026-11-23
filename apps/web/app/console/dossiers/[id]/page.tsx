@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
+import { ArrowLeft, Save } from "lucide-react";
+import { LienIcone } from "@/components/bouton-icone";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
-import { Chronometre } from "@/components/chronometre";
 import { CourbeFlux } from "@/components/courbe-flux";
 import { Bouton, Chargement, Erreur, Pastille, Simule } from "@/components/ui";
 import { api, useApi } from "@/lib/api";
@@ -69,8 +69,7 @@ export default function Fiche() {
   const [montant, setMontant] = useState<number>(0);
   const [motif, setMotif] = useState("");
   const [envoi, setEnvoi] = useState<{ etat: "idle" | "envoi" | "erreur"; message?: string }>({ etat: "idle" });
-  const [duree, setDuree] = useState<number | null>(null);
-  const debut = useRef<number>(performance.now());
+  const [enregistree, setEnregistree] = useState(false);
   const motifRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => { if (d) setMontant((m) => m || d.analyse.plafond); }, [d]);
@@ -96,7 +95,7 @@ export default function Fiche() {
     setEnvoi({ etat: "envoi" });
     try {
       await api(`/dossiers/${id}/decisions`, { body: { type, motif, montant_decide: type === "ajuste" ? montant : undefined } });
-      setDuree((performance.now() - debut.current) / 1000);
+      setEnregistree(true);
       setEnvoi({ etat: "idle" });
       await recharger();
     } catch (e) {
@@ -110,11 +109,8 @@ export default function Fiche() {
   return (
     <article className="space-y-4">
       <header className="space-y-1">
-        <Link href="/console" className="inline-flex min-h-9 items-center gap-2 text-sm font-medium text-marque hover:underline">
-          <span aria-hidden="true">←</span> Retour à la file
-          <kbd className="rounded border border-trait px-1.5 text-[11px] font-normal text-encre-2">Échap</kbd>
-        </Link>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+          <LienIcone href="/console" icone={ArrowLeft} label="Retour à la file (Échap)" ancre="gauche" className="border border-trait" />
           <h1 className="titre text-[1.75rem] leading-tight">{d.commercant.nom}</h1>
           <Pastille ton="info">{STATUTS[d.statut]}</Pastille>
           {!d.consentement_actif && <Pastille ton="alerte">Accord du commerçant retiré : données figées</Pastille>}
@@ -270,7 +266,7 @@ export default function Fiche() {
                   <span className="text-xs text-encre-2">Obligatoire, 10 caractères au moins. Enregistré au journal, non modifiable.</span>
                 </label>
                 {envoi.etat === "erreur" && <Erreur message={envoi.message ?? "Erreur"} />}
-                <Bouton type="submit" className="w-full" disabled={!type || !motifValide || !montantValide || envoi.etat === "envoi"}>
+                <Bouton type="submit" icone={Save} className="w-full" disabled={!type || !motifValide || !montantValide || envoi.etat === "envoi"}>
                   {envoi.etat === "envoi" ? "Enregistrement…" : "Enregistrer la décision"}
                 </Bouton>
               </form>
@@ -284,11 +280,10 @@ export default function Fiche() {
                     <p className="text-xs text-encre-2">{x.auteur}, {date(x.horodatage, true)}, moteur {x.version_moteur}, graine {x.graine}</p>
                   </div>
                 ))}
-                {duree !== null && <p role="status" className="rounded-xl bg-bon-doux px-3 py-2 font-medium text-bon">Dossier traité en {Math.floor(duree / 60)} min {Math.round(duree % 60)} s (chronomètre de cette session).</p>}
+                {enregistree && <p role="status" className="rounded-xl bg-bon-doux px-3 py-2 font-medium text-bon">Décision enregistrée au journal.</p>}
               </div>
             )}
           </section>
-          <Chronometre dossier={String(id)} />
         </aside>
       </div>
     </article>

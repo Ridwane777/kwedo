@@ -1,6 +1,6 @@
 # ADR 0010 : système de design « comptoir » à la place du « registre vivant »
 
-- Statut : accepté
+- Statut : accepté ; choix de la police d'interface remplacé par l'ADR 0011
 - Date : 2026-11-23
 
 ## Contexte
@@ -14,7 +14,7 @@ projet d'école. La demande : un produit fini, en service, auquel on confierait 
 - Nouveaux tokens sémantiques : `fond`, `surface`, `encre`, `marque`, `bon`, `ambre`, `alerte` (clair et sombre,
   contrastes AA mesurés dans `docs/design.md`). Les anciens noms (`papier`, `indigo`, `terre`, `feuille`, `safran`)
   sont supprimés ; le renommage est fait par `scripts/renommer-tokens.mjs`.
-- Typographie : Bricolage Grotesque (titres, montants) et Public Sans (interface ; Instrument Sans, essayée d'abord, collait les mots en petit corps), via `next/font`, sans
+- Typographie : Bricolage Grotesque (titres, montants) et Instrument Sans (interface), via `next/font`, sans
   nouvelle dépendance npm.
 - Motif « Lisière » retiré ; `Lisiere` devient un simple filet. Nouvelle marque « K » de flux.
 - Écrans refaits : accueil public, connexion, accueil commerçant, cadre et file de la console, admin.

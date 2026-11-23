@@ -5,7 +5,10 @@ import { Marque } from "@/components/motif";
 import { Bouton, Chargement, Erreur, Pastille, Simule, Vide } from "@/components/ui";
 import { api, useApi } from "@/lib/api";
 import { date } from "@/lib/format";
-import { deconnecter, GardePro, type Utilisateur } from "@/lib/session";
+import { UserButton } from "@/components/user-button";
+import { AvecIcone, BoutonIcone } from "@/components/bouton-icone";
+import { ChevronDown, ChevronUp, FastForward, RotateCcw } from "lucide-react";
+import { GardePro, type Utilisateur } from "@/lib/session";
 
 type Ligne = { id: string; nom: string; dossiers: number; a_traiter: number; credits: number; versions_parametres: number };
 type Evenement = { type: string; horodatage: string; acteur: string; institution_id: string | null; detail: string };
@@ -26,13 +29,10 @@ function Tableau({ u }: { u: Utilisateur }) {
   }
 
   const entete = (
-    <header className="border-b border-trait bg-surface">
+    <header className="relative z-20 border-b border-trait bg-surface">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 py-3 sm:px-8">
         <div className="flex items-center gap-3"><Marque taille={26} /><span className="rounded-full bg-encre px-2.5 py-0.5 text-xs font-semibold text-fond">Admin général</span></div>
-        <div className="flex items-center gap-2">
-          <span className="hidden text-sm text-encre-2 sm:inline">{u.login}</span>
-          <Bouton variante="trait" onClick={() => void deconnecter("pro")}>Changer de profil</Bouton>
-        </div>
+        <UserButton u={u} espace="pro" />
       </div>
     </header>
   );
@@ -126,9 +126,8 @@ function Tableau({ u }: { u: Utilisateur }) {
               </ol>
             )}
             {groupes.length > 8 && (
-              <Bouton variante="discret" aria-expanded={tout} onClick={() => setTout(!tout)}>
-                {tout ? "Afficher moins" : `Afficher toute l'activité (${a.journal.length} événements)`}
-              </Bouton>
+              <BoutonIcone icone={tout ? ChevronUp : ChevronDown} aria-expanded={tout} onClick={() => setTout(!tout)}
+                label={tout ? "Replier l'activité" : `Afficher toute l'activité (${a.journal.length} événements)`} className="border border-trait" infobulle="haut" ancre="gauche" />
             )}
           </div>
           <aside className="h-fit space-y-3 rounded-2xl border border-trait bg-surface p-4">
@@ -137,20 +136,24 @@ function Tableau({ u }: { u: Utilisateur }) {
               <Simule quoi="Simulé" />
             </div>
             <p className="text-encre-2">Elles agissent sur toute la plateforme.</p>
-            <Bouton variante="trait" className="w-full" disabled={!!occupe} onClick={() => void commande("avancer", "/demo/avancer", { jours: 7 }, "Horloge avancée de 7 jours.")}>
-              {occupe === "avancer" ? "Avance en cours…" : "Avancer de 7 jours"}
-            </Bouton>
-            {confirmer ? (
+            <div className="flex gap-2">
+              <BoutonIcone icone={FastForward} label="Avancer l'horloge de 7 jours" ancre="gauche" className="border border-trait" disabled={!!occupe} aria-busy={occupe === "avancer"}
+                onClick={() => void commande("avancer", "/demo/avancer", { jours: 7 }, "Horloge avancée de 7 jours.")} />
+              <BoutonIcone icone={RotateCcw} label="Réinitialiser la démo…" className="border border-trait" disabled={!!occupe} aria-expanded={confirmer}
+                onClick={() => setConfirmer(true)} />
+            </div>
+            {confirmer && (
               <div className="space-y-2 rounded-xl bg-alerte-doux p-3">
                 <p className="text-sm">Toutes les données de démo reviennent à l'état initial.</p>
                 <div className="flex gap-2">
-                  <Bouton variante="danger" className="flex-1" disabled={!!occupe} onClick={() => void commande("reinit", "/demo/reinitialiser", {}, "Démo réinitialisée.")}>Réinitialiser la démo</Bouton>
+                  <Bouton variante="danger" className="flex-1" disabled={!!occupe} onClick={() => void commande("reinit", "/demo/reinitialiser", {}, "Démo réinitialisée.")}>
+                    <AvecIcone icone={RotateCcw}>{occupe === "reinit" ? "Réinitialisation…" : "Réinitialiser la démo"}</AvecIcone>
+                  </Bouton>
                   <Bouton variante="trait" onClick={() => setConfirmer(false)}>Annuler</Bouton>
                 </div>
               </div>
-            ) : (
-              <Bouton variante="trait" className="w-full" disabled={!!occupe} onClick={() => setConfirmer(true)}>{occupe === "reinit" ? "Réinitialisation…" : "Réinitialiser…"}</Bouton>
             )}
+            {occupe === "avancer" && <p role="status" className="text-sm text-encre-2">Avance de l'horloge en cours…</p>}
             {msg && <p role={msg.ok ? "status" : "alert"} className={`text-sm font-medium ${msg.ok ? "text-bon" : "text-alerte"}`}>{msg.t}</p>}
           </aside>
         </section>

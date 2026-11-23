@@ -8,5 +8,9 @@ const T = {
   clair: { fond: "#f2f4f3", surface: "#ffffff", s2: "#e7ecea", encre: "#0e1d18", encre2: "#3b4a44", encre3: "#56645e", marque: "#0a5a47", marqueDoux: "#d7ebe3", alerte: "#b0261c", alerteDoux: "#fadeda", bon: "#1d6b35", bonDoux: "#daeedd", ambreEncre: "#6b4500", ambreDoux: "#faebc8" },
   sombre: { fond: "#0c1613", surface: "#13201c", s2: "#1a2925", encre: "#e8efec", encre2: "#b5c3bd", encre3: "#93a39c", marque: "#6fd0ae", marqueDoux: "#10362b", alerte: "#ff9a8f", alerteDoux: "#42140f", bon: "#87d49a", bonDoux: "#143220", ambreEncre: "#f3d38a", ambreDoux: "#3a2b08" },
 };
-const PAIRES = [["encre", "fond"], ["encre2", "fond"], ["encre3", "fond"], ["encre3", "s2"], ["encre2", "surface"], ["marque", "fond"], ["fond", "marque"], ["marque", "marqueDoux"], ["alerte", "alerteDoux"], ["alerte", "surface"], ["bon", "bonDoux"], ["ambreEncre", "ambreDoux"]];
+const PAIRES = [["encre", "fond"], ["encre2", "fond"], ["encre3", "fond"], ["encre3", "s2"], ["encre2", "surface"], ["marque", "fond"], ["fond", "marque"], ["marque", "marqueDoux"], ["alerte", "alerteDoux"], ["alerte", "surface"], ["bon", "bonDoux"], ["ambreEncre", "ambreDoux"],
+  ["fond", "encre"],          // infobulle des boutons à icône
+  ["ambreEncre", "surface"],  // icône d'alerte dans la file
+  ["encre2", "s2"],           // libellés au survol
+  ["marque", "surface"]];     // élément actif, liens
 for (const p of PAIRES) console.log(`| ${p[0]} / ${p[1]} | ${r(T.clair[p[0]], T.clair[p[1]])} | ${r(T.sombre[p[0]], T.sombre[p[1]])} |`);

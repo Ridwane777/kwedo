@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, Public_Sans } from "next/font/google";
+import { SynchroTheme } from "@/lib/theme";
+import { SCRIPT_THEME } from "@/lib/theme-script";
 import "./globals.css";
 
 const titre = Bricolage_Grotesque({ subsets: ["latin"], variable: "--font-titre", axes: ["wdth", "opsz"], display: "swap" });
@@ -18,8 +20,10 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fr" className={`${titre.variable} ${texte.variable}`}>
-      <body className="min-h-dvh bg-fond text-encre">{children}</body>
+    // data-theme est posé par SCRIPT_THEME avant l'hydratation : l'écart sur <html> est attendu.
+    <html lang="fr" data-theme="system" className={`${titre.variable} ${texte.variable}`} suppressHydrationWarning>
+      <head><script dangerouslySetInnerHTML={{ __html: SCRIPT_THEME }} /></head>
+      <body className="min-h-dvh bg-fond text-encre"><SynchroTheme />{children}</body>
     </html>
   );
 }

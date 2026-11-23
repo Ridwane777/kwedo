@@ -1,5 +1,6 @@
 "use client";
 
+import { Lightbulb } from "lucide-react";
 import { useEffect, useState } from "react";
 import { CourbeFlux } from "@/components/courbe-flux";
 import { Erreur, LienBouton, Simule } from "@/components/ui";
@@ -98,7 +99,7 @@ export default function Simulateur() {
         )}
       </div>
 
-      <LienBouton href="/app/conseils" grand variante="trait" className="w-full">Voir mes conseils</LienBouton>
+      <LienBouton href="/app/conseils" grand variante="trait" icone={Lightbulb} className="w-full">Voir mes conseils</LienBouton>
     </section>
   );
 }

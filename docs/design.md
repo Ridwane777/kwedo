@@ -30,7 +30,40 @@ de travail, fiche de décision au clavier, ton calme. Aucun écran, logo ni coul
 | `ambre` (+ `-encre`, `-doux`) | #c98a0b | #e9b54a | à vérifier ; `ambre` jamais en texte |
 | `alerte` (+ `-doux`) | #b0261c | #ff9a8f | retard, refus, destruction |
 
-Le mode sombre suit `prefers-color-scheme` avec les mêmes rôles.
+Jeton `cadre` (#0e1d18 / #3a5148) : bord du téléphone de la démo, dessiné pour chaque thème.
+
+## Thème clair, sombre, système
+
+- Trois choix : **Clair, Sombre, Système** (défaut). Le thème est porté par `data-theme` sur `<html>` ;
+  `globals.css` définit les jetons clairs sur `:root`, les sombres sur `[data-theme="dark"]` et, pour « Système »,
+  dans `@media (prefers-color-scheme: dark)`. « Système » suit donc le téléphone en direct, sans JavaScript.
+- Le choix est mémorisé dans `localStorage` (`kwedo-theme`, lecture et écriture sous try/catch) et appliqué par un
+  script en ligne dans `<head>` (`lib/theme-script.ts`) avant le premier rendu : pas de flash, pas d'erreur
+  d'hydratation (`suppressHydrationWarning` sur `<html>` seulement).
+- Sélecteur : dans le menu de compte (soleil, lune, écran) ; bouton d'icône dans l'en-tête des pages sans session
+  (accueil, connexion, inscription, démo) qui passe Système → Clair → Sombre.
+- Les iframes de `/demo` lisent le même `localStorage` et suivent les changements par l'événement `storage`.
+- Le sombre est dessiné : surfaces et filets en vert très sombre, marque éclaircie (#6fd0ae), alertes et pastilles
+  sur fonds sombres teintés, ombres plus profondes, courbe et graphiques sur les mêmes jetons. Aucune couleur n'est
+  codée en dur dans les composants.
+
+## Menu de compte (`components/user-button.tsx`)
+
+Un seul composant dans l'espace commerçant, la console et l'admin : pastille de 48 px aux initiales, menu avec nom,
+rôle, institution, thème, « Changer de profil » et « Se déconnecter ». Vrai bouton (`aria-haspopup`,
+`aria-expanded`), menu ARIA (flèches, Début, Fin, Échap, clic extérieur, focus rendu au bouton). La déconnexion
+appelle `/auth/deconnexion` puis `location.replace("/connexion")` ; une page restaurée depuis le cache de
+l'historique est rechargée, donc le retour arrière ne rouvre pas l'espace. Masqué dans les iframes de la démo.
+
+## Icônes (`components/bouton-icone.tsx`)
+
+- Une seule famille, `lucide-react`, 20 px, trait 1,75.
+- **Icône seule** (`BoutonIcone`, `LienIcone`) pour les actions courantes : retour, précédent, suivant, trier,
+  réessayer, réinitialiser, avancer l'horloge, replier, voir le calcul, reprogrammer. `aria-label` en français et
+  infobulle au survol comme au focus ; 48 px sur téléphone, 44 px au-delà.
+- **Icône + libellé court** (`Bouton`/`LienBouton` avec `icone`) pour tout ce qui engage : envoyer le dossier,
+  accepter ou décliner l'offre, payer, enregistrer la décision ou les paramètres, se déconnecter.
+- Les choix (filtre « À traiter / Tous », type de décision) restent écrits : une icône y serait ambiguë.
 
 ### Contrastes (WCAG 2.1, `node scripts/contrastes.mjs`)
 
@@ -45,6 +78,12 @@ Le mode sombre suit `prefers-color-scheme` avec les mêmes rôles.
 | alerte / alerte-doux | 5,26 | 7,67 |
 | bon / bon-doux | 5,38 | 7,91 |
 | ambre-encre / ambre-doux | 7,18 | 9,48 |
+| fond / encre (infobulle) | 15,74 | 15,78 |
+| ambre-encre / surface (icône d'alerte) | 8,48 | 11,59 |
+| encre-2 / surface-2 (survol) | 7,82 | 8,29 |
+| marque / surface (actif, liens) | 8,18 | 9,04 |
+
+Les deux thèmes sont aussi contrôlés par axe (WCAG 2.1 AA) sur les écrans principaux : `e2e/qualite.spec.ts`.
 
 ## Typographie
 

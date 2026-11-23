@@ -41,3 +41,6 @@
 5 critères du cahier sur 6 sont atteints avec preuve. Le critère 5 ne l'est toujours pas : le moteur bat les règles
 naïves sur l'ensemble du jeu de test, mais pas sur les activités jamais vues, et son risque annoncé reste sous-estimé
 quand le générateur change. Limite mesurée, documentée, non masquée.
+
+Temps humain : le chronomètre de la console a été retiré sur décision produit. Le gain de temps humain n'a jamais
+été mesuré et n'est revendiqué nulle part (protocole prêt : `docs/evaluation/protocole-temps.md`).

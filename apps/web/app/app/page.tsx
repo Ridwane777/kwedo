@@ -1,5 +1,6 @@
 "use client";
 
+import { Calculator, Lightbulb, Link2, Send } from "lucide-react";
 import { useState } from "react";
 import { CourbeFlux } from "@/components/courbe-flux";
 import { ChaineCalcul, ChoixInstitution, Raisons } from "@/components/estimation";
@@ -27,7 +28,7 @@ export default function Estimation() {
       <section className="space-y-5">
         <h1 className="titre text-3xl">Bonjour {prenom}</h1>
         <p className="text-lg">Pour calculer ce que vous pouvez emprunter, Kwedo a besoin des encaissements de votre compte marchand.</p>
-        <LienBouton href="/app/flux" grand className="w-full">Connecter mes encaissements</LienBouton>
+        <LienBouton href="/app/flux" grand icone={Link2} className="w-full">Connecter mes encaissements</LienBouton>
       </section>
     );
   }
@@ -58,7 +59,7 @@ export default function Estimation() {
               </div>
             </dl>
             <p className="mt-2 text-sm text-encre-2">Intérêts de l'institution choisie. Aucun frais Kwedo.</p>
-            <LienBouton href="/app/dossier" grand className="mt-5 w-full">Envoyer mon dossier</LienBouton>
+            <LienBouton href="/app/dossier" grand icone={Send} className="mt-5 w-full">Envoyer mon dossier</LienBouton>
           </>
         )}
         <div className="mt-4 flex flex-wrap gap-2">
@@ -85,8 +86,8 @@ export default function Estimation() {
       )}
 
       <div className="grid gap-2 pt-1">
-        <LienBouton href="/app/simulateur" variante="trait" grand className="w-full">Et si je demandais plus&nbsp;?</LienBouton>
-        <LienBouton href="/app/conseils" variante="discret" className="w-full">Comment augmenter mon plafond</LienBouton>
+        <LienBouton href="/app/simulateur" variante="trait" grand icone={Calculator} className="w-full">Et si je demandais plus&nbsp;?</LienBouton>
+        <LienBouton href="/app/conseils" variante="discret" icone={Lightbulb} className="w-full">Comment augmenter mon plafond</LienBouton>
       </div>
     </section>
   );

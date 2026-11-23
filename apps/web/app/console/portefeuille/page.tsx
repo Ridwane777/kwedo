@@ -1,5 +1,7 @@
 "use client";
 
+import { CalendarClock, Save } from "lucide-react";
+import { BoutonIcone } from "@/components/bouton-icone";
 import { useState } from "react";
 import { Bouton, Chargement, Erreur, Simule, Vide } from "@/components/ui";
 import { api, useApi } from "@/lib/api";
@@ -26,7 +28,7 @@ function Reprogrammer({ e, onFait }: { e: Portefeuille["retards"][number]; onFai
   const [nd, setNd] = useState("");
   const [motif, setMotif] = useState("");
   const [err, setErr] = useState<string | null>(null);
-  if (!ouvert) return <button className="text-marque hover:underline" onClick={() => setOuvert(true)}>Reprogrammer</button>;
+  if (!ouvert) return <BoutonIcone icone={CalendarClock} label="Reprogrammer l'échéance" className="border border-trait" onClick={() => setOuvert(true)} />;
   return (
     <form className="flex flex-wrap items-center gap-2" onSubmit={async (ev) => {
       ev.preventDefault(); setErr(null);
@@ -35,7 +37,7 @@ function Reprogrammer({ e, onFait }: { e: Portefeuille["retards"][number]; onFai
     }}>
       <input type="date" required value={nd} onChange={(x) => setNd(x.target.value)} className="rounded border border-trait bg-fond px-1.5 py-1" aria-label="Nouvelle date" />
       <input required minLength={10} value={motif} onChange={(x) => setMotif(x.target.value)} placeholder="Motif (tracé)" className="w-56 rounded border border-trait bg-fond px-1.5 py-1" aria-label="Motif" />
-      <Bouton type="submit">Enregistrer</Bouton>
+      <Bouton type="submit" icone={Save}>Enregistrer</Bouton>
       {err && <span role="alert" className="text-alerte">{err}</span>}
     </form>
   );

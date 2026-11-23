@@ -1,5 +1,6 @@
 "use client";
 
+import { Link2 } from "lucide-react";
 import Link from "next/link";
 import { CourbeFlux } from "@/components/courbe-flux";
 import { Chargement, Erreur, LienBouton, Simule } from "@/components/ui";
@@ -14,7 +15,7 @@ export default function Activite() {
   if (erreur) return <Erreur message={erreur} reessayer={recharger} />;
   if (!donnees) return <Chargement lignes={6} />;
   const e = donnees.estimation;
-  if (!e) return <div className="space-y-4"><h1 className="titre text-3xl">Mon activité</h1><LienBouton href="/app/flux" grand className="w-full">Connecter mes encaissements</LienBouton></div>;
+  if (!e) return <div className="space-y-4"><h1 className="titre text-3xl">Mon activité</h1><LienBouton href="/app/flux" grand icone={Link2} className="w-full">Connecter mes encaissements</LienBouton></div>;
   const s = e.serie_hebdo;
   const d4 = s.slice(-4).reduce((a, b) => a + b, 0) / 4;
   const p4 = s.slice(-8, -4).reduce((a, b) => a + b, 0) / 4;

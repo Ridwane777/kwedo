@@ -1,6 +1,8 @@
 "use client";
 
+import { ChevronUp, Sigma } from "lucide-react";
 import { useState } from "react";
+import { BoutonIcone } from "@/components/bouton-icone";
 import type { Analyse, Estimation, InstitutionPublique } from "@/lib/types";
 import { fcfa, pct } from "@/lib/format";
 
@@ -40,9 +42,8 @@ export function ChaineCalcul({ a }: { a: Estimation }) {
   const [ouvert, setOuvert] = useState(false);
   return (
     <div className="text-sm">
-      <button onClick={() => setOuvert(!ouvert)} aria-expanded={ouvert} className="min-h-11 font-medium text-marque underline-offset-4 hover:underline">
-        {ouvert ? "Masquer le calcul" : "Voir le calcul complet"}
-      </button>
+      <BoutonIcone icone={ouvert ? ChevronUp : Sigma} aria-expanded={ouvert} onClick={() => setOuvert(!ouvert)}
+        label={ouvert ? "Masquer le calcul" : "Voir le calcul complet"} className="border border-trait" infobulle="haut" ancre="gauche" />
       {ouvert && (
         <ol className="apparait mt-2 space-y-1.5 border-l-2 border-ambre pl-3 text-encre-2">
           {a.chaine_calcul.map((l) => <li key={l}>{l}</li>)}

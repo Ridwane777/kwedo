@@ -1,6 +1,8 @@
 "use client";
 
+import { ArrowDownWideNarrow, CalendarArrowUp, TriangleAlert } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { BoutonIcone } from "@/components/bouton-icone";
 import { useMemo, useState } from "react";
 import { Chargement, Erreur, Pastille, Vide } from "@/components/ui";
 import { useApi } from "@/lib/api";
@@ -49,9 +51,8 @@ export default function File() {
             ))}
             <kbd className="hidden self-center px-2 text-[11px] text-encre-2 md:inline" title="Raccourci clavier">f</kbd>
           </div>
-          <button onClick={() => setTri(tri === "priorite" ? "anciennete" : "priorite")} className="min-h-11 rounded-xl border border-trait bg-surface px-3 font-medium hover:border-encre-3">
-            Trier : {tri === "priorite" ? "priorité" : "ancienneté"} <kbd className="ml-1 hidden text-[11px] font-normal text-encre-2 md:inline">t</kbd>
-          </button>
+          <BoutonIcone icone={tri === "priorite" ? ArrowDownWideNarrow : CalendarArrowUp} onClick={() => setTri(tri === "priorite" ? "anciennete" : "priorite")}
+            label={`Trier par ${tri === "priorite" ? "ancienneté" : "priorité"} (t)`} className="border border-trait bg-surface" />
         </div>
       </header>
 
@@ -88,7 +89,7 @@ export default function File() {
                 <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-encre-2">
                   <Pastille ton={TON_STATUT[d.statut]}>{STATUTS[d.statut]}</Pastille>
                   <span>{RECO[d.recommandation]} · risque {pct(d.risque, 1)}</span>
-                  {d.alertes.length > 0 && <span className="font-medium text-encre">◆ {d.alertes.length} alerte{d.alertes.length > 1 ? "s" : ""}</span>}
+                  {d.alertes.length > 0 && <span className="inline-flex items-center gap-1 font-medium text-encre"><TriangleAlert aria-hidden="true" size={16} strokeWidth={1.75} className="text-ambre-encre" />{d.alertes.length} alerte{d.alertes.length > 1 ? "s" : ""}</span>}
                   {!d.consentement_actif && <span className="text-alerte">accord retiré</span>}
                 </span>
               </a>
@@ -124,7 +125,7 @@ export default function File() {
                 <td className="py-2 pr-3">
                   {d.alertes.length ? (
                     <span className="inline-flex items-center gap-1 font-medium text-encre">
-                      <svg aria-hidden="true" width="10" height="10" viewBox="0 0 10 10"><path d="M5 0l5 5-5 5-5-5z" fill="var(--ambre)" /></svg>
+                      <TriangleAlert aria-hidden="true" size={16} strokeWidth={1.75} className="text-ambre-encre" />
                       {d.alertes.length} alerte{d.alertes.length > 1 ? "s" : ""}
                     </span>
                   ) : <span className="text-encre-2">—</span>}

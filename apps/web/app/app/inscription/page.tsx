@@ -1,5 +1,6 @@
 "use client";
 
+import { UserPlus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Bouton, Simule } from "@/components/ui";
@@ -47,7 +48,7 @@ export default function Inscription() {
         <span className="mt-1 flex items-center gap-2 text-sm text-encre-2"><Simule quoi="Vérification simulée" /> rien n'est transmis, le numéro n'est pas conservé.</span>
       </label>
       {erreur && <p role="alert" className="text-alerte">{erreur}</p>}
-      <Bouton type="submit" grand className="w-full" disabled={envoi}>{envoi ? "Création…" : "Créer mon profil"}</Bouton>
+      <Bouton type="submit" grand icone={UserPlus} className="w-full" disabled={envoi}>{envoi ? "Création…" : "Créer mon profil"}</Bouton>
     </form>
   );
 }

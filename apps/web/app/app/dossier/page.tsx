@@ -1,5 +1,6 @@
 "use client";
 
+import { Send } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { Bouton, Chargement, Erreur, Pastille, Vide } from "@/components/ui";
@@ -70,7 +71,7 @@ export default function Dossier() {
       </div>
 
       {erreur && <p role="alert" className="text-alerte">{erreur}</p>}
-      <Bouton grand className="w-full" disabled={!aEnvoyer.length || occupe === "envoi"} onClick={envoyer}>
+      <Bouton grand icone={Send} className="w-full" disabled={!aEnvoyer.length || occupe === "envoi"} onClick={envoyer}>
         {occupe === "envoi" ? "Envoi…" : aEnvoyer.length ? `Envoyer à ${aEnvoyer.length} institution${aEnvoyer.length > 1 ? "s" : ""}` : "Donnez votre accord pour envoyer"}
       </Bouton>
 

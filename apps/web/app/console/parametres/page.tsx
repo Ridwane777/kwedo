@@ -1,5 +1,6 @@
 "use client";
 
+import { Save } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Bouton, Chargement, Erreur } from "@/components/ui";
 import { api, useApi } from "@/lib/api";
@@ -58,7 +59,7 @@ export default function Parametres() {
         ))}
         <div className="md:col-span-2">
           {msg && <p role={msg.ok ? "status" : "alert"} className={msg.ok ? "text-bon" : "text-alerte"}>{msg.t}</p>}
-          {modifiable && <Bouton type="submit" className="mt-2">Enregistrer une nouvelle version</Bouton>}
+          {modifiable && <Bouton type="submit" icone={Save} className="mt-2">Enregistrer une nouvelle version</Bouton>}
         </div>
       </form>
       <div>

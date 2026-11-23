@@ -32,7 +32,7 @@ terminé du cahier n'est pas entièrement satisfaite (critère 5). Option pruden
 | C2 | Modèles | fait | 9cd2a17 | LightGBM (4 fils, `nice -n 10`) vs NumPy sur le réglage : AUC 0,923 vs 0,917, Brier 0,088 vs 0,094 ; prévision 10,05 % vs 10,27 % ; ADR 0007 remplace 0003 | — |
 | C3 | Calibration | fait (réglage) / ❌ au run final | 9cd2a17 | Cause : dépenses perso absentes de la simulation + marge supposée trop haute (`ml/artifacts/diagnostic-calibration.json`) ; isotonique sur partition b : ECE 0,017 sur le réglage, **0,089 au run final** | dérive du générateur de test |
 | C4 | Décision | fait / ❌ hors réglage | 9cd2a17, 5ea6a00 | Run final 1 : 0,93 % vs 1,25 / 1,23 % sur le test complet (IC excluant 0) ; hors réglage 1,41 % vs 1,43 / 1,40 % (non significatif) ; plafond ≤ L_max ; raisons 100 % fidèles ; équité 40/40 | critères 1-2 non atteints hors réglage |
-| C5 | Temps de traitement | fait | ac8ff67 | Chronomètre dans la fiche dossier, « non mesuré » par défaut, export CSV/JSON ; `e2e/chronometre.spec.ts` OK. Temps humain : **non mesuré** | — |
+| C5 | Temps de traitement | fait | ac8ff67 | Chronomètre dans la fiche dossier, « non mesuré » par défaut, export CSV/JSON ; `e2e/chronometre.spec.ts` OK. Temps humain : **non mesuré**. **Retiré depuis** sur décision produit (mission menu de compte), sans avoir servi | — |
 | C6 | Mise à jour | fait | voir git log | Évaluation, performance, Définition de terminé, rétrospective, README, ce fichier | — |
 
 **Runs finaux : 1 sur 3, en échec** (`docs/evaluation/runs/run-1.json`). Pas de run 2 : voir la rétrospective (corriger

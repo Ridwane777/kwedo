@@ -128,9 +128,9 @@ décisions identiques 40/40 (l'activité n'est pas une entrée). Plafond / médi
 ### 8. Fait-il gagner du temps ?
 
 Machine : analyse complète 0,07 s par dossier ; 2 000 trajectoires en 6 ms (≈ 330 000 trajectoires/s sur CPU).
-**Temps humain : non mesuré.** Il faut des agents réels ; protocole dans `protocole-temps.md`. Depuis C5, la fiche
-dossier de la console propose un chronomètre démarré et arrêté par l'agent (avec ou sans l'outil), exportable en
-CSV/JSON ; tant que personne ne l'a utilisé, il affiche « non mesuré ».
+**Temps humain : non mesuré.** Il faut des agents réels ; protocole dans `protocole-temps.md`. Le chronomètre
+ajouté à la fiche dossier en C5 a été retiré de la console sur décision produit (mission menu de compte) : aucune
+mesure n'a jamais été prise avec, et **aucun gain de temps humain n'est annoncé**.
 
 ## Ce qu'il faut retenir
 

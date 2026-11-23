@@ -57,5 +57,6 @@ Mesuré en processus (client de test FastAPI, sans réseau), 30 appels, machine 
 | `GET /commercants/{id}/estimation` avec choc | 112 ms | 281 ms | < 500 ms ✅ |
 | `GET /dossiers` | 17 ms | 105 ms | < 200 ms ✅ |
 
-Les pages web n'ont pas été remesurées : seul le chronomètre a été ajouté à la fiche dossier (aucune requête réseau).
+Les pages web n'ont pas été remesurées : seul le chronomètre a été ajouté à la fiche dossier (aucune requête réseau) ;
+il a depuis été retiré sur décision produit.
 Un backend `cupy` est prévu dans `simuler_seuils` mais **n'a jamais tourné** (pas de GPU).

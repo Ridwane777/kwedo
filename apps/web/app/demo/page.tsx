@@ -1,6 +1,9 @@
 "use client";
 
+import { ChevronLeft, ChevronRight, Play, RotateCcw } from "lucide-react";
 import Link from "next/link";
+import { BoutonIcone } from "@/components/bouton-icone";
+import { BoutonTheme } from "@/components/user-button";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Lisiere, Marque } from "@/components/motif";
 import { Bouton, Simule } from "@/components/ui";
@@ -42,7 +45,7 @@ const TEMPS: Temps[] = [
       }
     } } },
   { titre: "Côté prêteur", duree: 60, ecran: (ids) => ({ console: ids.dossier ? `/console/dossiers/${ids.dossier}` : "/console" }),
-    dire: "L'agent ouvre le dossier : courbe, indicateurs, montant proposé et raisons. Un autre dossier porte une alerte de manipulation : l'agent tranche, le commerçant n'est pas accusé. Ici, l'agent ajuste le montant avec un justificatif ; le temps de traitement s'affiche.",
+    dire: "L'agent ouvre le dossier : courbe, indicateurs, montant proposé et raisons. Un autre dossier porte une alerte de manipulation : l'agent tranche, le commerçant n'est pas accusé. Ici, l'agent ajuste le montant avec un justificatif, enregistré au journal.",
     action: { label: "Ajuster avec justificatif", faire: async (ids) => {
       if (!ids.dossier) throw new Error("Envoyez d'abord le dossier (temps 4).");
       const d = await api<{ analyse: { plafond: number } }>(`/dossiers/${ids.dossier}`);
@@ -106,7 +109,8 @@ export default function Demo() {
         <div className="flex items-center gap-3">
           <span className="sm:hidden"><Simule quoi="Données simulées" /></span>
           <span className="hidden sm:inline"><Simule quoi="Scénario de démonstration, données figées et simulées" /></span>
-          <Bouton variante="trait" onClick={reinitialiser} disabled={etat.t === "occupe"}>Réinitialiser la démo</Bouton>
+          <BoutonTheme />
+          <BoutonIcone icone={RotateCcw} label="Réinitialiser la démo" onClick={reinitialiser} disabled={etat.t === "occupe"} className="border border-trait" />
         </div>
       </header>
       <Lisiere hauteur={10} />
@@ -125,18 +129,18 @@ export default function Demo() {
             <h1 className="titre text-3xl">{t.titre}</h1>
             <p className="text-lg leading-relaxed">{t.dire}</p>
           </div>
-          {t.action && <Bouton grand className="w-full" onClick={agir} disabled={etat.t === "occupe"}>{etat.t === "occupe" ? "…" : t.action.label}</Bouton>}
+          {t.action && <Bouton grand icone={Play} className="w-full" onClick={agir} disabled={etat.t === "occupe"} aria-busy={etat.t === "occupe"}>{t.action.label}</Bouton>}
           {etat.m && <p role={etat.t === "erreur" ? "alert" : "status"} className={etat.t === "erreur" ? "text-alerte" : "text-bon"}>{etat.m}</p>}
           <div className="flex justify-between">
-            <Bouton variante="discret" onClick={() => setK(Math.max(k - 1, 0))} disabled={k === 0}>← Précédent</Bouton>
-            <Bouton variante="trait" onClick={() => setK(Math.min(k + 1, TEMPS.length - 1))} disabled={k === TEMPS.length - 1}>Suivant →</Bouton>
+            <BoutonIcone icone={ChevronLeft} label="Précédent" ancre="gauche" onClick={() => setK(Math.max(k - 1, 0))} disabled={k === 0} className="border border-trait" infobulle="haut" />
+            <BoutonIcone icone={ChevronRight} label="Suivant" onClick={() => setK(Math.min(k + 1, TEMPS.length - 1))} disabled={k === TEMPS.length - 1} className="border border-trait bg-surface" infobulle="haut" />
           </div>
           <p className="text-xs text-encre-2">Clavier : ← et →. Les écrans à droite sont l'application réelle, branchée sur l'API locale.</p>
         </aside>
         <section className="flex min-w-0 flex-wrap items-start justify-center gap-6" aria-label="Écrans">
           {pret && ecran.telephone && (
             <figure className="w-[380px] max-w-full space-y-2">
-              <div className="h-[760px] w-full overflow-hidden rounded-[2.2rem] border-[10px] border-encre bg-fond shadow-xl">
+              <div className="h-[760px] w-full overflow-hidden rounded-[2.2rem] border-[10px] border-cadre bg-fond shadow-carte">
                 <iframe key={`t${cle}${ecran.telephone}`} src={ecran.telephone} title="Application commerçant" className="h-full w-full" />
               </div>
               <figcaption className="text-center text-xs text-encre-2">Application commerçant · 360 px</figcaption>
@@ -144,7 +148,7 @@ export default function Demo() {
           )}
           {pret && ecran.console && (
             <figure className="w-full min-w-0 flex-1 space-y-2 md:min-w-[560px]">
-              <div className="overflow-hidden rounded-xl border border-trait shadow-lg" style={{ height: 760 }}>
+              <div className="overflow-hidden rounded-xl border border-trait shadow-carte" style={{ height: 760 }}>
                 <iframe key={`c${cle}${ecran.console}`} src={ecran.console} title="Console prêteur" className="h-full w-full" />
               </div>
               <figcaption className="text-center text-xs text-encre-2">Console prêteur</figcaption>

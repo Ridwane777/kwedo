@@ -24,11 +24,42 @@
   --ambre-encre: #6b4500;
   --ambre-doux: #faebc8;
   --focus: #0a5a47;
+  --cadre: #0e1d18;         /* bord du téléphone de la démo */
   --ombre: 0 1px 0 rgb(14 29 24 / 0.04), 0 8px 24px -12px rgb(14 29 24 / 0.18);
 }
 
+/*
+ * Thème : data-theme="light" | "dark" | "system" sur <html>, posé avant le premier rendu (app/theme.tsx).
+ * Les valeurs sombres sont écrites deux fois : choix explicite, et « Système » quand le téléphone est en sombre.
+ */
+:root { color-scheme: light; }
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --fond: #0c1613;
+  --surface: #13201c;
+  --surface-2: #1a2925;
+  --surface-3: #23352f;
+  --trait: #2e423b;
+  --encre: #e8efec;
+  --encre-2: #b5c3bd;
+  --encre-3: #93a39c;
+  --marque: #6fd0ae;
+  --marque-doux: #10362b;
+  --alerte: #ff9a8f;
+  --alerte-doux: #42140f;
+  --bon: #87d49a;
+  --bon-doux: #143220;
+  --ambre: #e9b54a;
+  --ambre-encre: #f3d38a;
+  --ambre-doux: #3a2b08;
+  --focus: #6fd0ae;
+  --cadre: #3a5148;
+  --ombre: 0 1px 0 rgb(0 0 0 / 0.3), 0 8px 24px -12px rgb(0 0 0 / 0.6);
+}
+
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]):not([data-theme="dark"]) {
+    color-scheme: dark;
     --fond: #0c1613;
     --surface: #13201c;
     --surface-2: #1a2925;
@@ -47,6 +78,7 @@
     --ambre-encre: #f3d38a;
     --ambre-doux: #3a2b08;
     --focus: #6fd0ae;
+    --cadre: #3a5148;
     --ombre: 0 1px 0 rgb(0 0 0 / 0.3), 0 8px 24px -12px rgb(0 0 0 / 0.6);
   }
 }
@@ -69,12 +101,13 @@
   --color-ambre: var(--ambre);
   --color-ambre-encre: var(--ambre-encre);
   --color-ambre-doux: var(--ambre-doux);
+  --color-cadre: var(--cadre);
   --font-serif: var(--font-titre), system-ui, sans-serif;
   --font-sans: var(--font-texte), system-ui, sans-serif;
   --shadow-carte: var(--ombre);
 }
 
-html { background: var(--fond); color: var(--encre); color-scheme: light dark; }
+html { background: var(--fond); color: var(--encre); }
 body { font-family: var(--font-sans); font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; }
 .chiffres { font-variant-numeric: tabular-nums lining-nums; }
 .titre { font-family: var(--font-serif); font-weight: 600; letter-spacing: -0.02em; font-variation-settings: "wdth" 92; }
