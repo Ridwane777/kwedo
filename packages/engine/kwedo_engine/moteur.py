@@ -252,8 +252,11 @@ def _raisons(hebdo, p, graine, choc, decote, plafond, ind, c_p, lmax, l_sim):
         effets.append(("regularite", _plafond(np.maximum(regulier, 0), p, graine, choc, decote)[0] - plafond))
     pente = ind["tendance_hebdo"]
     if pente:
-        t = np.arange(len(hebdo)) - (len(hebdo) - 1)
-        effets.append(("tendance", _plafond(np.maximum(hebdo - pente * med * np.maximum(t, -11), 0), p, graine, choc, decote)[0] - plafond))
+        # Sans tendance : les 12 dernières semaines ramenées au niveau du début de la fenêtre.
+        k = min(12, len(hebdo))
+        sans = hebdo.astype(float).copy()
+        sans[-k:] -= pente * med * np.arange(k)
+        effets.append(("tendance", _plafond(np.maximum(sans, 0), p, graine, choc, decote)[0] - plafond))
     if decote < 1:
         effets.append(("anciennete", _plafond(hebdo, p, graine, choc, 1.0)[0] - plafond))
     effets.append(("encaissements", 0))

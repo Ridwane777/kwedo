@@ -10,7 +10,8 @@
 | 5 | API | fait (écart ADR 0004) | voir git log | 5 tests : parcours estimation → consentement → dossier → décision ajustée → offre → échéancier → paiement → retard → relances → portefeuille → rejeu identique ; triggers refusent UPDATE/DELETE ; 403 sans consentement | FastAPI absent → stdlib |
 | 6 | Design system | fait | voir git log | `next build` OK ; `/design` capturé à 360 et 1440 px et relu (correctifs : espace insécable des montants, crénage) ; contrastes mesurés dans `docs/design.md` | navigateur Playwright installé dans `~/.cache/ms-playwright` (≈ 330 Mo, hors `~/kwedo`, emplacement par défaut de l'outil) |
 | 7 | Commerçant P1 | fait | voir git log | `/app`, `/app/simulateur`, `/app/conseils` construits et capturés à 360 px contre l'API réelle ; correctifs typographiques (espaces insécables avant « ? » et « % ») | — |
-| 8–13 | Console, P2, P3, évaluation, démo, qualité | à faire | | | |
+| 8 | Console P1 | fait | voir git log | `/console` (file triée, filtres, j/k/Entrée) et fiche `/console/dossiers/[id]` (indicateurs, courbe, raisons, chaîne de calcul, alertes, décision v/a/r/c avec justificatif) capturées à 1440 px ; relecture → bogue moteur corrigé (raison « tendance » de signe inversé) + test de non-régression | — |
+| 9–13 | P2, P3, évaluation, démo, qualité | à faire | | | |
 | 14 | Dossier final | à faire | | | |
 
 ## Environnement constaté (2026-11-23)

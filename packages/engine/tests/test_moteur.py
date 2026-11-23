@@ -65,6 +65,15 @@ class TestMoteur(unittest.TestCase):
         self.assertEqual(r["plafond"], 0)
         self.assertEqual(r["recommandation"], "refus_motive")
 
+    def test_raison_tendance_coherente(self):
+        for g in range(20, 40):
+            c = generer_commercant("t", g, manipulation=None)
+            r = analyser(c["transactions"], P, graine=1, avec_modeles=False)
+            for x in r["raisons"]:
+                if x["code"] == "tendance" and x["effet"] != 0:
+                    baisse = r["indicateurs"]["tendance_hebdo"] < 0
+                    self.assertEqual(baisse, "baisse" in x["texte"], (g, r["indicateurs"]["tendance_hebdo"], x))
+
     def test_souhait(self):
         r = analyser(self.honnete["transactions"], P, graine=1, montant_souhaite=self.res["plafond"] * 3)
         self.assertFalse(r["souhait"]["atteignable"])
