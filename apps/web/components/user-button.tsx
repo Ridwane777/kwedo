@@ -78,7 +78,7 @@ export function UserButton({ u, espace, ancrage = "right-0" }: {
           className={`apparait absolute ${ancrage} top-full z-50 mt-2 w-72 max-w-[calc(100vw-1.5rem)] rounded-2xl border border-trait bg-surface p-2 shadow-carte`}>
           <div className="border-b border-trait px-3 pb-3 pt-2">
             <p className="font-semibold">{nom}</p>
-            <p className="text-sm text-encre-2">{ROLES[u.role]}{u.role === "commercant" ? "" : `, ${u.login}`}</p>
+            <p className="text-sm text-encre-2">{u.role === "commercant" ? ROLES[u.role] : u.login}</p>
             {u.institution && <p className="text-sm text-encre-2">{u.institution}</p>}
           </div>
           <div role="group" aria-label="Thème" className="flex gap-1 border-b border-trait p-2">

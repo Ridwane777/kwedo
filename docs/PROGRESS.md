@@ -84,3 +84,15 @@ d'attente sous charge (passé seul puis dans la suite complète) ; à surveiller
 | — | Admin | Événements identiques consécutifs regroupés (« 5 fois »), institutions en liste compacte |
 | — | Démo | Étiquette courte à 360 px ; captures prises une fois les iframes chargées |
 | — | Vérification | build OK, `test:api` 16/16, `npx playwright test` **40/40** ; revue des écrans étendue à l'offre et au crédit en cours |
+
+## Menu de compte, icônes, thème, retrait du chronomètre (`docs/MISSION-MENU-COMPTE.md`, branche `finition`)
+
+| # | Demande | Preuve |
+|---|---|---|
+| 0 | Relecture précédente | entièrement traitée (voir section précédente) ; captures désormais dans `.captures/revue-finale/` |
+| 1 | `UserButton` | `components/user-button.tsx`, seul menu de compte du commerçant, de la console et de l'admin ; « Quitter » et les « Changer de profil » permanents supprimés. Pastille de 48 px, menu ARIA (flèches, Début, Fin, Échap, clic extérieur, focus rendu). Déconnexion réelle puis `location.replace` ; page restaurée du cache rechargée. Masqué dans les iframes de la démo. Défaut trouvé : le raccourci global « Entrée » de la file captait l'Entrée du bouton ; les raccourcis n'interceptent plus Entrée/Espace sur un bouton ou un lien. `e2e/compte.spec.ts` : 3 espaces × 360/1440, refus de l'API et retour arrière vérifiés |
+| 2 | Icônes | `lucide-react` (20 px, trait 1,75) ; `BoutonIcone`/`LienIcone` (aria-label, infobulle au survol et au focus, 48/44 px) pour retour, précédent, suivant, trier, réessayer, réinitialiser, avancer l'horloge, replier, voir le calcul, reprogrammer ; icône + libellé pour envoyer, accepter, décliner, payer, enregistrer, se déconnecter. SVG faits main en doublon retirés (la marque reste). Défaut trouvé : les infobulles invisibles élargissaient la page ; elles sont retirées de la mise en page hors survol |
+| 3 | Chronomètre | composant, usage, exports et `e2e/chronometre.spec.ts` supprimés ; « Dossier traité en… » remplacé par « Décision enregistrée au journal. » ; README, évaluation, protocole, rétrospective, performance, Définition de terminé alignés : **gain de temps humain non mesuré, non annoncé** |
+| 4 | Thème | Clair / Sombre / Système via `data-theme`, script avant rendu (aucun flash), `localStorage` protégé, Système suit le téléphone en direct (CSS), iframes synchronisées. Contrastes AA mesurés dans les deux thèmes (`scripts/contrastes.mjs`) ; axe sur tous les écrans principaux en clair et en sombre (`e2e/qualite.spec.ts`) ; persistance testée |
+| 5 | ADR | 0010 restauré tel que sur `main`, statut seul annoté ; ADR 0011 (Public Sans) ajouté à l'index |
+| — | Vérification | build OK, `test:api` OK, `npx playwright test` **83/83** ; 178 captures (chaque écran et rôle, 360/1440, clair/sombre, offre, crédit en cours, 9 temps de démo, menus ouverts) dans `.captures/revue-finale/` |
