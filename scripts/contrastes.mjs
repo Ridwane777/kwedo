@@ -1,16 +1,41 @@
-// Contrastes WCAG 2.1 des paires de tokens du système « comptoir » (docs/design.md).
+// Contrastes WCAG 2.1 des jetons, lus dans apps/web/app/globals.css, sur CHAQUE niveau de surface, clair et sombre.
+// Usage : node scripts/contrastes.mjs [--strict]  (--strict : code de sortie 1 si une paire passe sous son seuil)
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+
+const css = readFileSync(fileURLToPath(new URL("../apps/web/app/globals.css", import.meta.url)), "utf8");
+const bloc = (re) => Object.fromEntries([...css.match(re)[1].matchAll(/--([\w-]+):\s*(#[0-9a-f]{6})/gi)].map((m) => [m[1], m[2]]));
+const T = {
+  clair: bloc(/^:root \{([\s\S]*?)\n\}/m),
+  sombre: bloc(/:root\[data-theme="dark"\] \{([\s\S]*?)\n\}/),
+};
+
 const L = (h) => {
   const c = [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16) / 255).map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
   return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
 };
-const r = (a, b) => { const [x, y] = [L(a), L(b)].sort((p, q) => q - p); return ((x + 0.05) / (y + 0.05)).toFixed(2); };
-const T = {
-  clair: { fond: "#f2f4f3", surface: "#ffffff", s2: "#e7ecea", encre: "#0e1d18", encre2: "#3b4a44", encre3: "#56645e", marque: "#0a5a47", marqueDoux: "#d7ebe3", alerte: "#b0261c", alerteDoux: "#fadeda", bon: "#1d6b35", bonDoux: "#daeedd", ambreEncre: "#6b4500", ambreDoux: "#faebc8" },
-  sombre: { fond: "#0c1613", surface: "#13201c", s2: "#1a2925", encre: "#e8efec", encre2: "#b5c3bd", encre3: "#93a39c", marque: "#6fd0ae", marqueDoux: "#10362b", alerte: "#ff9a8f", alerteDoux: "#42140f", bon: "#87d49a", bonDoux: "#143220", ambreEncre: "#f3d38a", ambreDoux: "#3a2b08" },
-};
-const PAIRES = [["encre", "fond"], ["encre2", "fond"], ["encre3", "fond"], ["encre3", "s2"], ["encre2", "surface"], ["marque", "fond"], ["fond", "marque"], ["marque", "marqueDoux"], ["alerte", "alerteDoux"], ["alerte", "surface"], ["bon", "bonDoux"], ["ambreEncre", "ambreDoux"],
-  ["fond", "encre"],          // infobulle des boutons à icône
-  ["ambreEncre", "surface"],  // icône d'alerte dans la file
-  ["encre2", "s2"],           // libellés au survol
-  ["marque", "surface"]];     // élément actif, liens
-for (const p of PAIRES) console.log(`| ${p[0]} / ${p[1]} | ${r(T.clair[p[0]], T.clair[p[1]])} | ${r(T.sombre[p[0]], T.sombre[p[1]])} |`);
+const r = (a, b) => { const [x, y] = [L(a), L(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
+
+const SURFACES = ["fond", "surface", "surface-2", "surface-3"];
+// [texte, seuil] : 4,5 pour le texte courant, 3 pour les éléments graphiques (traits de courbe, icônes, focus).
+// « ambre » (seuil 0) : point ou liseré qui accompagne toujours un libellé, jamais seul porteur de sens ; affiché pour information.
+const TEXTES = [["encre", 4.5], ["encre-2", 4.5], ["encre-3", 4.5], ["marque", 4.5], ["montant", 4.5], ["alerte", 4.5], ["bon", 4.5], ["ambre-encre", 4.5], ["focus", 3], ["ambre", 0]];
+const PAIRES = [["sur-action", "action", 4.5], ["marque", "marque-doux", 4.5], ["alerte", "alerte-doux", 4.5], ["bon", "bon-doux", 4.5], ["ambre-encre", "ambre-doux", 4.5], ["fond", "encre", 4.5]];
+
+let echec = 0;
+for (const [nom, t] of Object.entries(T)) {
+  console.log(`\n## ${nom}\n\n| texte \\ surface | ${SURFACES.join(" | ")} |\n|---|${SURFACES.map(() => "---").join("|")}|`);
+  for (const [x, seuil] of TEXTES) {
+    if (!t[x]) continue;
+    const cells = SURFACES.map((s) => { const v = r(t[x], t[s]); if (v < seuil) echec++; return `${v.toFixed(2).replace(".", ",")}${v < seuil ? " ✗" : ""}`; });
+    console.log(`| ${x} (≥ ${seuil}) | ${cells.join(" | ")} |`);
+  }
+  console.log("\n| paire | rapport |\n|---|---|");
+  for (const [a, b, seuil] of PAIRES) {
+    if (!t[a] || !t[b]) continue;
+    const v = r(t[a], t[b]); if (v < seuil) echec++;
+    console.log(`| ${a} / ${b} | ${v.toFixed(2).replace(".", ",")}${v < seuil ? " ✗" : ""} |`);
+  }
+}
+console.log(`\n${echec ? `${echec} paire(s) sous le seuil` : "Toutes les paires passent AA."}`);
+if (process.argv.includes("--strict") && echec) process.exit(1);

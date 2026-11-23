@@ -31,7 +31,7 @@ function Apercu() {
             <Simule quoi="Exemple simulé" />
           </div>
           <p className="text-sm text-encre-2">Bonjour Afiavi, vous pourriez emprunter</p>
-          <p className="montant mt-1 text-[2.5rem] leading-none text-marque">400 000 FCFA</p>
+          <p className="montant mt-1 text-[2.5rem] leading-none text-montant">400 000 FCFA</p>
           <dl className="mt-4 grid grid-cols-2 gap-2 text-sm">
             <div className="rounded-xl bg-surface p-3"><dt className="text-encre-2">Par semaine</dt><dd className="chiffres font-semibold">35 000 FCFA</dd></div>
             <div className="rounded-xl bg-surface p-3"><dt className="text-encre-2">Sur</dt><dd className="chiffres font-semibold">12 semaines</dd></div>

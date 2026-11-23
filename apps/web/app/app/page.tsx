@@ -40,7 +40,7 @@ export default function Estimation() {
       <div className="rounded-3xl bg-surface p-5 shadow-carte">
         <p className="text-encre-2">Bonjour {prenom}, vous pouvez emprunter jusqu'à</p>
         {a ? (
-          <p className="montant apparait mt-1 text-[3.1rem] leading-none text-marque" aria-live="polite">{fcfa(a.plafond)}</p>
+          <p className="montant apparait mt-1 text-[3.1rem] leading-none text-montant" aria-live="polite">{fcfa(a.plafond)}</p>
         ) : est.erreur ? <div className="mt-2"><Erreur message={est.erreur} reessayer={est.recharger} /></div> : <div className="chargement mt-2 h-12 w-4/5" />}
         {a && (
           <>
