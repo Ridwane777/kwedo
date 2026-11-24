@@ -91,7 +91,7 @@ for (const [theme, colorScheme] of THEMES) {
         await page.goto("/demo");
         await page.getByRole("button", { name: "Réinitialiser la démo" }).click();
         await expect(page.getByText("Démo réinitialisée")).toBeVisible({ timeout: 30_000 });
-        const actions: Record<number, string> = { 4: "Donner l'accord et envoyer", 5: "Ajuster avec justificatif", 6: "Accepter l'offre", 7: "Payer, puis avancer de 15 jours" };
+        const actions: Record<number, string> = { 4: "Signer par code SMS et envoyer", 5: "Ajuster avec justificatif", 6: "Accepter l'offre", 7: "Payer, puis avancer de 15 jours" };
         for (let n = 1; n <= 9; n++) {
           await expect(page.getByText(`Temps ${n} sur 9`)).toBeVisible();
           if (n === 6) {

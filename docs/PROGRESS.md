@@ -142,3 +142,21 @@ leur état initial hors de la vue) ; les animations elles-mêmes se vérifient d
 | 3 | `docker-compose.yml` | `api` et `web`, `web` attend `api` saine (healthcheck `/auth/profils`), volume `kwedo-db`, ports 3460/3461 |
 | 4–6 | `.dockerignore`, README, ADR 0013 | faits ; index des ADR mis à jour |
 | — | Vérification | `npm run test:api` 16/16 OK, `npm run build:web` OK. **Les images n'ont pas été construites ni lancées : Docker est interdit sur le VPS.** Premier `docker compose up --build` à faire sur une autre machine. `next start` avec `output: "standalone"` peut afficher un avertissement de Next ; non relancé ici |
+
+## Mission échéances (`docs/MISSION-ECHEANCES.md`, branche `echeances`)
+
+| # | Demande | Preuve |
+|---|---|---|
+| 5 | Dossier simplifié | Interrupteurs « Qui peut voir » supprimés ; un bouton « Déposer mon dossier de crédit » → institution → modalités → confirmation (« J'accepte que <institution> consulte mon dossier de crédit ») → envoi. Suivi sous le bouton ; retrait de l'accord dans « Mon compte marchand ». Boutons « Envoyer mon dossier » de l'Estimation et des Conseils → ce parcours |
+| 1 | Moteur | Fréquence `hebdomadaire` / `quinzaine` / `mensuelle`, durée 3–12 mois ; C_p sur encaissements agrégés à la période (sommes glissantes), taux par période, contrôle à chaque échéance (2 000 avenirs à la semaine) ; risque hors hebdo = modèle appliqué au montant équivalent, `risque_valide: false`, pas de réentraînement. **Hebdomadaire identique** : 21 couples commerçant × institution comparés champ à champ avant/après (0 écart) ; Koffi 495 000 FCFA, risque 8,46 %. `test:engine` 24/24 |
+| 2 | Institutions | Modalités versionnées dans `parametres_moteur` (fréquences, durée min/max, délai de versement) ; Lagune semaine+mois 3–12 mois 48 h, Baobab mois 6–12 mois 72 h, Mutuelle semaine+quinzaine 3–6 mois 24 h ; éditables par le responsable (console Paramètres), absentes des vues admin (testé) |
+| 3 | Commerçant / agent | Choix fréquence + durée dans Estimation, Simuler, dépôt ; échéance exacte (« 151 961 FCFA chaque mois pendant 6 mois »), nombre d'échéances, coût total, délai de versement ; mention prudente hors hebdo ; accord signé par **code SMS simulé** (affiché en démo, empreinte seule en base, 10 min, usage unique, 5 essais, tracé au journal) ; offre/crédit/échéancier/rappels à la fréquence choisie ; fiche console : modalités demandées + ajustement dans les limites |
+| 4 | Documentation | ADR 0015, `docs/evaluation/perimetre-frequences.md`, section concurrence PNIF / Alafia III dans `docs/business/README.md` (sources, pnif.bj illisible : certificat invalide), `docs/legal/` (conformité, CGU, risques), `openapi.yaml`, `design.md` |
+| — | Vérification | `test:engine` 24/24, `test:api` 23/23, build OK, `npx playwright test` **132/132** (30 min) ; captures 6 écrans + paramètres, clair/sombre, 360/1440 dans `.captures/revue-echeances/` ; relecture → niveau prudent mensuel tracé sur la courbe hebdomadaire (hors échelle), ramené à la semaine ; specs concernées rejouées 46/46 |
+
+**Routes à ajouter à `attaque.py`** :
+- `POST /commercants/{id}/code-sms` (nouvelle ; règle : le commerçant lui-même).
+- `POST /commercants/{id}/consentements` : **règle changée**, `action: accorde` exige un `code` SMS valide (403 sinon) ; `retire` inchangé.
+- Paramètres nouveaux (règles d'accès inchangées) : `GET /commercants/{id}/estimation` (`frequence`, `duree_mois`), `POST /dossiers` (`frequence`, `duree_mois`), `POST /dossiers/{id}/decisions` (`frequence`, `duree_mois`), `POST /institutions/{id}/parametres` (`frequences`, `duree_min_mois`, `duree_max_mois`, `delai_versement_h`).
+
+**Limite** : le risque n'est validé que pour l'hebdomadaire ; quinzaine et mensuel sont des estimations prudentes non évaluées (ADR 0015).

@@ -3,11 +3,12 @@
 import { Lightbulb } from "lucide-react";
 import { useEffect, useState } from "react";
 import { CourbeFlux } from "@/components/courbe-flux";
+import { ChoixInstitution, ChoixModalites, MentionPrudente, prudentHebdo, requeteModalites } from "@/components/estimation";
 import { Erreur, LienBouton, Simule } from "@/components/ui";
-import { api } from "@/lib/api";
+import { api, useApi } from "@/lib/api";
 import { useCommercant } from "@/lib/commercant";
-import { fcfa, nombre } from "@/lib/format";
-import type { Estimation } from "@/lib/types";
+import { fcfa, FREQ, nombre, phraseEcheance, type Frequence } from "@/lib/format";
+import type { Estimation, InstitutionPublique } from "@/lib/types";
 
 export default function Simulateur() {
   const { id } = useCommercant();
@@ -16,26 +17,31 @@ export default function Simulateur() {
   const [a, setA] = useState<Estimation | null>(null);
   const [base, setBase] = useState<Estimation | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
+  const [inst, setInst] = useState("inst-lagune");
+  const [choix, setChoix] = useState<{ frequence: Frequence; duree: number } | null>(null);
+  const insts = useApi<InstitutionPublique[]>("/institutions");
+  const termes = `institution_id=${inst}${requeteModalites(choix)}`;
 
   useEffect(() => {
-    api<Estimation>(`/commercants/${id}/estimation`).then((r) => {
+    api<Estimation>(`/commercants/${id}/estimation?${termes}`).then((r) => {
       setBase(r);
       setSouhait((s) => s ?? (Math.round((r.plafond * 1.5) / 50_000) * 50_000 || 100_000));
     }).catch((e) => setErreur(e.message));
-  }, [id]);
+  }, [id, termes]);
 
   useEffect(() => {
     if (souhait === null) return;
     const t = setTimeout(() => {
-      api<Estimation>(`/commercants/${id}/estimation?choc_ventes=${-baisse / 100}&montant_souhaite=${souhait}`)
+      api<Estimation>(`/commercants/${id}/estimation?${termes}&choc_ventes=${-baisse / 100}&montant_souhaite=${souhait}`)
         .then((r) => { setA(r); setErreur(null); })
         .catch((e) => setErreur(e.message));
     }, 180);
     return () => clearTimeout(t);
-  }, [id, souhait, baisse]);
+  }, [id, souhait, baisse, termes]);
 
   if (erreur) return <Erreur message={erreur} />;
   const s = a?.souhait;
+  const per = a ? FREQ[a.frequence] : FREQ.hebdomadaire;
 
   return (
     <section className="space-y-6">
@@ -55,11 +61,18 @@ export default function Simulateur() {
         <span id="aide-montant" className="mt-1 block text-sm text-encre-2">Votre plafond actuel : {fcfa(base?.plafond)}</span>
       </label>
 
+      <div className="grid gap-3 rounded-2xl bg-surface p-4 shadow-carte">
+        {insts.donnees && <ChoixInstitution institutions={insts.donnees} valeur={inst} onChange={(v) => { setChoix(null); setInst(v); }} />}
+        {base && base.institution_id === inst && <ChoixModalites a={base} onChange={(frequence, d) => setChoix({ frequence, duree: d })} />}
+        {a && <p className="text-sm text-encre-2">{a.nb_echeances} échéances · {per.chaque}{a.plafond ? ` · au plafond : ${phraseEcheance(a.echeance, a.frequence, { duree_mois: a.parametres.duree_mois, duree_semaines: a.duree_semaines })}` : ""}</p>}
+        {a && <MentionPrudente a={a} />}
+      </div>
+
       {!s && <p role="status" className="chargement h-24 rounded-2xl"><span className="sr-only">Calcul en cours</span></p>}
       {s && (
         <div aria-live="polite" className={`apparait rounded-2xl p-5 ${s.atteignable ? "bg-bon-doux" : "bg-surface-2"}`}>
           {s.atteignable ? (
-            <p className="text-lg"><strong className="text-bon">C'est possible.</strong> Échéance de {fcfa(s.echeance)} par semaine.</p>
+            <p className="text-lg"><strong className="text-bon">C'est possible.</strong> {per.echeance} : {fcfa(s.echeance)} ({a!.nb_echeances} échéances).</p>
           ) : (
             <>
               <p className="text-lg">Pour obtenir <strong className="chiffres">{fcfa(s.montant)}</strong>, il manque :</p>
@@ -82,7 +95,7 @@ export default function Simulateur() {
         </label>
         {a && (
           <>
-            <CourbeFlux serie={a.serie_hebdo} prudent={base?.encaissement_prudent ?? a.encaissement_prudent} median={a.indicateurs.encaissement_median} choc={-baisse / 100} debut={a.indicateurs.debut} hauteur={180} />
+            <CourbeFlux serie={a.serie_hebdo} prudent={prudentHebdo(base ?? a)} median={a.indicateurs.encaissement_median} choc={-baisse / 100} debut={a.indicateurs.debut} hauteur={180} />
             <dl className="grid grid-cols-2 gap-4 pt-1">
               <div>
                 <dt className="text-sm text-encre-2">Plafond</dt>

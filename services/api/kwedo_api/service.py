@@ -302,7 +302,7 @@ class Service:
         est = self.estimation(cid) if c["nb_transactions"] else None
         credits = self.q("SELECT id FROM credits WHERE commercant_id = ?", cid)
         return {"commercant": c, "estimation": est, "credits": [self.credit(k["id"]) for k in credits],
-                "dossiers": self.q("SELECT d.id, d.institution_id, i.nom AS institution, d.statut, d.montant_offre, d.duree_offre, d.cree_le "
+                "dossiers": self.q("SELECT d.id, d.institution_id, i.nom AS institution, d.statut, d.montant_offre, d.duree_offre, d.cree_le, d.frequence, d.duree_mois "
                                    "FROM dossiers d JOIN institutions i ON i.id = d.institution_id WHERE commercant_id = ? ORDER BY d.cree_le", cid)}
 
     # ---------- consentements ----------
