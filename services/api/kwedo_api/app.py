@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import threading
 import time
@@ -391,8 +392,10 @@ def main():
     s = Service(a.db)
     if not s.un("SELECT 1 FROM institutions LIMIT 1"):
         s.reinitialiser()
-    print(f"Kwedo API sur http://127.0.0.1:{a.port} (données simulées, FastAPI)", flush=True)
-    uvicorn.run(fabriquer(s), host="127.0.0.1", port=a.port, log_level="warning", access_log=False)
+    # KWEDO_HOST : 127.0.0.1 par défaut (VPS partagé) ; 0.0.0.0 dans le conteneur Docker (ADR 0013).
+    hote = os.environ.get("KWEDO_HOST", "127.0.0.1")
+    print(f"Kwedo API sur http://{hote}:{a.port} (données simulées, FastAPI)", flush=True)
+    uvicorn.run(fabriquer(s), host=hote, port=a.port, log_level="warning", access_log=False)
 
 
 if __name__ == "__main__":

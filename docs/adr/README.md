@@ -14,3 +14,4 @@
 | [0010](0010-systeme-design-comptoir.md) | Système de design « comptoir » à la place du « registre vivant » | accepté (police d'interface remplacée par 0011) |
 | [0011](0011-police-public-sans.md) | Public Sans comme police d'interface | accepté |
 | [0012](0012-marque-cauri-vitrine.md) | Marque cauri, vitrine pleine largeur, mode sombre graphite | accepté (remplace la marque et le sombre de 0010) |
+| [0013](0013-double-mode-lancement.md) | Double mode de lancement : npm sur le VPS, Docker pour la démo et l'évaluation | accepté |
