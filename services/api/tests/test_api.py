@@ -183,6 +183,32 @@ class TestCloisonnement(unittest.TestCase):
         self.assertTrue(s["au_dessus_du_seuil"])
         self.assertFalse(s["atteignable"])
 
+    def test_conseils_chiffres_et_reserves_au_commercant(self):
+        url = "/commercants/com-afiavi/conseils"
+        self.assertEqual(TestClient(fabriquer(self.s)).get(url).status_code, 401)
+        for profil in ("agent-lagune", "responsable-lagune", "admin"):
+            self.assertIn(client(self.s, profil).get(url).status_code, (401, 403), profil)
+        self.assertEqual(client(self.s, commercant="com-sena").get(url).status_code, 403)
+        c = client(self.s, "commercant")
+        r = c.get(url)
+        self.assertEqual(r.status_code, 200)
+        a = r.json()
+        self.assertEqual(a["plafond_actuel"], c.get("/commercants/com-afiavi/estimation").json()["plafond"])
+        self.assertEqual(a, c.get(url).json())  # même graine : même résultat
+        tous = a["leviers"] + a["deja_bien"]
+        self.assertTrue(tous)
+        for l in tous:
+            self.assertTrue(l["effet"] is None or l["effet"] >= 0, l["code"])  # chiffré et ≥ 0, ou signalé non chiffré
+            self.assertTrue(l["actions"], l["code"])
+        effets = [l["effet"] for l in a["leviers"] if l["effet"] is not None]
+        self.assertEqual(effets, sorted(effets, reverse=True))
+        if a["gain_possible"] is not None:
+            self.assertEqual(a["gain_possible"], max(effets))
+        self.assertIn("historique", [l["code"] for l in tous])
+        self.assertNotIn('"risque"', r.text)
+        for interne in ("graine", "seuil_risque", "percentile", "recommandation"):
+            self.assertNotIn(interne, r.text)
+
     def test_raison_formule_reecrite(self):
         from kwedo_api.service import raisons_commercant
         r = raisons_commercant([{"code": "formule", "effet": 0, "texte": "… limite le prélèvement à 35 % de la marge …"}])

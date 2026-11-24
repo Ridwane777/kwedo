@@ -78,3 +78,13 @@ export type TableauDeBord = {
   commercant: Commercant; estimation: Estimation | null; credits: Credit[];
   dossiers: { id: string; institution_id: string; institution: string; statut: string; montant_offre: number | null; duree_offre: number | null; cree_le: string }[];
 };
+
+export type Palier = { semaines: number; mois: number; atteint: boolean; reste: number };
+export type Levier = {
+  code: string; titre: string; bon: boolean | null; constat: string; repere: string; pourquoi: string;
+  actions: string[]; effet: number | null; condition: string; paliers?: Palier[];
+};
+export type Conseils = {
+  plafond_actuel: number; semaines: number; paliers: Palier[]; gain_possible: number | null;
+  meilleur_levier: { code: string; titre: string } | null; leviers: Levier[]; deja_bien: Levier[]; institution_id: string; simule: true;
+};
