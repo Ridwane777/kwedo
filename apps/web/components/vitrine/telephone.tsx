@@ -12,8 +12,10 @@ export function Capture({ nom, alt, l = 360, h = 760, prioritaire = false, sizes
 }
 
 /** Cadre de téléphone (bord dessiné par le jeton --cadre). `ecrans` > 1 : les écrans se succèdent en fondu. */
-export function Telephone({ ecrans, className = "", prioritaire = false, largeur = "18rem" }: {
+export function Telephone({ ecrans, className = "", prioritaire = false, largeur = "18rem", sizes = "(min-width: 1280px) 20vw, (min-width: 640px) 18rem, 72vw" }: {
   ecrans: { nom: string; alt: string }[]; className?: string; prioritaire?: boolean; largeur?: string;
+  /** Attribut sizes valide (pas de clamp) : le navigateur choisit une image à la taille affichée. */
+  sizes?: string;
 }) {
   return (
     <figure className={`shrink-0 ${className}`} style={{ width: largeur, maxWidth: "100%" }}>
@@ -21,7 +23,7 @@ export function Telephone({ ecrans, className = "", prioritaire = false, largeur
         <div className={ecrans.length > 1 ? "defile absolute inset-0" : "absolute inset-0"}>
           {ecrans.map((e, k) => (
             <div key={e.nom} className={ecrans.length > 1 ? "" : "h-full"} aria-hidden={k > 0 ? true : undefined}>
-              <Capture nom={e.nom} alt={k === 0 ? e.alt : ""} prioritaire={prioritaire && k === 0} sizes={`(min-width: 1024px) ${largeur}, 70vw`} />
+              <Capture nom={e.nom} alt={k === 0 ? e.alt : ""} prioritaire={prioritaire && k === 0} sizes={sizes} />
             </div>
           ))}
         </div>

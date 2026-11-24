@@ -104,7 +104,7 @@ export default function Accueil() {
 
           {/* Scène : le téléphone fait défiler les vrais écrans ; la courbe et le montant se construisent. */}
           <div className="relative mx-auto grid w-full max-w-[44rem] grid-cols-[minmax(0,1fr)] place-items-center sm:grid-cols-[auto_minmax(0,1fr)] sm:items-center sm:gap-6">
-            <Telephone prioritaire largeur="clamp(15rem, 24vw, 20rem)" ecrans={[
+            <Telephone prioritaire largeur="clamp(15rem, 24vw, 20rem)" sizes="(min-width: 640px) 20rem, 15rem" ecrans={[
               { nom: "estimation", alt: "Écran Estimation de l'application : montant empruntable, échéance, coût total et bouton d'envoi du dossier" },
               { nom: "simulateur", alt: "" }, { nom: "offre", alt: "" }, { nom: "echeancier", alt: "" },
             ]} />

@@ -20,7 +20,9 @@ const SURFACES = ["fond", "surface", "surface-2", "surface-3"];
 // [texte, seuil] : 4,5 pour le texte courant, 3 pour les éléments graphiques (traits de courbe, icônes, focus).
 // « ambre » (seuil 0) : point ou liseré qui accompagne toujours un libellé, jamais seul porteur de sens ; affiché pour information.
 const TEXTES = [["encre", 4.5], ["encre-2", 4.5], ["encre-3", 4.5], ["marque", 4.5], ["montant", 4.5], ["alerte", 4.5], ["bon", 4.5], ["ambre-encre", 4.5], ["focus", 3], ["ambre", 0]];
-const PAIRES = [["sur-action", "action", 4.5], ["marque", "marque-doux", 4.5], ["alerte", "alerte-doux", 4.5], ["bon", "bon-doux", 4.5], ["ambre-encre", "ambre-doux", 4.5], ["fond", "encre", 4.5]];
+const PAIRES = [["sur-action", "action", 4.5], ["marque", "marque-doux", 4.5], ["alerte", "alerte-doux", 4.5], ["bon", "bon-doux", 4.5], ["ambre-encre", "ambre-doux", 4.5], ["fond", "encre", 4.5],
+  ["sur-scene", "scene", 4.5], ["sur-scene-2", "scene", 4.5],   // panneau de marque de la connexion
+  ["logo-cauri", "fond", 3], ["logo-barre", "fond", 3], ["logo-cauri", "surface", 3]]; // marque (élément graphique)
 
 let echec = 0;
 for (const [nom, t] of Object.entries(T)) {
