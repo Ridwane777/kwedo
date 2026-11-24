@@ -1,6 +1,8 @@
+import json
 import sqlite3
 import tempfile
 import unittest
+from datetime import datetime
 from pathlib import Path
 
 from fastapi.testclient import TestClient
@@ -164,7 +166,7 @@ class TestCloisonnement(unittest.TestCase):
         c = client(self.s, "commercant")
         self.assertEqual(c.get("/commercants/com-sena").status_code, 403)
         e = c.get("/commercants/com-afiavi/estimation?institution_id=inst-baobab").json()
-        self.assertEqual(set(e["parametres"]), {"n", "i"})
+        self.assertEqual(set(e["parametres"]), {"n", "i", "frequence", "duree_mois"})  # modalités : ADR 0015
         for interne in ("l_max", "echeance_supportable", "alertes", "modeles"):
             self.assertNotIn(interne, e)
         self.assertEqual(c.post("/commercants", json={"nom": "Afiavi Houngbo", "telephone": self.s.commercant("com-afiavi")["telephone"]}).status_code, 409)
@@ -247,6 +249,116 @@ class TestCloisonnement(unittest.TestCase):
             c = client(self.s, p)
             for chemin in ("/demo/avancer", "/demo/reinitialiser", "/relances/executer"):
                 self.assertIn(c.post(chemin, json={"jours": 1}).status_code, (401, 403), (p, chemin))
+
+
+class TestEcheances(unittest.TestCase):
+    """ADR 0015 : fréquence et durée au choix, modalités par institution, signature par code SMS."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.s = Service(str(Path(cls.tmp.name) / "e.sqlite"))
+        cls.s.reinitialiser()
+
+    def test_hebdomadaire_inchange(self):
+        e = self.s.estimation("com-koffi", "inst-lagune")
+        self.assertEqual((e["plafond"], e["frequence"], e["duree_semaines"], e["nb_echeances"]), (495_000, "hebdomadaire", 26, 26))
+        self.assertTrue(e["estimation_eprouvee"])
+
+    def test_modalites_de_l_institution(self):
+        c = client(self.s, "commercant")
+        base = "/commercants/com-afiavi/estimation"
+        e = c.get(f"{base}?institution_id=inst-baobab").json()  # Baobab : mensuel seulement, 6 à 12 mois
+        self.assertEqual(e["modalites"], {"frequences": ["mensuelle"], "duree_min_mois": 6, "duree_max_mois": 12, "delai_versement_h": 72})
+        self.assertEqual((e["frequence"], e["nb_echeances"]), ("mensuelle", 6))
+        self.assertFalse(e["estimation_eprouvee"])
+        self.assertEqual(c.get(f"{base}?institution_id=inst-baobab&frequence=hebdomadaire").status_code, 422)
+        self.assertEqual(c.get(f"{base}?institution_id=inst-baobab&frequence=mensuelle&duree_mois=4").status_code, 422)
+        self.assertEqual(c.get(f"{base}?institution_id=inst-solidaire&frequence=quinzaine&duree_mois=9").status_code, 422)
+        m = c.get(f"{base}?institution_id=inst-lagune&frequence=mensuelle&duree_mois=6").json()
+        self.assertEqual((m["nb_echeances"], m["duree_mois"]), (6, 6))
+        self.assertAlmostEqual(m["echeance"] * 6, m["plafond"] + m["cout_total"], delta=6)
+        self.assertIn("par mois", " ".join(m["chaine_calcul"]))
+        q = c.get(f"{base}?institution_id=inst-solidaire&frequence=quinzaine&duree_mois=3").json()
+        self.assertEqual(q["nb_echeances"], 7)
+        # Les modalités ne sortent pas vers l'admin général (ADR 0009).
+        a = client(self.s, "admin")
+        self.assertNotIn("frequences", a.get("/admin/apercu").text)
+        self.assertNotIn("fréquences", a.get("/journal").text)
+        self.assertNotIn("delai", a.get("/institutions").text)
+
+    def test_code_sms_obligatoire_pour_l_accord(self):
+        c = client(self.s, commercant="com-afiavi")
+        url = "/commercants/com-afiavi/consentements"
+        corps = {"institution_id": "inst-solidaire", "action": "accorde"}
+        self.assertEqual(c.post(url, json=corps).status_code, 403)                       # sans code
+        code = c.post("/commercants/com-afiavi/code-sms", json={"institution_id": "inst-solidaire"}).json()["code"]
+        faux = f"{(int(code) + 1) % 10**6:06d}"
+        self.assertEqual(c.post(url, json={**corps, "code": faux}).status_code, 403)     # mauvais code
+        self.assertFalse(self.s.consentement_actif("com-afiavi", "inst-solidaire"))
+        self.assertEqual(c.post(url, json={**corps, "code": code}).status_code, 200)
+        self.assertTrue(self.s.consentement_actif("com-afiavi", "inst-solidaire"))
+        self.assertEqual(c.post(url, json={**corps, "code": code}).status_code, 403)     # code à usage unique
+        # Autre commerçant : pas de code pour le compte d'autrui.
+        self.assertEqual(client(self.s, commercant="com-sena").post("/commercants/com-afiavi/code-sms",
+                                                                     json={"institution_id": "inst-lagune"}).status_code, 403)
+        j = self.s.journal(inst="inst-solidaire")  # tracé : essais refusés et validé
+        self.assertEqual({e["detail"].split(" — ")[0] for e in j if e["type"] == "signature"}, {"code SMS refusé", "code SMS validé"})
+        # Le retrait reste libre et immédiat.
+        self.assertEqual(c.post(url, json={"institution_id": "inst-solidaire", "action": "retire"}).status_code, 200)
+
+    def test_code_expire(self):
+        s = self.s
+        code = s.emettre_code("com-edwige", "inst-lagune")["code"]
+        s.avancer(1)
+        with self.assertRaises(ErreurMetier):
+            s.verifier_code("com-edwige", "inst-lagune", code, "test")
+
+    def test_mensuel_de_bout_en_bout(self):
+        s, c = self.s, client(self.s, commercant="com-afiavi")
+        code = c.post("/commercants/com-afiavi/code-sms", json={"institution_id": "inst-baobab"}).json()["code"]
+        c.post("/commercants/com-afiavi/consentements", json={"institution_id": "inst-baobab", "action": "accorde", "code": code})
+        r = c.post("/dossiers", json={"commercant_id": "com-afiavi", "institution_id": "inst-baobab", "frequence": "mensuelle", "duree_mois": 9})
+        self.assertEqual(r.status_code, 201)
+        self.assertEqual((r.json()["frequence"], r.json()["duree_mois"]), ("mensuelle", 9))
+        did = r.json()["id"]
+        agent = client(s, "agent-baobab")
+        fiche = agent.get(f"/dossiers/{did}").json()
+        self.assertEqual((fiche["frequence_demandee"], fiche["duree_mois_demandee"]), ("mensuelle", 9))
+        self.assertFalse(fiche["analyse"]["risque_valide"])
+        # Ajustement hors limites refusé, dans les limites accepté (12 mois).
+        ko = agent.post(f"/dossiers/{did}/decisions", json={"type": "ajuste", "motif": "Durée allongée pour alléger.", "montant_decide": 100_000, "duree_mois": 24})
+        self.assertEqual(ko.status_code, 422)
+        ko = agent.post(f"/dossiers/{did}/decisions", json={"type": "ajuste", "motif": "Passage en hebdomadaire.", "montant_decide": 100_000, "frequence": "hebdomadaire"})
+        self.assertEqual(ko.status_code, 422)
+        ok = agent.post(f"/dossiers/{did}/decisions", json={"type": "ajuste", "motif": "Durée allongée pour alléger les mensualités.",
+                                                             "montant_decide": fiche["analyse"]["plafond"], "duree_mois": 12})
+        self.assertEqual(ok.status_code, 201, ok.text)
+        o = c.get(f"/commercants/com-afiavi/dossiers/{did}").json()
+        self.assertEqual((o["frequence"], o["duree_mois"], o["nb_echeances"], o["delai_versement_h"]), ("mensuelle", 12, 12, 72))
+        self.assertNotIn("risque", json.dumps(o))
+        cr = c.post(f"/dossiers/{did}/offre", json={"reponse": "accepte"}).json()
+        self.assertEqual((cr["frequence"], len(cr["echeances"])), ("mensuelle", 12))
+        dates = [datetime.fromisoformat(e["date_due"]) for e in cr["echeances"]]
+        self.assertTrue(all(29 <= (b - a).days <= 32 for a, b in zip(dates, dates[1:])))
+        self.assertAlmostEqual(sum(e["montant_attendu"] for e in cr["echeances"]) - cr["montant"], o["cout_total"], delta=12)
+        # Rappel avant échéance : mensualité, 5 jours avant.
+        s.avancer(26)
+        msg = [r["message"] for r in s.credit(cr["id"])["relances"]]
+        self.assertTrue(msg and "mensualité" in msg[0], msg)
+
+    def test_parametres_modalites_versionnes(self):
+        r = client(self.s, "responsable-lagune")
+        url = "/institutions/inst-lagune/parametres"
+        avant = len(r.get(url).json()["historique"])
+        x = r.post(url, json={"frequences": ["quinzaine", "hebdomadaire"], "duree_min_mois": 4, "duree_max_mois": 8, "delai_versement_h": 24})
+        self.assertEqual(x.status_code, 200, x.text)
+        self.assertEqual(x.json()["frequences"], "hebdomadaire,quinzaine")
+        self.assertEqual(len(r.get(url).json()["historique"]), avant + 1)
+        self.assertEqual(r.post(url, json={"frequences": ["annuelle"]}).status_code, 422)
+        self.assertEqual(r.post(url, json={"duree_min_mois": 10, "duree_max_mois": 5}).status_code, 422)
+        self.assertEqual(client(self.s, "agent-lagune").post(url, json={"frequences": ["mensuelle"]}).status_code, 403)
+        self.assertEqual(client(self.s, "responsable-baobab").post(url, json={"frequences": ["mensuelle"]}).status_code, 403)
 
 
 if __name__ == "__main__":

@@ -21,7 +21,7 @@ from fastapi.responses import Response
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from . import auth
-from .service import ErreurMetier, Service
+from .service import CHAMPS_PARAMETRES, ErreurMetier, Service
 
 ROUTES = []
 
@@ -208,7 +208,8 @@ def canal(s, q, b, h, cid):
 
 @route("GET", r"/commercants/(?P<cid>[\w-]+)/estimation", commercant_du_chemin)
 def estimation(s, q, b, h, cid):
-    return s.estimation(cid, q.get("institution_id", "inst-lagune"), float(q.get("choc_ventes", 0) or 0), _int(q.get("montant_souhaite")))
+    return s.estimation(cid, q.get("institution_id", "inst-lagune"), float(q.get("choc_ventes", 0) or 0), _int(q.get("montant_souhaite")),
+                        q.get("frequence") or None, _int(q.get("duree_mois")))
 
 
 @route("GET", r"/commercants/(?P<cid>[\w-]+)/conseils", commercant_du_chemin)
@@ -221,8 +222,16 @@ def consentements(s, q, b, h, cid):
     return s.consentements(cid)
 
 
+@route("POST", r"/commercants/(?P<cid>[\w-]+)/code-sms", commercant_du_chemin)
+def code_sms(s, q, b, h, cid):
+    return s.emettre_code(cid, b.get("institution_id", ""))
+
+
 @route("POST", r"/commercants/(?P<cid>[\w-]+)/consentements", commercant_du_chemin)
 def consentir(s, q, b, h, cid):
+    # Accorder l'accès exige la signature par code SMS (ADR 0015) ; le retrait reste libre et immédiat.
+    if b.get("action") == "accorde":
+        s.verifier_code(cid, b.get("institution_id", ""), b.get("code", ""), "accord de consultation du dossier")
     return s.consentir(cid, b.get("institution_id", ""), b.get("action", ""))
 
 
@@ -238,8 +247,8 @@ def file(s, q, b, h):
 
 @route("POST", r"/dossiers", commercant_du_corps)
 def envoyer(s, q, b, h):
-    d = s.envoyer_dossier(b.get("commercant_id", ""), b.get("institution_id", ""))
-    return {k: d[k] for k in ("id", "institution_id", "statut")}  # jamais les alertes côté commerçant
+    d = s.envoyer_dossier(b.get("commercant_id", ""), b.get("institution_id", ""), b.get("frequence") or None, _int(b.get("duree_mois")))
+    return {k: d[k] for k in ("id", "institution_id", "statut", "frequence", "duree_mois")}  # jamais les alertes côté commerçant
 
 
 @route("GET", r"/dossiers/(?P<did>[\w-]+)", equipe_dossier)
@@ -255,7 +264,7 @@ def rejouer(s, q, b, h, did):
 @route("POST", r"/dossiers/(?P<did>[\w-]+)/decisions", equipe_dossier)
 def decider(s, q, b, h, did):
     return s.decider(did, b.get("type", ""), h["X-Acteur"], b.get("motif", ""),
-                     _int(b.get("montant_decide")), _int(b.get("duree_semaines")))
+                     _int(b.get("montant_decide")), _int(b.get("duree_semaines")), b.get("frequence") or None, _int(b.get("duree_mois")))
 
 
 @route("POST", r"/dossiers/(?P<did>[\w-]+)/offre", commercant_du_dossier)
@@ -296,7 +305,7 @@ def params(s, q, b, h, inst):
 
 @route("POST", r"/institutions/(?P<inst>[\w-]+)/parametres", responsable_institution)
 def nv_params(s, q, b, h, inst):
-    kw = {k: b[k] for k in ("m", "s", "n", "i", "percentile", "seuil_risque") if k in b}
+    kw = {k: b[k] for k in CHAMPS_PARAMETRES if k in b}
     return s.nouveaux_parametres(inst, h["X-Acteur"], **kw)
 
 
