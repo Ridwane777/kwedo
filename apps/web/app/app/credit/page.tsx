@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Bouton, Chargement, Erreur, LienBouton, Pastille, Simule, Vide } from "@/components/ui";
 import { api, useApi } from "@/lib/api";
 import { useCommercant } from "@/lib/commercant";
-import { date, fcfa } from "@/lib/format";
+import { date, fcfa, FREQ } from "@/lib/format";
 import type { Credit, TableauDeBord } from "@/lib/types";
 
 const STATUT_ECH = { a_venir: ["À venir", "neutre"], payee: ["Payée", "bon"], partielle: ["Partielle", "attention"], en_retard: ["En retard", "alerte"] } as const;
@@ -30,7 +30,7 @@ function CarteCredit({ c, canal, onChange }: { c: Credit; canal: string; onChang
   return (
     <article className="space-y-5">
       <div>
-        <p className="text-encre-2">{c.institution} · {fcfa(c.montant)} sur {c.duree_semaines} semaines</p>
+        <p className="text-encre-2">{c.institution} · {fcfa(c.montant)} · {c.echeances.length} échéances, {FREQ[c.frequence ?? "hebdomadaire"].chaque}</p>
         <p className="montant text-4xl">{fcfa(c.restant)} <span className="text-base text-encre-2">restant</span></p>
         <div className="mt-2 h-2 overflow-hidden rounded-full bg-surface-3" role="progressbar" aria-valuenow={Math.round(avance)} aria-valuemin={0} aria-valuemax={100} aria-label="Remboursé">
           <div className="h-full bg-bon transition-all" style={{ width: `${avance}%` }} />
@@ -38,7 +38,7 @@ function CarteCredit({ c, canal, onChange }: { c: Credit; canal: string; onChang
       </div>
       {p ? (
         <div className={`space-y-3 rounded-2xl p-5 ${c.echeances.some((e) => e.statut === "en_retard") ? "bg-alerte-doux" : "bg-surface-2"}`}>
-          <p>Prochaine échéance le <strong>{date(p.date_due)}</strong></p>
+          <p>Prochaine {c.frequence === "mensuelle" ? "mensualité" : "échéance"} le <strong>{date(p.date_due)}</strong></p>
           <p className="montant text-3xl">{fcfa(du)}</p>
           {recu && <p role="status" className="text-bon">Paiement reçu. Reçu n° {recu}</p>}
           {err && <p role="alert" className="text-alerte">{err}</p>}

@@ -129,7 +129,7 @@ export default function PageConseils() {
         Seul le chiffre d'affaires vérifié compte : paiements de vrais clients sur votre compte marchand, hors transferts vers vous-même et hors allers-retours.
         Il n'existe aucun moyen de faire monter le plafond autrement qu'en vendant plus, plus régulièrement, sur ce compte. Les effets sont calculés par le même moteur que votre estimation, sur des scénarios ; ils ne s'additionnent pas forcément.
       </p>
-      <LienBouton href="/app/dossier" grand icone={Send} className="w-full sm:w-auto">Envoyer mon dossier</LienBouton>
+      <LienBouton href={`/app/dossier?institution=${c.institution_id}`} grand icone={Send} className="w-full sm:w-auto">Envoyer mon dossier</LienBouton>
     </section>
   );
 }

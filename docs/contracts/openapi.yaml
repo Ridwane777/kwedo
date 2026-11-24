@@ -21,7 +21,7 @@ components:
       type: object
       properties:
         version_moteur: {type: string}
-        parametres: {type: object, properties: {n: {type: integer}, i: {type: number}}}
+        parametres: {type: object, properties: {n: {type: integer}, i: {type: number}, frequence: {type: string}, duree_mois: {type: integer, nullable: true}}}
         provisoire: {type: boolean}
         indicateurs: {type: object}
         encaissement_prudent: {type: integer}
@@ -100,7 +100,9 @@ paths:
         - {name: institution_id, in: query, schema: {type: string}}
         - {name: choc_ventes, in: query, schema: {type: number, minimum: -0.9, maximum: 0}}
         - {name: montant_souhaite, in: query, schema: {type: integer}}
-      responses: {'200': {content: {application/json: {schema: {$ref: '#/components/schemas/Estimation'}}}}}
+        - {name: frequence, in: query, description: "ADR 0015 ; parmi les fréquences de l'institution (422 sinon)", schema: {enum: [hebdomadaire, quinzaine, mensuelle]}}
+        - {name: duree_mois, in: query, description: "ADR 0015 ; dans les limites de l'institution (422 sinon)", schema: {type: integer, minimum: 3, maximum: 12}}
+      responses: {'200': {description: "Estimation ; inclut modalites (frequences, duree_min_mois, duree_max_mois, delai_versement_h), frequence, nb_echeances, echeance, estimation_eprouvee", content: {application/json: {schema: {$ref: '#/components/schemas/Estimation'}}}}, '422': {description: modalités hors limites}}
   /commercants/{id}/conseils:
     get:
       summary: Conseils chiffrés (leviers, effet sur le plafond calculé par le moteur sur des scénarios modifiés ; effet null = non chiffré)
@@ -113,11 +115,18 @@ paths:
   /commercants/{id}/consentements:
     get: {summary: Liste des consentements, x-acces: le commerçant lui-même, security: [{commercant: []}], responses: {'200': {description: ok}}}
     post:
-      summary: Accorder ou retirer un consentement
+      summary: Accorder (signé par code SMS, ADR 0015) ou retirer un consentement
+      x-acces: le commerçant lui-même ; « accorde » exige le dernier code SMS émis pour cette institution, valide et non utilisé
+      security: [{commercant: []}]
+      requestBody: {content: {application/json: {schema: {type: object, required: [institution_id, action], properties: {institution_id: {type: string}, action: {enum: [accorde, retire]}, code: {type: string, description: obligatoire pour accorde}}}}}}
+      responses: {'200': {description: enregistré}, '403': {description: code SMS absent, incorrect, expiré ou déjà utilisé (essai journalisé)}}
+  /commercants/{id}/code-sms:
+    post:
+      summary: Émet un code de signature à 6 chiffres (10 min, usage unique, 5 essais). SMS simulé ; la démo renvoie le code pour l'afficher
       x-acces: le commerçant lui-même
       security: [{commercant: []}]
-      requestBody: {content: {application/json: {schema: {type: object, required: [institution_id, action], properties: {institution_id: {type: string}, action: {enum: [accorde, retire]}}}}}}
-      responses: {'200': {description: enregistré}}
+      requestBody: {content: {application/json: {schema: {type: object, required: [institution_id], properties: {institution_id: {type: string}}}}}}
+      responses: {'200': {description: "code, expire_le, simule"}, '404': {description: institution inconnue}}
   /commercants/{id}/dossiers/{dossier}:
     get: {summary: Vue commerçant d'un dossier (statut, offre, raisons ; sans alertes ni réglages), x-acces: le commerçant du dossier, security: [{commercant: []}], responses: {'200': {description: ok}, '404': {description: inconnu ou hors périmètre}}}
   /dossiers:
@@ -126,8 +135,8 @@ paths:
       summary: Envoi du dossier (exige un consentement actif)
       x-acces: le commerçant du corps (commercant_id)
       security: [{commercant: []}]
-      requestBody: {content: {application/json: {schema: {type: object, required: [commercant_id, institution_id], properties: {commercant_id: {type: string}, institution_id: {type: string}}}}}}
-      responses: {'201': {description: créé (id, institution_id, statut)}, '403': {description: pas de consentement ou autre commerçant}}
+      requestBody: {content: {application/json: {schema: {type: object, required: [commercant_id, institution_id], properties: {commercant_id: {type: string}, institution_id: {type: string}, frequence: {enum: [hebdomadaire, quinzaine, mensuelle]}, duree_mois: {type: integer, minimum: 3, maximum: 12}}}}}}
+      responses: {'201': {description: créé (id, institution_id, statut, frequence, duree_mois)}, '403': {description: pas de consentement ou autre commerçant}, '422': {description: modalités hors limites de l'institution}}
   /dossiers/{id}:
     get: {summary: Fiche analysée (journalise l'accès), x-acces: équipe de l'institution du dossier, security: [{pro: []}], responses: {'200': {content: {application/json: {schema: {$ref: '#/components/schemas/Analyse'}}}}, '404': {description: inconnu ou hors périmètre}}}
   /dossiers/{id}/rejouer:
@@ -147,6 +156,8 @@ paths:
                 type: {enum: [valide, ajuste, refuse, complement]}
                 montant_decide: {type: integer}
                 duree_semaines: {type: integer}
+                frequence: {enum: [hebdomadaire, quinzaine, mensuelle], description: "ajuste seulement ; dans les limites de l'institution"}
+                duree_mois: {type: integer, description: "ajuste seulement ; dans les limites de l'institution"}
                 motif: {type: string, minLength: 10}
       responses: {'201': {description: enregistrée}, '404': {description: hors périmètre}, '422': {description: justificatif manquant}}
   /dossiers/{id}/offre:
@@ -166,7 +177,7 @@ paths:
     get: {summary: Indicateurs portefeuille de l'institution de la session, x-acces: agent ou responsable, security: [{pro: []}], responses: {'200': {description: ok}}}
   /institutions/{id}/parametres:
     get: {summary: Paramètres actifs et historique, x-acces: équipe de cette institution, security: [{pro: []}], responses: {'200': {description: ok}, '403': {description: autre institution ou admin}}}
-    post: {summary: Nouvelle version de paramètres, x-acces: responsable de cette institution, security: [{pro: []}], responses: {'200': {description: ok}, '403': {description: agent, autre institution ou admin}}}
+    post: {summary: "Nouvelle version de paramètres (m, s, n, i, percentile, seuil_risque ; modalités ADR 0015 : frequences, duree_min_mois, duree_max_mois, delai_versement_h)", x-acces: responsable de cette institution, security: [{pro: []}], responses: {'200': {description: ok}, '403': {description: agent, autre institution ou admin}}}
   /journal:
     get: {summary: "Journal d'audit : celui de l'institution de la session, ou vue expurgée pour l'admin (ni dossier, ni nom, ni valeur)", x-acces: agent, responsable ou admin, security: [{pro: []}], responses: {'200': {description: ok}}}
   /admin/apercu:

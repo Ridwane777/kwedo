@@ -37,11 +37,12 @@ const TEMPS: Temps[] = [
   { titre: "Simulateur", duree: 20, ecran: () => ({ telephone: "/app/simulateur" }),
     dire: "Elle demande plus. L'application lui dit exactement ce qui manque, en chiffre d'affaires vérifié et en régularité, puis propose des conseils." },
   { titre: "Envoi", duree: 20, ecran: () => ({ telephone: "/app/dossier" }),
-    dire: "Elle choisit deux institutions fictives et donne son accord pour chacune. Elle peut le retirer à tout moment.",
-    action: { label: "Donner l'accord et envoyer", faire: async () => {
-      for (const i of ["inst-lagune", "inst-baobab"]) {
-        await api(`/commercants/${COMMERCANT_DEMO}/consentements`, { body: { institution_id: i, action: "accorde" } });
-        await api("/dossiers", { body: { commercant_id: COMMERCANT_DEMO, institution_id: i } });
+    dire: "Elle dépose son dossier : elle choisit l'institution, rembourse chaque semaine ou chaque mois selon ce que l'institution propose, voit l'échéance exacte, et signe son accord avec un code reçu par SMS. Elle peut le retirer à tout moment.",
+    action: { label: "Signer par code SMS et envoyer", faire: async () => {
+      for (const [i, termes] of [["inst-lagune", {}], ["inst-baobab", { frequence: "mensuelle", duree_mois: 6 }]] as const) {
+        const { code } = await api<{ code: string }>(`/commercants/${COMMERCANT_DEMO}/code-sms`, { body: { institution_id: i } });
+        await api(`/commercants/${COMMERCANT_DEMO}/consentements`, { body: { institution_id: i, action: "accorde", code } });
+        await api("/dossiers", { body: { commercant_id: COMMERCANT_DEMO, institution_id: i, ...termes } });
       }
     } } },
   { titre: "Côté prêteur", duree: 60, ecran: (ids) => ({ console: ids.dossier ? `/console/dossiers/${ids.dossier}` : "/console" }),

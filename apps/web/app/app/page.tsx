@@ -3,11 +3,11 @@
 import { Calculator, Lightbulb, Link2, Send } from "lucide-react";
 import { useState } from "react";
 import { CourbeFlux } from "@/components/courbe-flux";
-import { ChaineCalcul, ChoixInstitution, Raisons } from "@/components/estimation";
+import { ChaineCalcul, ChoixInstitution, ChoixModalites, MentionPrudente, prudentHebdo, Raisons, requeteModalites } from "@/components/estimation";
 import { Chargement, Erreur, LienBouton, Simule } from "@/components/ui";
 import { useApi } from "@/lib/api";
 import { useCommercant } from "@/lib/commercant";
-import { fcfa } from "@/lib/format";
+import { duree, fcfa, FREQ, phraseEcheance, type Frequence } from "@/lib/format";
 import type { Estimation as VueEstimation, Commercant, InstitutionPublique } from "@/lib/types";
 
 function Actions() {
@@ -22,11 +22,13 @@ function Actions() {
 export default function Estimation() {
   const { id } = useCommercant();
   const [inst, setInst] = useState("inst-lagune");
+  // Fréquence et durée : rien tant que le commerçant garde la formule par défaut de l'institution.
+  const [choix, setChoix] = useState<{ frequence: Frequence; duree: number } | null>(null);
   const insts = useApi<InstitutionPublique[]>("/institutions");
   const com = useApi<{ commercant: Commercant }>(`/commercants/${id}`);
   const nbTx = com.donnees?.commercant.nb_transactions ?? 0;
   // Lancée en parallèle du profil : le montant (LCP) n'attend pas une seconde requête.
-  const est = useApi<VueEstimation>(`/commercants/${id}/estimation?institution_id=${inst}`);
+  const est = useApi<VueEstimation>(`/commercants/${id}/estimation?institution_id=${inst}${requeteModalites(choix)}`);
 
   if (com.erreur) return <Erreur message={com.erreur} reessayer={com.recharger} />;
   if (!com.donnees) return <Chargement lignes={5} label="Chargement de votre estimation" />;
@@ -57,20 +59,24 @@ export default function Estimation() {
           <>
             <dl className="mt-5 grid grid-cols-2 gap-2">
               <div className="rounded-2xl bg-fond p-3">
-                <dt className="text-sm text-encre-2">Chaque semaine</dt>
-                <dd className="chiffres text-lg font-semibold">{fcfa(a.echeance_hebdo)}</dd>
+                <dt className="text-sm text-encre-2">{FREQ[a.frequence].nom}</dt>
+                <dd className="chiffres text-lg font-semibold">{fcfa(a.echeance)}</dd>
               </div>
               <div className="rounded-2xl bg-fond p-3">
                 <dt className="text-sm text-encre-2">Pendant</dt>
-                <dd className="chiffres text-lg font-semibold">{a.duree_semaines} semaines</dd>
+                <dd className="chiffres text-lg font-semibold">{duree({ duree_mois: a.parametres.duree_mois, duree_semaines: a.duree_semaines })}</dd>
               </div>
               <div className="col-span-2 flex items-baseline justify-between gap-3 rounded-2xl bg-fond p-3">
                 <dt className="text-sm text-encre-2">Coût total du crédit</dt>
                 <dd className="chiffres text-right font-semibold">{fcfa(a.cout_total)}</dd>
               </div>
             </dl>
-            <p className="mt-2 text-sm text-encre-2">Intérêts de l'institution choisie. Aucun frais Kwedo.</p>
-            <LienBouton href="/app/dossier" grand icone={Send} className="mt-5 w-full">Envoyer mon dossier</LienBouton>
+            <p className="mt-2 text-sm text-encre-2" data-testid="phrase-echeance">
+              {phraseEcheance(a.echeance, a.frequence, { duree_mois: a.parametres.duree_mois, duree_semaines: a.duree_semaines })} ({a.nb_echeances} échéances).
+              Intérêts de l'institution choisie. Aucun frais Kwedo.
+            </p>
+            <MentionPrudente a={a} />
+            <LienBouton href={`/app/dossier?institution=${inst}${choix ? `&frequence=${choix.frequence}&duree=${choix.duree}` : ""}`} grand icone={Send} className="mt-5 w-full">Envoyer mon dossier</LienBouton>
           </>
         )}
         <div className="mt-4 flex flex-wrap gap-2">
@@ -79,7 +85,8 @@ export default function Estimation() {
         </div>
       </div>
 
-      {insts.donnees && <ChoixInstitution institutions={insts.donnees} valeur={inst} onChange={setInst} />}
+      {insts.donnees && <ChoixInstitution institutions={insts.donnees} valeur={inst} onChange={(v) => { setChoix(null); setInst(v); }} />}
+      {a && a.institution_id === inst && <ChoixModalites a={a} desactive={est.charge} onChange={(frequence, d) => setChoix({ frequence, duree: d })} />}
       {/* Ordinateur : les actions suivent le sélecteur, sans trou ; sur téléphone elles restent en bas de page. */}
       <div className="hidden gap-2 lg:grid"><Actions /></div>
       </div>
@@ -88,7 +95,7 @@ export default function Estimation() {
       {a && (
         <div className="space-y-2 lg:rounded-3xl lg:border lg:border-trait lg:bg-surface lg:p-6">
           <h2 className="titre text-xl">Vos ventes, semaine par semaine</h2>
-          <CourbeFlux serie={a.serie_hebdo} prudent={a.encaissement_prudent} median={a.indicateurs.encaissement_median} debut={a.indicateurs.debut} hauteur={240} />
+          <CourbeFlux serie={a.serie_hebdo} prudent={prudentHebdo(a)} median={a.indicateurs.encaissement_median} debut={a.indicateurs.debut} hauteur={240} />
         </div>
       )}
 

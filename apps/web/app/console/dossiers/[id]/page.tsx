@@ -8,7 +8,7 @@ import { CourbeFlux } from "@/components/courbe-flux";
 import { Bouton, Chargement, Erreur, Pastille, Simule } from "@/components/ui";
 import { api, useApi } from "@/lib/api";
 import { useRaccourcis } from "@/lib/clavier";
-import { ACTIVITES, date, fcfa, nombre, pct, RECO, STATUTS } from "@/lib/format";
+import { ACTIVITES, date, duree, fcfa, FREQ, nombre, pct, RECO, STATUTS, type Frequence } from "@/lib/format";
 import type { Dossier } from "@/lib/types";
 
 type TypeDecision = "valide" | "ajuste" | "refuse" | "complement";
@@ -72,7 +72,15 @@ export default function Fiche() {
   const [enregistree, setEnregistree] = useState(false);
   const motifRef = useRef<HTMLTextAreaElement>(null);
 
+  const [freq, setFreq] = useState<Frequence>("hebdomadaire");
+  const [mois, setMois] = useState(6);
   useEffect(() => { if (d) setMontant((m) => m || d.analyse.plafond); }, [d]);
+  // Modalités demandées par le commerçant : point de départ de l'ajustement.
+  useEffect(() => {
+    if (!d) return;
+    setFreq(d.frequence);
+    setMois(d.duree_mois ?? Math.round((d.analyse.duree_semaines * 12) / 52));
+  }, [d]);
 
   const choisir = (t: TypeDecision) => { setType(t); setTimeout(() => motifRef.current?.focus(), 0); };
   const raccourcis = useMemo(() => ({
@@ -89,12 +97,17 @@ export default function Fiche() {
   const alertes = a.alertes ?? [];
   const seuil = a.parametres.seuil_risque;
   const partRisque = Math.min(1, a.risque / Math.max(seuil, 1e-9));
+  const moisDemandes = d.duree_mois ?? Math.round((a.duree_semaines * 12) / 52);
+  const modifie = freq !== d.frequence || mois !== moisDemandes;
 
   async function decider() {
     if (!type) return;
     setEnvoi({ etat: "envoi" });
     try {
-      await api(`/dossiers/${id}/decisions`, { body: { type, motif, montant_decide: type === "ajuste" ? montant : undefined } });
+      await api(`/dossiers/${id}/decisions`, { body: {
+        type, motif, montant_decide: type === "ajuste" ? montant : undefined,
+        ...(type === "ajuste" && modifie ? { frequence: freq, duree_mois: mois } : {}),
+      } });
       setEnregistree(true);
       setEnvoi({ etat: "idle" });
       await recharger();
@@ -104,7 +117,7 @@ export default function Fiche() {
   }
 
   const motifValide = motif.trim().length >= 10;
-  const montantValide = type !== "ajuste" || (montant > 0 && montant <= plafondFormule);
+  const montantValide = type !== "ajuste" || (montant > 0 && (modifie || montant <= plafondFormule));
 
   return (
     <article className="space-y-4">
@@ -130,7 +143,12 @@ export default function Fiche() {
             <div>
               <h2 id="t-ana" className="text-sm font-semibold text-encre-2">Montant proposé par le moteur</h2>
               <p className="montant mt-1 text-[2.6rem] leading-none text-montant">{fcfa(a.plafond)}</p>
-              <p className="mt-2 text-encre-2">{a.duree_semaines} échéances de {fcfa(a.echeance_hebdo)}. Plafond de la formule : {fcfa(plafondFormule)}.</p>
+              <p className="mt-2 text-encre-2">{a.nb_echeances ?? a.duree_semaines} échéances de {fcfa(a.echeance ?? a.echeance_hebdo)}. Plafond de la formule : {fcfa(plafondFormule)}.</p>
+              <p className="mt-1 text-sm" data-testid="modalites-demandees">
+                Demandé : <strong>{FREQ[d.frequence_demandee].chaque}</strong>, {duree({ duree_mois: d.duree_mois_demandee, duree_semaines: a.duree_semaines })}
+                {(d.frequence !== d.frequence_demandee || d.duree_mois !== d.duree_mois_demandee) && <> · retenu : {FREQ[d.frequence].chaque}, {duree({ duree_mois: d.duree_mois, duree_semaines: d.duree_offre })}</>}
+              </p>
+              {a.risque_valide === false && <p className="mt-1 text-xs text-ambre-encre">Risque non validé pour cette fréquence : modèle hebdomadaire appliqué à l'échéance équivalente par semaine (ADR 0015).</p>}
             </div>
             <dl className="grid content-start gap-3">
               <div>
@@ -255,8 +273,28 @@ export default function Fiche() {
                     Montant décidé (FCFA)
                     <input inputMode="numeric" value={nombre(montant)} onChange={(e) => setMontant(Number(e.target.value.replace(/\D/g, "")) || 0)}
                       className="chiffres mt-1 block min-h-11 w-full rounded-xl border border-trait bg-fond px-3" aria-invalid={!montantValide} />
-                    <span className={`text-xs ${montantValide ? "text-encre-2" : "text-alerte"}`}>Plafond de la formule : {fcfa(plafondFormule)}. Il ne peut pas être dépassé.</span>
+                    <span className={`text-xs ${montantValide ? "text-encre-2" : "text-alerte"}`}>
+                      {modifie ? "Nouvelles modalités : le plafond de la formule est recontrôlé à l'enregistrement." : `Plafond de la formule : ${fcfa(plafondFormule)}. Il ne peut pas être dépassé.`}
+                    </span>
                   </label>
+                )}
+                {type === "ajuste" && (
+                  <div className="grid grid-cols-2 gap-2">
+                    <label className="block text-sm">
+                      Fréquence
+                      <select value={freq} onChange={(e) => setFreq(e.target.value as Frequence)} className="mt-1 block min-h-11 w-full rounded-xl border border-trait bg-fond px-2">
+                        {d.modalites.frequences.map((f) => <option key={f} value={f}>{FREQ[f].nom}</option>)}
+                      </select>
+                    </label>
+                    <label className="block text-sm">
+                      Durée
+                      <select value={mois} onChange={(e) => setMois(Number(e.target.value))} className="mt-1 block min-h-11 w-full rounded-xl border border-trait bg-fond px-2">
+                        {Array.from({ length: d.modalites.duree_max_mois - d.modalites.duree_min_mois + 1 }, (_, k) => d.modalites.duree_min_mois + k)
+                          .map((m) => <option key={m} value={m}>{m} mois</option>)}
+                      </select>
+                    </label>
+                    <span className="col-span-2 text-xs text-encre-2">Limites de l'institution : {d.modalites.frequences.map((f) => FREQ[f].chaque).join(", ")} ; {d.modalites.duree_min_mois} à {d.modalites.duree_max_mois} mois.</span>
+                  </div>
                 )}
                 <label className="block">
                   Justificatif {type === "refuse" ? "(motif du refus)" : ""} <span className="text-alerte">*</span>

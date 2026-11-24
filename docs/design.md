@@ -147,6 +147,13 @@ Les deux thèmes sont aussi contrôlés par axe (WCAG 2.1 AA) sur les écrans pr
 - `Pastille` : point de couleur + libellé ; le sens n'est jamais porté par la couleur seule.
 - `Simule` : étiquette discrète (point ambre, fond surface) ; toujours présente, jamais criarde.
 - `Chargement`, `Vide`, `Erreur` : états soignés ; l'erreur dit quoi faire (réessayer, vérifier le serveur).
+- `ChoixModalites` (`components/estimation.tsx`, ADR 0015) : fréquence en boutons segmentés (une seule option →
+  texte « seule formule de cette institution »), durée en liste de mois ; uniquement les options de l'institution.
+  L'échéance se lit en une phrase : « 41 500 FCFA chaque mois pendant 6 mois ». `MentionPrudente` : une ligne en
+  petit, couleur secondaire, jamais d'alerte rouge (« estimation prudente, moins éprouvée… »).
+- Dépôt du dossier : un seul bouton principal, puis trois étapes numérotées dans une carte (institution →
+  modalités → vérification et signature). Le code SMS de démo s'affiche dans une bulle de message étiquetée
+  « simulé » ; le bouton « Signer et envoyer » reste inactif tant que les 6 chiffres ne sont pas saisis.
 - `Marque` : « K » d'une barre et de deux traits de flux dans un carré arrondi, dessiné pour le projet ;
   variante `inverse` sur fond de marque.
 

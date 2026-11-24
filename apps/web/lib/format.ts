@@ -35,6 +35,33 @@ export const STATUTS: Record<string, string> = {
   refuse: "Refusé", offre_acceptee: "Offre acceptée", offre_refusee: "Offre déclinée",
 };
 
+export type Frequence = "hebdomadaire" | "quinzaine" | "mensuelle";
+
+/** Libellés de fréquence de remboursement (ADR 0015). */
+export const FREQ: Record<Frequence, { nom: string; chaque: string; periode: string; echeance: string }> = {
+  hebdomadaire: { nom: "Chaque semaine", chaque: "chaque semaine", periode: "semaine", echeance: "Échéance chaque semaine" },
+  quinzaine: { nom: "Toutes les 2 semaines", chaque: "toutes les deux semaines", periode: "quinzaine", echeance: "Échéance toutes les 2 semaines" },
+  mensuelle: { nom: "Chaque mois", chaque: "chaque mois", periode: "mois", echeance: "Mensualité" },
+};
+
+type Duree = { duree_mois?: number | null; duree_semaines?: number | null };
+
+/** Durée lisible : « 6 mois » si choisie en mois, sinon « 26 semaines ». */
+export function duree(t: Duree): string {
+  if (t.duree_mois && Number.isInteger(t.duree_mois)) return `${t.duree_mois} mois`;
+  return `${t.duree_semaines ?? "—"} semaines`;
+}
+
+/** « 41 500 FCFA chaque mois pendant 6 mois ». */
+export function phraseEcheance(montant: number, f: Frequence, t: Duree): string {
+  return `${fcfa(montant)} ${FREQ[f].chaque} pendant ${duree(t)}`;
+}
+
+/** Délai de versement annoncé par l'institution : « sous 48 h ». */
+export function delai(h: number): string {
+  return `sous ${h} h`;
+}
+
 export const RECO: Record<string, string> = {
   accord: "Accord", examen_renforce: "Examen renforcé", refus_motive: "Refus motivé",
 };
