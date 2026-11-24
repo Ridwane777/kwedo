@@ -132,3 +132,13 @@ leur état initial hors de la vue) ; les animations elles-mêmes se vérifient d
 | 2 | Accueil | Sections « Où on en est. » et « Comment le plafond est calculé. » supprimées, lien « Le calcul » retiré, plus de mention de la formule dans « Un plafond prudent ». Alternance des fonds : problème, app, institutions, FAQ sur fond de surface. « Voir le calcul » et la fiche de la console inchangés |
 | 3 | Téléphone du héros en sombre | Non reproduit en local (capture correcte en sombre système, choix explicite, mouvement réduit). Cause probable : l'écran sombre du héros était chargé à la demande, donc absent tant qu'il n'était pas arrivé ; il est maintenant chargé d'emblée pour le téléphone prioritaire |
 | — | Vérification | build OK, `npx playwright test` **119/119** ; captures admin et accueil (par section), 360/768/1440/1920, clair et sombre, dans `apps/web/.captures/revue-ajustements/` (suite lancée depuis `apps/web`) ; téléphones de l'accueil vérifiés en sombre |
+
+## Mission Docker (`docs/MISSION-DOCKER.md`, branche `docker`)
+
+| # | Demande | Preuve |
+|---|---|---|
+| 1 | `docker/api.Dockerfile` | Python 3.12 slim, `requirements.txt` épinglé, moteur + modèles entraînés + démo figée copiés, base dans le volume `/data` initialisée si vide, écoute `0.0.0.0:3460` via `KWEDO_HOST` (défaut 127.0.0.1 inchangé) |
+| 2 | `docker/web.Dockerfile` | Node 22, trois étapes, sortie `standalone` (vérifiée : `next build` produit `.next/standalone/apps/web/server.js`), port 3461, `KWEDO_API` lu à l'exécution |
+| 3 | `docker-compose.yml` | `api` et `web`, `web` attend `api` saine (healthcheck `/auth/profils`), volume `kwedo-db`, ports 3460/3461 |
+| 4–6 | `.dockerignore`, README, ADR 0013 | faits ; index des ADR mis à jour |
+| — | Vérification | `npm run test:api` 16/16 OK, `npm run build:web` OK. **Les images n'ont pas été construites ni lancées : Docker est interdit sur le VPS.** Premier `docker compose up --build` à faire sur une autre machine. `next start` avec `output: "standalone"` peut afficher un avertissement de Next ; non relancé ici |

@@ -42,6 +42,17 @@ npm run api                                          # API FastAPI sur 127.0.0.1
 npm --workspace apps/web run build && npm --workspace apps/web run start   # web sur 127.0.0.1:3461
 ```
 
+### Lancer avec Docker (ADR 0013)
+
+Sur une machine où Docker est disponible (pas sur le VPS partagé) :
+
+```
+docker compose up --build                            # api (3460) puis web (3461), base SQLite dans le volume kwedo-db
+```
+
+Puis ouvrir http://localhost:3461. La démo figée est chargée au premier démarrage ; `docker compose down -v` repart
+d'une base vierge.
+
 Puis ouvrir `/demo` (scénario guidé), `/app` (commerçant, pensé pour 360 px) ou `/console` (prêteur).
 
 ## Accès et profils (ADR 0009)
