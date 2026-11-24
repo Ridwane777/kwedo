@@ -4,7 +4,6 @@ import { Calculator, Lightbulb, Link2, Send } from "lucide-react";
 import { useState } from "react";
 import { CourbeFlux } from "@/components/courbe-flux";
 import { CommentCalcule, ChoixInstitution, ChoixModalites, MentionPrudente, PlafondConditions, PlafondSelonDuree, prudentHebdo, Raisons, requeteModalites } from "@/components/estimation";
-import { DeuxChiffres } from "@/components/palier";
 import { Chargement, Erreur, LienBouton, Simule } from "@/components/ui";
 import { useApi } from "@/lib/api";
 import { useCommercant } from "@/lib/commercant";
@@ -86,8 +85,6 @@ export default function Estimation() {
           {a?.provisoire && <span className="rounded-full bg-ambre-doux px-2.5 py-0.5 text-xs font-semibold text-ambre-encre">Provisoire : historique court</span>}
         </div>
       </div>
-
-      {a?.palier && <DeuxChiffres p={a.palier} />}
 
       {insts.donnees && <ChoixInstitution institutions={insts.donnees} valeur={inst} onChange={(v) => { setChoix(null); setInst(v); }} />}
       {a && a.institution_id === inst && <ChoixModalites a={a} desactive={est.charge} onChange={(frequence, d) => setChoix({ frequence, duree: d })} />}

@@ -203,13 +203,6 @@ paths:
     post: {summary: "Nouvelle version de paramètres (m, s, n, i, percentile, seuil_risque ; modalités ADR 0015 : frequences, duree_min_mois, duree_max_mois, delai_versement_h)", x-acces: responsable de cette institution, security: [{pro: []}], responses: {'200': {description: ok}, '403': {description: agent, autre institution ou admin}}}
   /institutions/{id}/parametres/apercu:
     post: {summary: "Aperçu d'un réglage avant enregistrement (m, s, n, i, percentile, seuil_risque) : plafond prudent moyen et risque moyen de la demande des dossiers en attente, avant / après, recalculés par le moteur ; rien n'est écrit", x-acces: responsable de cette institution, security: [{pro: []}], responses: {'200': {description: ok}, '403': {description: agent, autre institution ou admin}, '422': {description: hors bornes}}}
-  /institutions/{id}/palier:
-    get: {summary: "Politique de palier active et historique (crédit progressif, ADR 0018)", x-acces: équipe de cette institution, security: [{pro: []}], responses: {'200': {description: ok}, '403': {description: autre institution ou admin}}}
-    post: {summary: "Nouvelle version de la politique de palier (palier_initial, multiplicateur, retard_grave_jours, apres_defaut : redescendre | bloquer)", x-acces: responsable de cette institution, security: [{pro: []}], responses: {'200': {description: ok}, '403': {description: agent, autre institution ou admin}, '422': {description: hors bornes}}}
-  /institutions/{id}/palier/apercu:
-    post: {summary: "Aperçu d'une politique de palier sur les dossiers en attente : montant accordable moyen et demandes au-dessus du palier, avant / après ; rien n'est écrit", x-acces: responsable de cette institution, security: [{pro: []}], responses: {'200': {description: ok}, '403': {description: agent, autre institution ou admin}, '422': {description: hors bornes}}}
-  /commercants/{id}/palier:
-    get: {summary: "Palier du commerçant chez une institution (query institution_id) : niveau, n° de cycle, frise, historique de ses crédits chez elle seulement, montant accordable = min(plafond prudent, palier)", x-acces: le commerçant lui-même, security: [{commercant: []}], responses: {'200': {description: ok}, '403': {description: autre commerçant}}}
   /journal:
     get: {summary: "Journal d'audit : celui de l'institution de la session, ou vue expurgée pour l'admin (ni dossier, ni nom, ni valeur)", x-acces: agent, responsable ou admin, security: [{pro: []}], responses: {'200': {description: ok}}}
   /admin/apercu:

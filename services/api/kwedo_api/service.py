@@ -59,26 +59,6 @@ DEMANDES_RISQUE = {
     "com-yaba": (1.5, "equipement", "Une vitrine réfrigérée pour les crèmes et parfums.", ("inst-lagune", "inst-baobab")),
 }
 CHAMPS_PARAMETRES = ("m", "s", "n", "i", "percentile", "seuil_risque", "frequences", "duree_min_mois", "duree_max_mois", "delai_versement_h")
-# Crédit progressif (ADR 0018) : politique de palier par institution (palier initial, multiplicateur, retard grave en
-# jours, comportement après un retard grave). Valeurs de démonstration, différentes selon l'institution.
-CHAMPS_PALIER = ("palier_initial", "multiplicateur", "retard_grave_jours", "apres_defaut")
-POLITIQUE_DEMO = {
-    "inst-lagune": (150_000, 1.5, 7, "redescendre"),
-    "inst-baobab": (200_000, 1.4, 7, "redescendre"),
-    "inst-solidaire": (100_000, 1.3, 7, "bloquer"),
-}
-POLITIQUE_DEFAUT = (150_000, 1.5, 7, "redescendre")
-PALIERS_AFFICHES = 4  # frise : palier actuel et les suivants
-# Démo : historique de crédits passés chez Caisse Lagune, remboursés selon le simulateur de remboursement
-# (`kwedo_gen.remboursement.rembourser`) appliqué aux encaissements cachés du commerçant (`futur_hebdo`).
-# (commerçant, [(décaissé le, semaine de départ dans futur_hebdo, durée en mois, multiple du palier)]).
-HISTORIQUE_DEMO = {
-    "com-edwige": [("2026-03-02", 0, 3, 1.0), ("2026-06-15", 16, 3, 1.0)],
-    "com-gildas": [("2026-06-01", 0, 3, 1.0)],
-    # Semaine 20 : la seule fenêtre où le simulateur manque une échéance à 225 000 (scripts/chercher_retard.py).
-    "com-hounkpe": [("2026-03-02", 0, 3, 1.0), ("2026-06-15", 20, 3, 1.0)],
-}
-REGULARISATION_JOURS = 14  # une échéance manquée par le simulateur est régularisée 14 jours plus tard (retard grave)
 
 
 def _empreinte(code: str) -> str:
@@ -236,19 +216,8 @@ class Service:
                             "frequences, duree_min_mois, duree_max_mois, delai_versement_h) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
                             (inst["id"], pr["m"], pr["s"], pr["n"], pr["i"], pr["percentile"], pr["seuil_risque"],
                              "configuration-demo", DEBUT_DEMO, *mod))
-            self.db.execute("INSERT INTO politique_palier (institution_id, palier_initial, multiplicateur, retard_grave_jours, "
-                            "apres_defaut, auteur, cree_le) VALUES (?,?,?,?,?,?,?)",
-                            (inst["id"], *POLITIQUE_DEMO.get(inst["id"], POLITIQUE_DEFAUT), "configuration-demo", DEBUT_DEMO))
         for c in d["commercants"]:
             self._inserer_commercant(c["id"], c["nom"], c["telephone"], c["type_activite"], c["compte_separe"], c["transactions"])
-        # Crédits passés (crédit progressif) : rejoués par le parcours normal à des dates antérieures, remboursés selon
-        # le simulateur de remboursement ; l'horloge revient ensuite au début de la démo.
-        futurs = {c["id"]: c.get("futur_hebdo") or [] for c in d["commercants"]}
-        for cid, credits in HISTORIQUE_DEMO.items():
-            if futurs.get(cid):
-                for debut, semaine, duree, fois in credits:
-                    self._credit_passe(cid, "inst-lagune", debut, futurs[cid][semaine:], duree, fois)
-        self._fixer_horloge(DEBUT_DEMO)
         # File de la console : tous les commerçants sauf la persona (elle enverra son dossier pendant la démo).
         for k, c in enumerate(d["commercants"][1:]):
             fois, cat, objet, insts = DEMANDES_RISQUE.get(c["id"], (*DEMANDES_DEMO[k % len(DEMANDES_DEMO)], ("inst-lagune",)))
@@ -258,152 +227,6 @@ class Service:
                 self.envoyer_dossier(c["id"], inst, montant=max(MONTANT_DEMANDE_MIN, round(plafond * fois / 5_000) * 5_000),
                                      categorie=cat, objet=objet)
         return {"ok": True, "maintenant": DEBUT_DEMO, "commercants": len(d["commercants"])}
-
-    def _credit_passe(self, cid: str, inst: str, debut: str, futur: list, duree_mois: int, fois: float) -> str:
-        """Un crédit passé de démonstration, par le parcours normal (consentement, demande, décision, offre) à la date
-        `debut`, au montant du palier du moment. Chaque échéance est payée à sa date si le simulateur de remboursement
-        (`rembourser`, encaissements cachés `futur`) la couvre, sinon régularisée REGULARISATION_JOURS plus tard."""
-        from kwedo_gen.remboursement import rembourser
-        self._fixer_horloge(f"{debut}T10:00:00")
-        if not self.consentement_actif(cid, inst):
-            self.consentir(cid, inst, "accorde")
-        pal = self.palier(cid, inst, self.estimation(cid, inst)["plafond"] or 0)
-        montant = max(MONTANT_DEMANDE_MIN, int(pal["montant_accordable"] * fois) // 5_000 * 5_000)
-        d = self.envoyer_dossier(cid, inst, "hebdomadaire", duree_mois, montant=montant, categorie="stock",
-                                 objet="Renouveler le stock (crédit précédent, historique de démonstration).")
-        self.decider(d["id"], "valide", "agent.lagune", "Crédit accordé au palier du moment (historique de démonstration).")
-        cr = self.repondre_offre(d["id"], "accepte")
-        ech = cr["echeances"]
-        e = ech[0]["montant_attendu"]
-        manquees = [round(float(rembourser(futur, e, "hebdomadaire", k)[1][0]) * k) for k in range(1, len(ech) + 1)]
-        for k, x in enumerate(ech):
-            manquee = manquees[k] > (manquees[k - 1] if k else 0)
-            quand = datetime.fromisoformat(x["date_due"] + "T10:00:00") + timedelta(days=REGULARISATION_JOURS if manquee else 0)
-            ref = self.operateur.encaisser(cr["id"], x["montant_attendu"])["reference"]
-            self.db.execute("INSERT INTO paiements (credit_id, montant, horodatage, recu) VALUES (?,?,?,?)",
-                            (cr["id"], x["montant_attendu"], quand.isoformat(timespec="seconds"), ref))
-            self.db.execute("UPDATE echeances SET montant_recu = montant_attendu, statut = 'payee', soldee_le = ? WHERE id = ?",
-                            (quand.isoformat(timespec="seconds"), x["id"]))
-        return cr["id"]
-
-    # ---------- crédit progressif (ADR 0018) ----------
-    def politique(self, inst: str) -> dict:
-        p = self.un("SELECT * FROM politique_palier WHERE institution_id = ? ORDER BY id DESC LIMIT 1", inst)
-        if p:
-            return p
-        self.parametres(inst)  # 404 si l'institution n'existe pas
-        return {"id": None, "institution_id": inst, **dict(zip(CHAMPS_PALIER, POLITIQUE_DEFAUT)), "auteur": "defaut", "cree_le": None}
-
-    def historique_politique(self, inst: str) -> list[dict]:
-        return self.q("SELECT * FROM politique_palier WHERE institution_id = ? ORDER BY id DESC", inst)
-
-    @staticmethod
-    def montant_palier(pol: dict, niveau: int) -> int:
-        return int(pol["palier_initial"] * pol["multiplicateur"] ** (niveau - 1)) // 5_000 * 5_000
-
-    def cycles(self, cid: str, inst: str, avant: str | None = None, pol: dict | None = None) -> list[dict]:
-        """Crédits passés du commerçant CHEZ CETTE institution seulement (cloisonnement, ADR 0009), dérivés des crédits
-        et échéances stockés : remboursé à l'heure, en cours, ou retard grave (une échéance soldée, ou encore due,
-        plus de `retard_grave_jours` après sa date)."""
-        pol = pol or self.politique(inst)
-        auj = self.maintenant().date()
-        out = []
-        for c in self.q("SELECT id, dossier_id, montant, decaisse_le, frequence FROM credits WHERE commercant_id = ? AND institution_id = ? "
-                        "AND (? IS NULL OR decaisse_le < ?) ORDER BY decaisse_le, id", cid, inst, avant, avant):
-            ech = self.q("SELECT date_due, montant_attendu, montant_recu, soldee_le FROM echeances WHERE credit_id = ? ORDER BY rang", c["id"])
-            retard = 0
-            for e in ech:
-                if e["montant_recu"] >= e["montant_attendu"]:
-                    fin = datetime.fromisoformat(e["soldee_le"]).date() if e["soldee_le"] else None
-                else:
-                    fin = auj
-                if fin:
-                    retard = max(retard, (fin - datetime.fromisoformat(e["date_due"]).date()).days)
-            solde = bool(ech) and all(e["montant_recu"] >= e["montant_attendu"] for e in ech)
-            etat = ("retard_grave" if retard > pol["retard_grave_jours"] else "rembourse_a_l_heure" if solde else "en_cours")
-            fin_credit = max((e["soldee_le"] or "" for e in ech), default="") if solde else None
-            out.append({"credit_id": c["id"], "montant": c["montant"], "decaisse_le": c["decaisse_le"], "frequence": c["frequence"],
-                        "solde": solde, "solde_le": fin_credit or None, "retard_max_jours": max(retard, 0), "etat": etat})
-        return out
-
-    def palier(self, cid: str, inst: str, plafond: int | None = None, avant: str | None = None, pol: dict | None = None) -> dict:
-        """Palier courant du commerçant chez cette institution et montant accordable = min(plafond prudent du moteur,
-        palier). Un crédit remboursé à l'heure fait monter d'un palier ; un retard grave fait redescendre d'un palier
-        (ou bloque, selon la politique). Le moteur n'est pas modifié : le palier ne peut que réduire son plafond."""
-        pol = pol or self.politique(inst)
-        hist = self.cycles(cid, inst, avant, pol)
-        niveau, bloque = 1, False
-        for h in hist:
-            if h["etat"] == "rembourse_a_l_heure" and not bloque:
-                niveau += 1
-            elif h["etat"] == "retard_grave":
-                if pol["apres_defaut"] == "bloquer":
-                    bloque = True
-                else:
-                    niveau = max(1, niveau - 1)
-        en_cours = any(h["etat"] == "en_cours" for h in hist)
-        montant = 0 if bloque else self.montant_palier(pol, niveau)
-        suivant = None if bloque else self.montant_palier(pol, niveau + 1)
-        res = {"institution_id": inst, "institution": self._nom_institution(inst), "niveau": niveau, "bloque": bloque,
-               "cycle": len(hist) + (0 if en_cours else 1), "premier_credit": not hist, "credit_en_cours": en_cours,
-               "montant_palier": montant, "palier_suivant": suivant, "historique": hist,
-               "redescendu": any(h["etat"] == "retard_grave" for h in hist) and not bloque,
-               "politique": {k: pol[k] for k in CHAMPS_PALIER},
-               "condition": (f"Rembourser chaque échéance à l'heure (aucune ne doit être réglée plus de {pol['retard_grave_jours']} jours "
-                             "après sa date)"),
-               "paliers": [] if bloque else [{"niveau": k, "montant": self.montant_palier(pol, k)}
-                                             for k in range(niveau, niveau + PALIERS_AFFICHES)]}
-        if plafond is not None:
-            plafond = int(plafond or 0)
-            res.update({"plafond_moteur": plafond, "montant_accordable": min(plafond, montant),
-                        "limite_par": "palier" if montant < plafond else "plafond",
-                        "suivant_accordable": None if suivant is None else min(plafond, suivant)})
-            for p in res["paliers"]:
-                p["au_dessus_du_plafond"] = p["montant"] > plafond
-        return res
-
-    def nouvelle_politique(self, inst: str, auteur: str, **kw) -> dict:
-        pol = self.politique(inst)
-        nv = self._valider_politique({k: kw.get(k, pol[k]) for k in CHAMPS_PALIER})
-        try:
-            self.db.execute("INSERT INTO politique_palier (institution_id, palier_initial, multiplicateur, retard_grave_jours, apres_defaut, "
-                            "auteur, cree_le) VALUES (?,?,?,?,?,?,?)", (inst, *nv.values(), auteur, self._iso()))
-        except sqlite3.IntegrityError:
-            raise ErreurMetier(422, "réglage du palier hors bornes")
-        return self.politique(inst)
-
-    @staticmethod
-    def _valider_politique(nv: dict) -> dict:
-        try:
-            nv["palier_initial"], nv["retard_grave_jours"] = int(nv["palier_initial"]), int(nv["retard_grave_jours"])
-            nv["multiplicateur"] = float(nv["multiplicateur"])
-        except (TypeError, ValueError):
-            raise ErreurMetier(422, "palier : nombres attendus")
-        if not (5_000 <= nv["palier_initial"] <= 5_000_000 and 1 <= nv["multiplicateur"] <= 3 and 1 <= nv["retard_grave_jours"] <= 90):
-            raise ErreurMetier(422, "réglage du palier hors bornes")
-        if nv["apres_defaut"] not in ("redescendre", "bloquer"):
-            raise ErreurMetier(422, "après un retard grave : redescendre ou bloquer")
-        return nv
-
-    def apercu_politique(self, inst: str, **kw) -> dict:
-        """Effet d'une politique de palier proposée sur les dossiers en attente : demandes au-dessus du palier et
-        montant accordable moyen, avant / après. Rien n'est écrit."""
-        actuelle = self.politique(inst)
-        nv = {**actuelle, **self._valider_politique({k: kw.get(k, actuelle[k]) for k in CHAMPS_PALIER})}
-        dossiers = self.q("SELECT id, commercant_id, analyse_json, montant_demande, cree_le FROM dossiers "
-                          "WHERE institution_id = ? AND statut IN ('recu','en_analyse','complement') ORDER BY cree_le", inst)
-        avant, apres = [], []
-        for d in dossiers:
-            plafond = json.loads(d["analyse_json"])["plafond"]
-            for pol, xs in ((actuelle, avant), (nv, apres)):
-                p = self.palier(d["commercant_id"], inst, plafond, d["cree_le"], pol)
-                xs.append((p["montant_accordable"], (d["montant_demande"] or 0) > p["montant_palier"]))
-
-        def moy(xs):
-            return round(sum(x[0] for x in xs) / len(xs)) if xs else None
-        return {"nb_dossiers": len(dossiers),
-                "accordable_moyen": {"avant": moy(avant), "apres": moy(apres)},
-                "au_dessus_du_palier": {"avant": sum(x[1] for x in avant), "apres": sum(x[1] for x in apres)}}
 
     def _inserer_commercant(self, cid, nom, tel, activite, separe, txs):
         self.db.execute("INSERT INTO commercants (id, nom, telephone, type_activite, compte_marchand_ouvert_le, compte_separe, "
@@ -497,10 +320,6 @@ class Service:
                                  if res["frequence"] == "hebdomadaire" and not res["parametres"]["duree_mois"] else
                                  f"Échéance pour ce montant : {_f(res['echeance'])} par {per}, {res['nb_echeances']} échéances"),
                                 f"Coût total du crédit : {_f(res['cout_total'])}"]
-        # Crédit progressif : deux chiffres, et lequel limite (ADR 0018).
-        res["palier"] = self.palier(cid, inst, res["plafond"])
-        if res.get("souhait"):
-            res["souhait"]["au_dessus_du_palier"] = (souhait or 0) > res["palier"]["montant_palier"]
         return res
 
     def plafonds(self, cid: str, inst: str = "inst-lagune", frequence: str | None = None) -> dict:
@@ -527,9 +346,7 @@ class Service:
         p = self.termes(inst, frequence, duree_mois)
         retard = self.un("SELECT COUNT(*) AS n FROM echeances e JOIN credits c ON c.id = e.credit_id "
                          "WHERE c.commercant_id = ? AND e.statut = 'en_retard'", cid)["n"]
-        base = analyser(self.transactions(cid), p, graine=_g(cid, inst), avec_raisons=False)
         return {**calculer(self.transactions(cid), p, _g(cid, inst), retard), "institution_id": inst,
-                "palier": self.palier(cid, inst, base["plafond"]),
                 "frequence": p["frequence"], "duree_mois": p["duree_mois"], "duree_semaines": Parametres.depuis(p).horizon,
                 "modalites": self.modalites(inst), "institution": self._nom_institution(inst)}
 
@@ -702,17 +519,10 @@ class Service:
         d["acces"] = self.q("SELECT acteur, action, horodatage FROM journal_acces WHERE dossier_id = ? ORDER BY id DESC LIMIT 20", did)
         d["demande"] = self.evaluer(did)  # risque de la demande, plafond prudent en repère
         d["objet_libelle"] = CATEGORIES_OBJET.get(d["objet_categorie"] or "", None)
-        d["palier"] = self.palier_dossier(d)
         return d
 
-    def palier_dossier(self, d: dict) -> dict:
-        """Palier du commerçant chez l'institution du dossier, d'après ses crédits antérieurs au dossier."""
-        pal = self.palier(d["commercant_id"], d["institution_id"], d["analyse"]["plafond"], d["cree_le"])
-        pal["demande_au_dessus"] = (d["montant_demande"] or 0) > pal["montant_palier"]
-        return pal
-
     def decider(self, did: str, type_: str, auteur: str, motif: str, montant: int | None = None, duree: int | None = None,
-                frequence: str | None = None, duree_mois: int | None = None, motif_depassement: str | None = None) -> dict:
+                frequence: str | None = None, duree_mois: int | None = None) -> dict:
         d = self.dossier(did, acteur=None)
         if d["statut"] not in ("recu", "en_analyse", "complement"):
             raise ErreurMetier(409, f"dossier déjà {d['statut']}")
@@ -753,21 +563,12 @@ class Service:
             risque = self.evaluer(did, montant, f, dm)["risque"]
         if type_ in ("refuse", "complement"):
             montant, duree = None, None
-        # Crédit progressif (ADR 0018) : au-dessus du palier, l'agent doit motiver le dépassement (tracé). Le plafond
-        # du moteur, lui, reste la borne appliquée ci-dessus : le motif ne permet jamais de la franchir.
-        palier = d["palier"]["montant_palier"]
-        motif_dep = " ".join(str(motif_depassement or "").split()) or None
-        if montant and montant > palier:
-            if not motif_dep or len(motif_dep) < 10:
-                raise ErreurMetier(422, f"montant au-dessus du palier ({_f(palier)}) : motif de dépassement obligatoire (10 caractères au moins)")
-        else:
-            motif_dep = None
         self.db.execute("INSERT INTO decisions (dossier_id, type, montant_propose, montant_decide, duree_semaines, auteur, motif, "
-                        "version_moteur, parametres_json, graine, horodatage, frequence, duree_mois, montant_demande, risque, "
-                        "palier, motif_depassement) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                        "version_moteur, parametres_json, graine, horodatage, frequence, duree_mois, montant_demande, risque) "
+                        "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                         (did, type_, a["plafond"], montant, duree, auteur, motif.strip(), d["version_moteur"],
                          json.dumps(a["parametres"]), d["graine"], self._iso(), f if montant else None, dm if montant else None,
-                         demande, risque, palier, motif_dep))
+                         demande, risque))
         statut = {"valide": "accorde", "ajuste": "accorde", "refuse": "refuse", "complement": "complement"}[type_]
         self.db.execute("UPDATE dossiers SET statut = ?, decide_le = ?, montant_offre = ?, duree_offre = ?, frequence = ?, duree_mois = ? WHERE id = ?",
                         (statut, self._iso(), montant, duree, f, dm, did))
@@ -804,8 +605,7 @@ class Service:
         out.update({"plafond_estime": a["plafond"], "raisons": raisons_commercant(a["raisons"]), "conseils": a["conseils"],
                     "decision": dec, "credit": self.un("SELECT id FROM credits WHERE dossier_id = ?", did),
                     "delai_versement_h": self.modalites(d["institution_id"])["delai_versement_h"],
-                    "estimation_eprouvee": d["frequence"] in FREQUENCES_EPROUVEES,
-                    "palier": self.palier_dossier({**d, "analyse": a})})
+                    "estimation_eprouvee": d["frequence"] in FREQUENCES_EPROUVEES})
         if d["montant_offre"]:
             p = parametres_dossier(a["parametres"], d["frequence"], d["duree_mois"], d["duree_offre"])
             e = echeance(d["montant_offre"], p)
@@ -850,14 +650,6 @@ class Service:
         recu = sum(e["montant_recu"] for e in c["echeances"])
         c.update({"total_du": du, "total_recu": recu, "restant": du - recu, "cout_total": du - c["montant"],
                   "prochaine": next((e for e in c["echeances"] if e["statut"] != "payee"), None)})
-        # Crédit progressif : remboursé entièrement et à l'heure → palier suivant débloqué (montant de ce palier).
-        c["palier_debloque"], c["palier_etat"] = None, None
-        if c["echeances"]:
-            pal = self.palier(c["commercant_id"], c["institution_id"])
-            cyc = next((h for h in pal["historique"] if h["credit_id"] == cr), None)
-            c["palier_etat"] = cyc and cyc["etat"]
-            if cyc is pal["historique"][-1] and cyc["etat"] == "rembourse_a_l_heure" and not pal["bloque"]:
-                c["palier_debloque"] = pal["montant_palier"]
         return c
 
     def payer(self, cr: str, montant: int) -> dict:
@@ -877,14 +669,7 @@ class Service:
                 continue
             verse = min(manque, reste); reste -= verse
             self.db.execute("UPDATE echeances SET montant_recu = montant_recu + ? WHERE id = ?", (verse, e["id"]))
-        # Date de solde de chaque échéance : le retard d'un crédit (palier, ADR 0018) se lit dans les échéances.
-        self.db.execute("UPDATE echeances SET soldee_le = ? WHERE credit_id = ? AND soldee_le IS NULL AND montant_recu >= montant_attendu",
-                        (self._iso(), cr))
         self.mettre_a_jour_statuts()
-        apres = self.credit(cr)
-        if apres["palier_debloque"] and c["restant"] > 0:
-            self.notif.envoyer("sms", self.commercant(c["commercant_id"])["telephone"],
-                               f"Kwedo : crédit remboursé. Palier suivant débloqué chez {c['institution']} : jusqu'à {_f(apres['palier_debloque'])}.")
         return {"recu": ref, "montant": montant, "simule": True, "credit": self.credit(cr)}
 
     def mettre_a_jour_statuts(self):
@@ -1043,8 +828,6 @@ class Service:
                          f"{'demandé ' + _f(r['montant_demande']) + ', ' if r['montant_demande'] else ''}"
                          f"plafond {_f(r['montant_propose'])}, décidé {_f(r['montant_decide'])}"
                          f"{', risque ' + format(r['risque'], '.1%').replace('.', ',') if r['risque'] is not None else ''} — « {r['motif']} » "
-                         f"{' — palier ' + _f(r['palier']) if r['palier'] is not None else ''}"
-                         f"{' — dépassement du palier : « ' + r['motif_depassement'] + ' »' if r['motif_depassement'] else ''} "
                          f"(moteur {r['version_moteur']}, graine {r['graine']})"}
               for r in self.q("SELECT x.*, d.institution_id AS inst FROM decisions x JOIN dossiers d ON d.id = x.dossier_id")]
         ev += [{"type": "acces", "horodatage": r["horodatage"], "acteur": r["acteur"], "dossier_id": r["dossier_id"], "institution_id": r["inst"], "detail": r["action"]}
@@ -1057,10 +840,6 @@ class Service:
                 "detail": f"{r['institution_id']} : m={r['m']} s={r['s']} n={r['n']} i={r['i']} p{r['percentile']:g} seuil={r['seuil_risque']} "
                           f"fréquences={r['frequences']} durée={r['duree_min_mois']}–{r['duree_max_mois']} mois versement={r['delai_versement_h']} h"}
                for r in self.q("SELECT * FROM parametres_moteur")]
-        ev += [{"type": "parametres", "horodatage": r["cree_le"], "acteur": r["auteur"], "dossier_id": None, "institution_id": r["institution_id"],
-                "detail": f"{r['institution_id']} : palier initial {_f(r['palier_initial'])} × {r['multiplicateur']:g} par crédit remboursé, "
-                          f"retard grave > {r['retard_grave_jours']} j → {r['apres_defaut']}"}
-               for r in self.q("SELECT * FROM politique_palier")]
         ev += [{"type": "consentement", "horodatage": r["horodatage"], "acteur": r["commercant_id"], "dossier_id": None, "institution_id": r["institution_id"],
                 "detail": f"{r['action']} pour {r['institution_id']}"} for r in self.q("SELECT * FROM consentements")]
         ev += [{"type": "signature", "horodatage": r["horodatage"], "acteur": r["commercant_id"], "dossier_id": None, "institution_id": r["institution_id"],

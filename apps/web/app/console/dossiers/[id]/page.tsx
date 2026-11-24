@@ -5,7 +5,6 @@ import { LienIcone } from "@/components/bouton-icone";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { CourbeFlux } from "@/components/courbe-flux";
-import { HistoriqueCycles, nomCourt } from "@/components/palier";
 import { Bouton, Chargement, Erreur, Pastille, Simule } from "@/components/ui";
 import { api, useApi } from "@/lib/api";
 import { useRaccourcis } from "@/lib/clavier";
@@ -78,15 +77,13 @@ export default function Fiche() {
   const [type, setType] = useState<TypeDecision | null>(null);
   const [montant, setMontant] = useState<number>(0);
   const [motif, setMotif] = useState("");
-  const [motifDep, setMotifDep] = useState("");
   const [envoi, setEnvoi] = useState<{ etat: "idle" | "envoi" | "erreur"; message?: string }>({ etat: "idle" });
   const [enregistree, setEnregistree] = useState(false);
   const motifRef = useRef<HTMLTextAreaElement>(null);
 
   const [freq, setFreq] = useState<Frequence>("hebdomadaire");
   const [mois, setMois] = useState(6);
-  // Contre-proposition par défaut : min(palier, plafond prudent) (ADR 0018), jamais plus que demandé.
-  useEffect(() => { if (d) setMontant((m) => m || Math.min(d.montant_demande ?? Infinity, d.palier.montant_accordable ?? d.analyse.plafond) || d.analyse.plafond); }, [d]);
+  useEffect(() => { if (d) setMontant((m) => m || Math.min(d.montant_demande ?? d.analyse.plafond, d.analyse.plafond) || d.analyse.plafond); }, [d]);
   // Modalités demandées par le commerçant : point de départ de l'ajustement.
   useEffect(() => {
     if (!d) return;
@@ -119,7 +116,6 @@ export default function Fiche() {
     try {
       await api(`/dossiers/${id}/decisions`, { body: {
         type, motif, montant_decide: type === "ajuste" ? montant : undefined,
-        ...(depasse ? { motif_depassement: motifDep } : {}),
         ...(type === "ajuste" && modifie ? { frequence: freq, duree_mois: mois } : {}),
       } });
       setEnregistree(true);
@@ -131,11 +127,6 @@ export default function Fiche() {
   }
 
   const motifValide = motif.trim().length >= 10;
-  // Au-dessus du palier : permis à l'agent avec un motif obligatoire (tracé) ; jamais au-delà de la borne du moteur.
-  const pal = d.palier;
-  const montantRetenu = type === "ajuste" ? montant : type === "valide" ? dem.montant : 0;
-  const depasse = (type === "ajuste" || type === "valide") && montantRetenu > pal.montant_palier;
-  const motifDepValide = !depasse || motifDep.trim().length >= 10;
   // Borne que le serveur fait respecter ; à l'écran, elle s'énonce en mots.
   const borne = Math.max(a.l_max, d.montant_demande ?? 0);
   const auDelaBorne = type === "ajuste" && !modifie && montant > borne;
@@ -190,27 +181,6 @@ export default function Fiche() {
             <ul className="space-y-1 text-[15px] sm:col-span-2">
               {dem.raisons.map((r) => <li key={r.code} className="border-l-2 border-marque pl-3">{pourAgent(r.texte)}</li>)}
             </ul>
-          </section>
-
-          {/* Crédit progressif (ADR 0018) : palier chez CETTE institution, historique cloisonné */}
-          <section aria-labelledby="t-pal" className="space-y-3 rounded-2xl border border-trait bg-surface p-4" data-testid="fiche-palier">
-            <div className="flex flex-wrap items-center gap-2">
-              <h2 id="t-pal" className="text-sm font-semibold text-encre-2">Palier chez {nomCourt(pal.institution)}</h2>
-              {pal.bloque ? <Pastille ton="alerte">Bloqué après retard grave</Pastille>
-                : <Pastille ton="info">{`Palier ${pal.niveau} · crédit n° ${pal.cycle}`}</Pastille>}
-              {pal.redescendu && <Pastille ton="attention">Redescendu après un retard</Pastille>}
-              {pal.demande_au_dessus ? <Pastille ton="attention">Demande au-dessus du palier</Pastille> : <Pastille ton="bon">Demande dans le palier</Pastille>}
-            </div>
-            <dl className="grid gap-x-8 sm:grid-cols-3">
-              <Ligne l="Palier" v={pal.bloque ? "aucun" : fcfa(pal.montant_palier)} />
-              <Ligne l="Plafond prudent" v={fcfa(pal.plafond_moteur)} />
-              <Ligne l="Accordable" v={fcfa(pal.montant_accordable)} />
-            </dl>
-            <p className="text-sm text-encre-2">
-              Montant accordable : le plus petit des deux ({pal.limite_par === "palier" ? "ici, le palier" : "ici, le plafond prudent"}).
-              {pal.palier_suivant ? ` Palier suivant après un crédit remboursé à l'heure : ${fcfa(pal.palier_suivant)}.` : ""}
-            </p>
-            <HistoriqueCycles p={pal} />
           </section>
 
           {/* Alertes avant le détail */}
@@ -362,17 +332,8 @@ export default function Fiche() {
                     className="mt-1 block w-full rounded-xl border border-trait bg-fond px-3 py-2" />
                   <span className="text-xs text-encre-2">Obligatoire, 10 caractères au moins. Enregistré au journal, non modifiable.</span>
                 </label>
-                {depasse && (
-                  <label className="block rounded-xl border-l-4 border-ambre bg-ambre-doux p-3 text-ambre-encre" data-testid="depassement-palier">
-                    Au-dessus du palier ({fcfa(pal.montant_palier)}) : motif du dépassement <span className="text-alerte">*</span>
-                    <textarea value={motifDep} onChange={(e) => setMotifDep(e.target.value)} rows={2} required minLength={10}
-                      placeholder="Ex. : bon de commande ferme vu, client connu de l'agence."
-                      className="mt-1 block w-full rounded-xl border border-trait bg-fond px-3 py-2 text-encre" />
-                    <span className="text-xs">Obligatoire, 10 caractères au moins, tracé au journal. Le plafond du moteur reste la limite.</span>
-                  </label>
-                )}
                 {envoi.etat === "erreur" && <Erreur message={envoi.message ?? "Erreur"} />}
-                <Bouton type="submit" icone={Save} className="w-full" disabled={!type || !motifValide || !montantValide || !motifDepValide || envoi.etat === "envoi"}>
+                <Bouton type="submit" icone={Save} className="w-full" disabled={!type || !motifValide || !montantValide || envoi.etat === "envoi"}>
                   {envoi.etat === "envoi" ? "Enregistrement…" : "Enregistrer la décision"}
                 </Bouton>
               </form>
@@ -383,7 +344,6 @@ export default function Fiche() {
                     <p className="font-semibold">{LIBELLES[x.type as TypeDecision]}</p>
                     <p className="chiffres">{x.montant_demande ? `Demandé ${fcfa(x.montant_demande)}, ` : ""}plafond {fcfa(x.montant_propose)}, décidé {fcfa(x.montant_decide)}{x.risque != null ? `, risque ${pct(x.risque, 1)}` : ""}</p>
                     <p className="italic">« {x.motif} »</p>
-                    {x.motif_depassement && <p className="text-sm">Dépassement du palier ({fcfa(x.palier)}) : « {x.motif_depassement} »</p>}
                     <p className="text-xs text-encre-2">{x.auteur}, {date(x.horodatage, true)}, moteur {x.version_moteur}, graine {x.graine}</p>
                   </div>
                 ))}

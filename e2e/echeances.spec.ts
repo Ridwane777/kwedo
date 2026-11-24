@@ -25,8 +25,7 @@ test("préparation : crédit mensuel ouvert pour Afiavi", async ({ page, browser
   const agent = await browser.newPage();
   await connecter(agent.request, "agent-lagune");
   const fiche = await (await agent.request.get(`/api/dossiers/${d.id}`)).json();
-  expect((await agent.request.post(`/api/dossiers/${d.id}/decisions`, { data: { type: "valide", motif: "Flux réguliers, mensualité supportable.",
-    motif_depassement: "Demande au-dessus du palier : cliente connue de l'agence." } })).ok()).toBeTruthy();
+  expect((await agent.request.post(`/api/dossiers/${d.id}/decisions`, { data: { type: "valide", motif: "Flux réguliers, mensualité supportable." } })).ok()).toBeTruthy();
   expect(fiche.frequence_demandee).toBe("mensuelle");
   await agent.close();
   const cr = await (await r.post(`/api/dossiers/${d.id}/offre`, { data: { reponse: "accepte" } })).json();
