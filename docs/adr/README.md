@@ -15,3 +15,4 @@
 | [0011](0011-police-public-sans.md) | Public Sans comme police d'interface | accepté |
 | [0012](0012-marque-cauri-vitrine.md) | Marque cauri, vitrine pleine largeur, mode sombre graphite | accepté (remplace la marque et le sombre de 0010) |
 | [0013](0013-double-mode-lancement.md) | Double mode de lancement : npm sur le VPS, Docker pour la démo et l'évaluation | accepté |
+| [0014](0014-conseils-chiffres.md) | Conseils chiffrés par le moteur sur scénarios, route `GET /commercants/{id}/conseils` | accepté |

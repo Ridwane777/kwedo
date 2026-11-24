@@ -101,6 +101,15 @@ paths:
         - {name: choc_ventes, in: query, schema: {type: number, minimum: -0.9, maximum: 0}}
         - {name: montant_souhaite, in: query, schema: {type: integer}}
       responses: {'200': {content: {application/json: {schema: {$ref: '#/components/schemas/Estimation'}}}}}
+  /commercants/{id}/conseils:
+    get:
+      summary: Conseils chiffrés (leviers, effet sur le plafond calculé par le moteur sur des scénarios modifiés ; effet null = non chiffré)
+      x-acces: le commerçant lui-même
+      security: [{commercant: []}]
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string}}
+        - {name: institution_id, in: query, schema: {type: string}}
+      responses: {'200': {description: ok}, '401': {description: sans session}, '403': {description: autre commerçant ou rôle pro}}
   /commercants/{id}/consentements:
     get: {summary: Liste des consentements, x-acces: le commerçant lui-même, security: [{commercant: []}], responses: {'200': {description: ok}}}
     post:

@@ -228,6 +228,15 @@ class Service:
                                 f"Coût total du crédit : {_f(res['cout_total'])}"]
         return res
 
+    def conseils(self, cid: str, inst: str = "inst-lagune") -> dict:
+        """Leviers chiffrés par le moteur sur des scénarios modifiés (même graine que l'estimation)."""
+        from .conseils import calculer
+        self.commercant(cid)
+        p = self.parametres(inst)
+        retard = self.un("SELECT COUNT(*) AS n FROM echeances e JOIN credits c ON c.id = e.credit_id "
+                         "WHERE c.commercant_id = ? AND e.statut = 'en_retard'", cid)["n"]
+        return {**calculer(self.transactions(cid), p, _g(cid, inst), retard), "institution_id": inst}
+
     def tableau_de_bord(self, cid: str) -> dict:
         c = self.commercant(cid)
         est = self.estimation(cid) if c["nb_transactions"] else None

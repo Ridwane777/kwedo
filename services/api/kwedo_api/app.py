@@ -211,6 +211,11 @@ def estimation(s, q, b, h, cid):
     return s.estimation(cid, q.get("institution_id", "inst-lagune"), float(q.get("choc_ventes", 0) or 0), _int(q.get("montant_souhaite")))
 
 
+@route("GET", r"/commercants/(?P<cid>[\w-]+)/conseils", commercant_du_chemin)
+def conseils(s, q, b, h, cid):
+    return s.conseils(cid, q.get("institution_id", "inst-lagune"))
+
+
 @route("GET", r"/commercants/(?P<cid>[\w-]+)/consentements", commercant_du_chemin)
 def consentements(s, q, b, h, cid):
     return s.consentements(cid)

@@ -154,6 +154,10 @@ Les deux thèmes sont aussi contrôlés par axe (WCAG 2.1 AA) sur les écrans pr
 
 - **Commerçant** (360 px d'abord) : carte « combien / à quel prix / que faire », puis courbe, raisons, simulateur.
   Barre d'onglets en bas, cibles de 64 px, indicateur actif en pastille.
+  Conseils : bandeau-résumé ambre (gain possible, meilleur levier), puis une carte par levier à améliorer
+  (Où vous en êtes / Pourquoi ça compte / Quoi faire / Effet estimé), triées par effet ; effet chiffré sur fond
+  `bon-doux`, « effet non chiffré » sur `surface-2`. Grille 1 → 2 (lg) → 3 (2xl) colonnes. Les leviers déjà bons
+  sont repliés en lignes courtes « Ce qui va déjà bien » ; les paliers 3/6/12 mois restent dans le levier historique.
 - **Console** : barre latérale claire (institution et rôle visibles), raccourcis 1–4 ; file avec compteurs
   d'exception, segmenté « À traiter / Tous », lignes à alertes marquées d'un liseré ambre sur téléphone.
 - **Admin** : en-tête propre au rôle, chiffres de volume, institutions triées par dossiers en attente,
