@@ -36,6 +36,22 @@ CODE_VALIDITE_MIN = 10
 CODE_ESSAIS_MAX = 5
 ECHEANCE_DE = {"hebdomadaire": "échéance", "quinzaine": "échéance", "mensuelle": "mensualité"}
 RAPPEL_AVANT_JOURS = {"hebdomadaire": 2, "quinzaine": 3, "mensuelle": 5}
+# Demande libre (ADR 0017) : objet du crédit par catégorie + une phrase ; borne haute de saisie (anti-faute de frappe).
+CATEGORIES_OBJET = {"stock": "Achat de stock", "equipement": "Équipement", "fonds_roulement": "Fonds de roulement",
+                    "ponctuel": "Besoin ponctuel", "autre": "Autre"}
+OBJET_MAX = 200
+MONTANT_DEMANDE_MIN, MONTANT_DEMANDE_MAX = 5_000, 50_000_000
+DUREES_REPERES = (3, 6, 9, 12)
+# Démo : montants demandés (multiples du plafond, certains au-dessus) et objets variés pour la file de la console.
+DEMANDES_DEMO = [
+    (0.8, "stock", "Acheter des pagnes wax avant les fêtes de fin d'année."),
+    (1.4, "equipement", "Un congélateur pour garder le poisson plus longtemps."),
+    (0.5, "fonds_roulement", "Avancer les achats de la semaine pendant la saison creuse."),
+    (1.0, "stock", "Recharger le stock de téléphones et d'accessoires."),
+    (1.8, "equipement", "Une machine à coudre électrique pour l'atelier."),
+    (0.6, "ponctuel", "Réparer le toit de la boutique avant la saison des pluies."),
+    (1.2, "autre", "Ouvrir un second point de vente au marché de Cotonou."),
+]
 CHAMPS_PARAMETRES = ("m", "s", "n", "i", "percentile", "seuil_risque", "frequences", "duree_min_mois", "duree_max_mois", "delai_versement_h")
 
 
@@ -191,10 +207,13 @@ class Service:
         for c in d["commercants"]:
             self._inserer_commercant(c["id"], c["nom"], c["telephone"], c["type_activite"], c["compte_separe"], c["transactions"])
         # File de la console : tous les commerçants sauf la persona (elle enverra son dossier pendant la démo).
-        for c in d["commercants"][1:]:
+        for k, c in enumerate(d["commercants"][1:]):
             inst = "inst-lagune"
             self.consentir(c["id"], inst, "accorde")
-            self.envoyer_dossier(c["id"], inst)
+            fois, cat, objet = DEMANDES_DEMO[k % len(DEMANDES_DEMO)]
+            plafond = self.estimation(c["id"], inst)["plafond"] or 100_000
+            self.envoyer_dossier(c["id"], inst, montant=max(MONTANT_DEMANDE_MIN, round(plafond * fois / 5_000) * 5_000),
+                                 categorie=cat, objet=objet)
         return {"ok": True, "maintenant": DEBUT_DEMO, "commercants": len(d["commercants"])}
 
     def _inserer_commercant(self, cid, nom, tel, activite, separe, txs):
@@ -290,21 +309,41 @@ class Service:
                                 f"Coût total du crédit : {_f(res['cout_total'])}"]
         return res
 
-    def conseils(self, cid: str, inst: str = "inst-lagune") -> dict:
-        """Leviers chiffrés par le moteur sur des scénarios modifiés (même graine que l'estimation)."""
+    def plafonds(self, cid: str, inst: str = "inst-lagune", frequence: str | None = None) -> dict:
+        """Plafond selon la durée (3, 6, 9, 12 mois, dans les modalités de l'institution) pour une fréquence : même
+        graine que l'estimation. Montre qu'allonger la durée monte le plafond, et ce que cela coûte."""
+        self.commercant(cid)
+        mod = self.modalites(inst)
+        lo, hi = mod["duree_min_mois"], mod["duree_max_mois"]
+        durees = sorted({lo, hi} | {d for d in DUREES_REPERES if lo <= d <= hi})
+        lignes = []
+        for dm in durees:
+            p = self.termes(inst, frequence, dm)
+            r = analyser(self.transactions(cid), p, graine=_g(cid, inst), avec_raisons=False)
+            lignes.append({"duree_mois": dm, "plafond": r["plafond"], "echeance": r["echeance"], "nb_echeances": r["nb_echeances"],
+                           "cout_total": r["cout_total"]})
+        return {"institution_id": inst, "frequence": p["frequence"], "modalites": mod, "lignes": lignes,
+                "institution": self.un("SELECT nom FROM institutions WHERE id = ?", inst)["nom"]}
+
+    def conseils(self, cid: str, inst: str = "inst-lagune", frequence: str | None = None, duree_mois: int | None = None) -> dict:
+        """Leviers chiffrés par le moteur sur des scénarios modifiés (même graine que l'estimation), pour la
+        fréquence et la durée choisies (affichées en haut de la page)."""
         from .conseils import calculer
         self.commercant(cid)
-        p = self.termes(inst)
+        p = self.termes(inst, frequence, duree_mois)
         retard = self.un("SELECT COUNT(*) AS n FROM echeances e JOIN credits c ON c.id = e.credit_id "
                          "WHERE c.commercant_id = ? AND e.statut = 'en_retard'", cid)["n"]
-        return {**calculer(self.transactions(cid), p, _g(cid, inst), retard), "institution_id": inst}
+        return {**calculer(self.transactions(cid), p, _g(cid, inst), retard), "institution_id": inst,
+                "frequence": p["frequence"], "duree_mois": p["duree_mois"], "duree_semaines": Parametres.depuis(p).horizon,
+                "modalites": self.modalites(inst)}
 
     def tableau_de_bord(self, cid: str) -> dict:
         c = self.commercant(cid)
         est = self.estimation(cid) if c["nb_transactions"] else None
         credits = self.q("SELECT id FROM credits WHERE commercant_id = ?", cid)
         return {"commercant": c, "estimation": est, "credits": [self.credit(k["id"]) for k in credits],
-                "dossiers": self.q("SELECT d.id, d.institution_id, i.nom AS institution, d.statut, d.montant_offre, d.duree_offre, d.cree_le, d.frequence, d.duree_mois "
+                "dossiers": self.q("SELECT d.id, d.institution_id, i.nom AS institution, d.statut, d.montant_offre, d.duree_offre, d.cree_le, d.frequence, d.duree_mois, "
+                                   "d.montant_demande, d.objet_categorie "
                                    "FROM dossiers d JOIN institutions i ON i.id = d.institution_id WHERE commercant_id = ? ORDER BY d.cree_le", cid)}
 
     # ---------- consentements ----------
@@ -356,7 +395,26 @@ class Service:
         return out
 
     # ---------- dossiers ----------
-    def envoyer_dossier(self, cid: str, inst: str, frequence: str | None = None, duree_mois: int | None = None) -> dict:
+    @staticmethod
+    def valider_demande(montant, categorie, objet) -> tuple[int, str, str]:
+        """Demande libre (ADR 0017) : montant saisi, catégorie connue, objet en une phrase."""
+        try:
+            montant = int(montant)
+        except (TypeError, ValueError):
+            raise ErreurMetier(422, "montant demandé obligatoire")
+        if not MONTANT_DEMANDE_MIN <= montant <= MONTANT_DEMANDE_MAX:
+            raise ErreurMetier(422, f"montant demandé entre {_f(MONTANT_DEMANDE_MIN)} et {_f(MONTANT_DEMANDE_MAX)}")
+        if categorie not in CATEGORIES_OBJET:
+            raise ErreurMetier(422, "objet du crédit : catégorie inconnue")
+        objet = " ".join(str(objet or "").split())
+        if not objet:
+            raise ErreurMetier(422, "objet du crédit obligatoire : dites en une phrase à quoi il servira")
+        if len(objet) > OBJET_MAX:
+            raise ErreurMetier(422, f"objet du crédit : {OBJET_MAX} caractères au plus")
+        return montant, categorie, objet
+
+    def envoyer_dossier(self, cid: str, inst: str, frequence: str | None = None, duree_mois: int | None = None,
+                        montant=None, categorie=None, objet=None) -> dict:
         if not self.consentement_actif(cid, inst):
             raise ErreurMetier(403, "pas de consentement actif pour cette institution")
         if not self.transactions(cid):
@@ -364,31 +422,65 @@ class Service:
         exist = self.un("SELECT id FROM dossiers WHERE commercant_id = ? AND institution_id = ? AND statut IN ('recu','en_analyse','complement','accorde')", cid, inst)
         if exist:
             return self.dossier(exist["id"], acteur=None)
+        montant, categorie, objet = self.valider_demande(montant, categorie, objet)
         p = self.termes(inst, frequence, duree_mois)
         did = f"dos-{_g(cid, inst, self._iso()) % 10**6:06d}"
         graine = _g(did)
-        res = analyser(self.transactions(cid), p, graine=graine)
+        # Une seule analyse : plafond prudent ET risque pour le montant demandé (rejouable avec la même graine).
+        res = analyser(self.transactions(cid), p, graine=graine, montant_souhaite=montant)
         self.db.execute("INSERT INTO dossiers (id, commercant_id, institution_id, statut, analyse_json, version_moteur, graine, parametres_id, cree_le, "
-                        "frequence, duree_mois, frequence_demandee, duree_mois_demandee) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                        "frequence, duree_mois, frequence_demandee, duree_mois_demandee, montant_demande, objet_categorie, objet_texte) "
+                        "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                         (did, cid, inst, "recu", json.dumps(res), VERSION, graine, p["id"], self._iso(),
-                         p["frequence"], p["duree_mois"], p["frequence"], p["duree_mois"]))
+                         p["frequence"], p["duree_mois"], p["frequence"], p["duree_mois"], montant, categorie, objet))
         return self.dossier(did, acteur=None)
+
+    def evaluer(self, did: str, montant: int | None = None, frequence: str | None = None, duree_mois: int | None = None) -> dict:
+        """Risque de défaut pour des termes donnés (montant, fréquence, durée dans les modalités de l'institution),
+        avec la graine et les paramètres du dossier. Sert à la demande, à la contre-proposition et à la décision."""
+        d = self.un("SELECT * FROM dossiers WHERE id = ?", did)
+        if not d:
+            raise ErreurMetier(404, "dossier inconnu")
+        a = json.loads(d["analyse_json"])
+        f = frequence or d["frequence_demandee"]
+        dm = duree_mois if duree_mois is not None else d["duree_mois_demandee"]
+        if frequence or duree_mois is not None:
+            t = self.termes(d["institution_id"], f, dm)
+            f, dm = t["frequence"], t["duree_mois"]
+        montant = montant if montant is not None else (d["montant_demande"] or a["plafond"])
+        if not MONTANT_DEMANDE_MIN <= montant <= MONTANT_DEMANDE_MAX:
+            raise ErreurMetier(422, f"montant entre {_f(MONTANT_DEMANDE_MIN)} et {_f(MONTANT_DEMANDE_MAX)}")
+        p = parametres_dossier(a["parametres"], f, dm, a["duree_semaines"] if dm is None else None)
+        r = analyser(self.transactions(d["commercant_id"]), p, graine=d["graine"], montant_souhaite=montant, avec_raisons=False)
+        s, seuil = r["souhait"], p.seuil_risque
+        e_pl = r["echeance"]
+        return {"montant": montant, "frequence": f, "duree_mois": dm, "duree_semaines": r["duree_semaines"],
+                "nb_echeances": r["nb_echeances"], "echeance": s["echeance"], "cout_total": s["cout_total"],
+                "risque": s["risque"], "seuil_risque": seuil, "dans_tolerance": s["risque"] <= seuil,
+                "plafond": r["plafond"], "risque_plafond": r["risque"], "echeance_plafond": e_pl,
+                "plafond_formule": r["l_max"], "encaissement_prudent": r["encaissement_prudent"],
+                "part_mauvaise_periode": s["part_mauvaise_periode"], "raisons": s["raisons"], "risque_valide": r["risque_valide"]}
 
     def file(self, inst: str | None = None, statut: str | None = None, tri: str = "priorite") -> list[dict]:
         rows = self.q("SELECT d.id, d.commercant_id, c.nom, c.type_activite, d.institution_id, d.statut, d.cree_le, d.analyse_json, "
-                      "d.frequence, d.duree_mois "
+                      "d.frequence, d.duree_mois, d.montant_demande, d.objet_categorie "
                       "FROM dossiers d JOIN commercants c ON c.id = d.commercant_id "
                       "WHERE (? IS NULL OR d.institution_id = ?) AND (? IS NULL OR d.statut = ?)", inst, inst, statut, statut)
         out = []
         for r in rows:
             a = json.loads(r.pop("analyse_json"))
+            # Risque de la DEMANDE (ADR 0017) ; dossiers antérieurs sans montant demandé : risque au plafond.
+            rd = a["souhait"]["risque"] if a.get("souhait") else a["risque"]
             r.update({"plafond": a["plafond"], "risque": a["risque"], "recommandation": a["recommandation"],
+                      "risque_demande": rd, "dans_tolerance": rd <= a["parametres"]["seuil_risque"],
                       "alertes": [x["code"] for x in a["alertes"]], "provisoire": a["provisoire"],
                       "semaines": a["indicateurs"]["semaines"], "consentement_actif": self.consentement_actif(r["commercant_id"], r["institution_id"])})
             out.append(r)
         ordre = {"recu": 0, "en_analyse": 0, "complement": 1}
         if tri == "anciennete":
             out.sort(key=lambda r: r["cree_le"])
+        elif tri == "risque":  # les demandes les plus risquées d'abord
+            out.sort(key=lambda r: (-r["risque_demande"], r["cree_le"]))
         else:  # priorité : à traiter d'abord, alertes ensuite, puis ancienneté
             out.sort(key=lambda r: (ordre.get(r["statut"], 2), -len(r["alertes"]), r["cree_le"]))
         return out
@@ -411,6 +503,8 @@ class Service:
         d["decisions"] =self.q("SELECT * FROM decisions WHERE dossier_id = ? ORDER BY id", did)
         d["credit"] = self.un("SELECT id FROM credits WHERE dossier_id = ?", did)
         d["acces"] = self.q("SELECT acteur, action, horodatage FROM journal_acces WHERE dossier_id = ? ORDER BY id DESC LIMIT 20", did)
+        d["demande"] = self.evaluer(did)  # risque de la demande, plafond prudent en repère
+        d["objet_libelle"] = CATEGORIES_OBJET.get(d["objet_categorie"] or "", None)
         return d
 
     def decider(self, did: str, type_: str, auteur: str, motif: str, montant: int | None = None, duree: int | None = None,
@@ -424,9 +518,13 @@ class Service:
             raise ErreurMetier(422, "justificatif obligatoire (10 caractères au moins)")
         a = d["analyse"]
         f, dm = d["frequence"], d["duree_mois"]
+        demande = d["montant_demande"]
+        risque = None
         if type_ == "valide":
-            montant, duree = a["plafond"], a["duree_semaines"]
-        if type_ == "ajuste":
+            # Accorder la demande telle quelle (ADR 0017) ; dossier antérieur sans montant demandé : le plafond.
+            montant, duree = demande or a["plafond"], a["duree_semaines"]
+            risque = d["demande"]["risque"]
+        if type_ == "ajuste":  # contre-proposition
             if not montant or montant <= 0:
                 raise ErreurMetier(422, "montant décidé obligatoire")
             if frequence or duree_mois:  # l'agent ajuste les modalités dans les limites de l'institution
@@ -440,15 +538,23 @@ class Service:
                 serie = np.asarray(a["serie_hebdo"], float)
                 c_p = float(np.percentile(serie_periode(serie, p), p.percentile)) if len(serie) else 0.0
             plafond_formule = l_max(c_p, p)
-            if montant > plafond_formule:
-                raise ErreurMetier(422, f"montant au-dessus du plafond de la formule ({round(plafond_formule)} FCFA)")
+            # Jamais plus que demandé ; au-dessus de la formule seulement pour rester sous le montant demandé.
+            borne = max(plafond_formule, demande or 0)
+            if montant > borne:
+                raise ErreurMetier(422, (f"contre-proposition au-dessus du montant demandé ({_f(demande)})" if demande and demande >= plafond_formule
+                                         else f"montant au-dessus du plafond de la formule ({round(plafond_formule)} FCFA)"))
+            if demande and montant > demande:
+                raise ErreurMetier(422, f"contre-proposition au-dessus du montant demandé ({_f(demande)})")
             duree = p.horizon
+            risque = self.evaluer(did, montant, f, dm)["risque"]
         if type_ in ("refuse", "complement"):
             montant, duree = None, None
         self.db.execute("INSERT INTO decisions (dossier_id, type, montant_propose, montant_decide, duree_semaines, auteur, motif, "
-                        "version_moteur, parametres_json, graine, horodatage, frequence, duree_mois) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                        "version_moteur, parametres_json, graine, horodatage, frequence, duree_mois, montant_demande, risque) "
+                        "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                         (did, type_, a["plafond"], montant, duree, auteur, motif.strip(), d["version_moteur"],
-                         json.dumps(a["parametres"]), d["graine"], self._iso(), f if montant else None, dm if montant else None))
+                         json.dumps(a["parametres"]), d["graine"], self._iso(), f if montant else None, dm if montant else None,
+                         demande, risque))
         statut = {"valide": "accorde", "ajuste": "accorde", "refuse": "refuse", "complement": "complement"}[type_]
         self.db.execute("UPDATE dossiers SET statut = ?, decide_le = ?, montant_offre = ?, duree_offre = ?, frequence = ?, duree_mois = ? WHERE id = ?",
                         (statut, self._iso(), montant, duree, f, dm, did))
@@ -457,7 +563,8 @@ class Service:
     def rejouer(self, did: str) -> dict:
         """Audit : rejoue l'analyse avec la graine et les paramètres enregistrés."""
         d = self.dossier(did, acteur=None)
-        res = analyser(self.transactions(d["commercant_id"]), d["analyse"]["parametres"], graine=d["graine"])
+        res = analyser(self.transactions(d["commercant_id"]), d["analyse"]["parametres"], graine=d["graine"],
+                       montant_souhaite=d["montant_demande"])
         return {"identique": json.loads(json.dumps(res)) == d["analyse"], "plafond": res["plafond"]}
 
     def offre(self, cid: str, did: str) -> dict:
@@ -469,7 +576,15 @@ class Service:
         a = json.loads(d.pop("analyse_json"))
         dec = self.un("SELECT type, motif, montant_decide, duree_semaines, horodatage FROM decisions WHERE dossier_id = ? ORDER BY id DESC LIMIT 1", did)
         out = {k: d[k] for k in ("id", "institution_id", "institution", "statut", "cree_le", "montant_offre", "duree_offre", "decide_le",
-                                 "frequence", "duree_mois", "frequence_demandee", "duree_mois_demandee")}
+                                 "frequence", "duree_mois", "frequence_demandee", "duree_mois_demandee",
+                                 "montant_demande", "objet_categorie", "objet_texte")}
+        out["objet_libelle"] = CATEGORIES_OBJET.get(d["objet_categorie"] or "")
+        if d["montant_offre"] and d["montant_demande"]:
+            # Demande acceptée telle quelle, ou contre-proposition de l'institution (avec l'écart).
+            meme = (d["montant_offre"] == d["montant_demande"] and d["frequence"] == d["frequence_demandee"]
+                    and d["duree_mois"] == d["duree_mois_demandee"])
+            out.update({"nature": "demande_acceptee" if meme else "contre_proposition",
+                        "ecart_montant": d["montant_offre"] - d["montant_demande"]})
         out.update({"plafond_estime": a["plafond"], "raisons": raisons_commercant(a["raisons"]), "conseils": a["conseils"],
                     "decision": dec, "credit": self.un("SELECT id FROM credits WHERE dossier_id = ?", did),
                     "delai_versement_h": self.modalites(d["institution_id"])["delai_versement_h"],
@@ -657,7 +772,10 @@ class Service:
     def journal(self, limite: int = 200, inst: str | None = None, expurge: bool = False) -> list[dict]:
         """Journal d'une institution, ou vue d'administration (`expurge`) : qui, quand, quoi, sans contenu de dossier."""
         ev = [{"type": "decision", "horodatage": r["horodatage"], "acteur": r["auteur"], "dossier_id": r["dossier_id"], "institution_id": r["inst"],
-               "detail": f"{r['type']} — proposé {_f(r['montant_propose'])}, décidé {_f(r['montant_decide'])} — « {r['motif']} » "
+               "detail": f"{ {'valide': 'demande accordée', 'ajuste': 'contre-proposition'}.get(r['type'], r['type'])} — "
+                         f"{'demandé ' + _f(r['montant_demande']) + ', ' if r['montant_demande'] else ''}"
+                         f"plafond {_f(r['montant_propose'])}, décidé {_f(r['montant_decide'])}"
+                         f"{', risque ' + format(r['risque'], '.1%').replace('.', ',') if r['risque'] is not None else ''} — « {r['motif']} » "
                          f"(moteur {r['version_moteur']}, graine {r['graine']})"}
               for r in self.q("SELECT x.*, d.institution_id AS inst FROM decisions x JOIN dossiers d ON d.id = x.dossier_id")]
         ev += [{"type": "acces", "horodatage": r["horodatage"], "acteur": r["acteur"], "dossier_id": r["dossier_id"], "institution_id": r["inst"], "detail": r["action"]}
