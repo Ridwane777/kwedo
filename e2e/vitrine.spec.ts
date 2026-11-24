@@ -3,7 +3,7 @@ import { connecter, reinitialiser } from "./session";
 
 // Revue de la mission vitrine : chaque écran, chaque rôle, à 360, 768, 1440 et 1920 px, en clair et en sombre.
 // Captures dans .captures/revue-vitrine/<theme>-<écran>-<largeur>.png ; débordement horizontal interdit.
-const CAP = `${process.env.KWEDO_CAPTURES ?? ".captures"}/revue-finitions`;
+const CAP = `${process.env.KWEDO_CAPTURES ?? ".captures"}/revue-ajustements`;
 const LARGEURS = [360, 768, 1440, 1920] as const;
 const THEMES = [["clair", "light"], ["sombre", "dark"]] as const;
 
