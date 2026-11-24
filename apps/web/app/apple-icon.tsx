@@ -14,7 +14,8 @@ export default function AppleIcon() {
           <path d={CAURI.jambe} stroke="#f2f4f3" strokeWidth="4.6" strokeLinecap="round" fill="none" />
           <path d={CAURI.coquille} fill="#e9dfc4" />
           <path d={CAURI.ouverture} fill="#0a5a47" />
-          <path d={CAURI.dents} stroke="#e9dfc4" strokeWidth=".75" strokeLinecap="round" />
+          <path d={CAURI.dents} stroke="#0a5a47" strokeWidth=".38" strokeLinecap="round" />
+          <path d={CAURI.canaux} fill="#0a5a47" />
         </svg>
       </div>
     ),

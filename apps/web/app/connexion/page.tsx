@@ -81,7 +81,8 @@ export default function Connexion() {
       {/* Univers de marque : la courbe se trace, les cauris s'empilent (CSS, coupé sous mouvement réduit). */}
       <aside className="relative hidden overflow-hidden bg-scene p-[clamp(2.5rem,4vw,4.5rem)] text-sur-scene lg:flex lg:flex-col lg:justify-between">
         <Link href="/" aria-label="Accueil Kwedo"><Marque mono couleur="text-sur-scene" /></Link>
-        <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 top-1/3 opacity-90">
+        {/* La courbe occupe la zone libre sous la marque, au-dessus du texte : elle ne croise ni le texte ni le cauri. */}
+        <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-[13%] h-[30%] opacity-90">
           <svg viewBox="0 0 600 300" preserveAspectRatio="none" className="h-full w-full">
             <path className="trace" style={{ "--longueur": 1400 } as React.CSSProperties} fill="none" stroke="currentColor" strokeOpacity=".55" strokeWidth="2.5"
               d="M0 230 C40 220 60 240 100 210 S160 220 200 190 S260 200 300 170 S360 185 400 140 S460 150 500 110 S560 90 600 60" />
@@ -93,7 +94,7 @@ export default function Connexion() {
             <p className="titre max-w-[16ch] text-[clamp(2.2rem,3.6vw,3.6rem)] leading-[1.02]">Combien, à quel prix, et quoi faire maintenant.</p>
             <p className="mt-4 max-w-[46ch] text-sur-scene-2">Un espace pour le commerçant, une console pour l'institution, une vue de supervision pour la plateforme.</p>
           </div>
-          <span className="text-sur-scene-2 opacity-80"><Cauri taille={150} mono className="cauri-flotte" /></span>
+          <span className="text-sur-scene-2"><Cauri taille={140} mono className="cauri-flotte" /></span>
         </div>
         <p className="relative max-w-[52ch] text-sm text-sur-scene-2">Prototype de démonstration : chaque profil est fictif et ne demande pas de mot de passe.</p>
       </aside>

@@ -1,7 +1,8 @@
 /**
  * Marque Kwedo : le cauri (ADR 0012).
  * En fon, akwɛ́ signifie à la fois « cauri » et « argent ». La marque est un K : barre et jambe à l'encre,
- * bras supérieur formé d'un cauri en amande avec sa fente dentée. Dessin original, aucun motif historique ou rituel.
+ * bras supérieur formé d'un cauri : coquille ovale bombée, fente fine d'une pointe à l'autre, petites dents sur
+ * ses deux lèvres. Dessin original, aucun motif historique ou rituel.
  */
 
 /** Géométrie partagée (composant, favicon, icône d'application, image Open Graph). Grille de 32. */
@@ -9,13 +10,18 @@ export const CAURI = {
   // Barre et jambe du K (encre).
   barre: "M5 6.5a2.5 2.5 0 0 1 5 0v19a2.5 2.5 0 0 1-5 0z",
   jambe: "M14.2 18.2 25 27.2",
-  // Bras supérieur : un cauri en amande posé en diagonale, pointe contre la barre.
-  coquille: "M12.5 16.5C20.67 21.26 31.15 13.08 28.5 4 20.33-.76 9.85 7.42 12.5 16.5z",
-  // Ouverture du cauri dans l'axe de la coquille, évidée : trait aux petites tailles, lentille au-delà,
-  // traversée de dents (ponts de coquille) qui restent à l'intérieur de l'ouverture.
-  fente: "M16 13.7 25.6 6.3",
-  ouverture: "M14.2 15.1C19.52 12.88 23.92 9.48 27.4 4.9 22.08 7.12 17.68 10.52 14.2 15.1z",
-  dents: "M16.24 12.29 17.44 13.83M18.22 10.76 19.42 12.3M20.2 9.23 21.4 10.77M22.18 7.7 23.38 9.24M24.16 6.17 25.36 7.71",
+  // Bras supérieur : coquille ovale bombée (ellipse 9,4 × 6,3) posée en diagonale, pointe arrière contre la barre.
+  // Chemins calculés par scripts/geometrie-cauri.mjs.
+  coquille: "M13.19 16.39A9.4 6.9 -38 1 1 28.01 4.81A9.4 6.9 -38 1 1 13.19 16.39z",
+  // Fente centrale fine d'une pointe à l'autre : trait simple sous 24 px, lentille au-delà.
+  fente: "M14.67 15.23Q21.46 11.7 26.53 5.97",
+  // Ouverture légèrement courbe, comme sur un vrai cauri (une couture de ballon serait droite).
+  ouverture: "M14.67 15.23Q22.51 13.04 26.53 5.97Q20.42 10.36 14.67 15.23z",
+  // Petites dents courtes et serrées (12 par lèvre), creusées dans la coquille de part et d'autre de l'ouverture,
+  // symétriques : elles partent de la lèvre vers l'extérieur et ne traversent jamais l'ouverture.
+  dents: "M16.5 14.63L16.84 15.07M16.06 14.07L15.72 13.64M17.5 14.23L17.84 14.66M16.86 13.41L16.52 12.97M18.47 13.77L18.8 14.21M17.66 12.75L17.32 12.32M19.39 13.28L19.73 13.71M18.47 12.1L18.13 11.66M20.29 12.73L20.62 13.16M19.28 11.45L18.94 11.01M21.14 12.14L21.48 12.57M20.1 10.8L19.76 10.37M21.96 11.5L22.3 11.93M20.92 10.16L20.58 9.73M22.74 10.81L23.08 11.24M21.74 9.53L21.4 9.09M23.49 10.08L23.83 10.51M22.57 8.9L22.23 8.46M24.2 9.3L24.54 9.73M23.4 8.27L23.06 7.84M24.87 8.47L25.21 8.9M24.23 7.65L23.89 7.22M25.51 7.6L25.85 8.03M25.06 7.03L24.73 6.6",
+  // Canaux : petites encoches rondes aux deux extrémités de la coquille, dans l'axe de la fente.
+  canaux: "M26.96 4.81a1.05 1.05 0 1 0 2.1 0a1.05 1.05 0 1 0-2.1 0M12.14 16.39a1.05 1.05 0 1 0 2.1 0a1.05 1.05 0 1 0-2.1 0",
 } as const;
 
 /** Les trois pistes étudiées (documentées dans l'ADR 0012 et sur /design). */
@@ -37,8 +43,8 @@ export function Cauri({ taille = 28, mono = false, className = "" }: { taille?: 
         <mask id={id}>
           <rect width="32" height="32" fill="#fff" />
           {taille < 24
-            ? <path d={CAURI.fente} stroke="#000" strokeWidth="2.2" strokeLinecap="round" fill="none" />
-            : <><path d={CAURI.ouverture} fill="#000" /><path d={CAURI.dents} stroke="#fff" strokeWidth=".75" strokeLinecap="round" /></>}
+            ? <path d={CAURI.fente} stroke="#000" strokeWidth="1.7" strokeLinecap="round" fill="none" />
+            : <><path d={CAURI.ouverture} fill="#000" /><path d={CAURI.dents} stroke="#000" strokeWidth=".34" strokeLinecap="round" /><path d={CAURI.canaux} fill="#000" /></>}
         </mask>
       </defs>
       <path d={CAURI.barre} fill={mono ? "currentColor" : "var(--logo-barre)"} />
@@ -71,14 +77,18 @@ export function PileCauris({ part, total = 8, className = "", mono = false }: { 
   const [plein, vide, fente] = mono ? ["currentColor", "currentColor", "var(--scene)"] : ["var(--logo-cauri)", "var(--trait)", "var(--fond)"];
   const pleins = Math.round(Math.max(0, Math.min(1, part)) * total);
   return (
-    <svg aria-hidden="true" viewBox={`0 0 40 ${total * 9 + 6}`} className={className}>
+    <svg aria-hidden="true" viewBox={`0 0 40 ${total * 10 + 6}`} className={className}>
       {Array.from({ length: total }, (_, k) => {
-        const y = (total - 1 - k) * 9 + 3;
+        // Chaque pièce est un petit cauri vu de dessous : coquille ovale, fente d'une pointe à l'autre, dents.
+        const cx = 20 + (k % 2 ? 2.5 : -2.5), cy = (total - 1 - k) * 10 + 8;
         const estPlein = k < pleins;
         return (
           <g key={k} className={estPlein ? "cauri-empile" : ""} style={{ animationDelay: `${k * 90}ms` }}>
-            <ellipse cx={20 + (k % 2 ? 3 : -3)} cy={y + 4} rx="11" ry="4" fill={estPlein ? plein : "none"} stroke={estPlein ? "none" : vide} strokeOpacity={mono ? 0.35 : 1} />
-            {estPlein && <path d={`M${12 + (k % 2 ? 3 : -3)} ${y + 4}h16`} stroke={fente} strokeWidth="1" strokeLinecap="round" />}
+            <ellipse cx={cx} cy={cy} rx="10" ry="4.6" fill={estPlein ? plein : "none"} stroke={estPlein ? "none" : vide} strokeOpacity={mono ? 0.35 : 1} />
+            {estPlein && <>
+              <path d={`M${cx - 8} ${cy}Q${cx} ${cy + 1.6} ${cx + 8} ${cy}Q${cx} ${cy - 1.6} ${cx - 8} ${cy}z`} fill={fente} />
+              <path d={[-5, -2.5, 0, 2.5, 5].map((dx) => `M${cx + dx} ${cy - 0.75}v.5M${cx + dx + 1.25} ${cy + 0.75}v-.5`).join("")} stroke={plein} strokeWidth=".5" />
+            </>}
           </g>
         );
       })}

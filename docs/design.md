@@ -42,8 +42,11 @@ par `node scripts/theme-sombre.mjs apps/web/app/globals.css` à partir d'une seu
 
 ## Marque : le cauri-K (ADR 0012)
 
-En fon, *akwɛ́* signifie à la fois « cauri » et « argent ». Barre et jambe d'un K à l'encre, bras supérieur en cauri
-avec son ouverture dentée. Pistes comparées sur `/design`. Composants : `Marque`, `Cauri` (couleur ou `mono`),
+En fon, *akwɛ́* signifie à la fois « cauri » et « argent ». Barre et jambe d'un K à l'encre, bras supérieur en cauri :
+coquille ovale bombée, ouverture fine et légèrement courbe d'une pointe à l'autre, petites dents courtes et
+régulières creusées sur ses deux lèvres, encoches aux deux extrémités. Aucune hachure en travers (qui évoquerait des
+lacets de ballon). Sous 24 px, version simplifiée : coquille et trait d'ouverture. La géométrie est calculée par
+`node scripts/geometrie-cauri.mjs` puis reportée dans `components/motif.tsx` et `app/icon.svg`. Pistes comparées sur `/design`. Composants : `Marque`, `Cauri` (couleur ou `mono`),
 `PileCauris` (une pièce par part remboursée), `CauriChargement`. Fichiers : `app/icon.svg` (suit le thème du
 système), `app/apple-icon.tsx`, `app/opengraph-image.tsx`, `app/manifest.ts`. Ni récit historique, ni visuel
 rituel ; l'étymologie de « Kwedo » n'est pas revendiquée.
@@ -53,6 +56,11 @@ rituel ; l'étymologie de « Kwedo » n'est pas revendiquée.
 Gouttières fluides `.gouttiere` (`clamp(1.25rem, 4.5vw, 5rem)`) ; grilles qui se réorganisent ; seules les lignes de
 texte sont limitées (60 à 70 caractères). Contrôle à 360, 768, 1440 et 1920 px, clair et sombre :
 `e2e/vitrine.spec.ts`, captures dans `.captures/revue-vitrine/`.
+
+## Courbes
+
+`CourbeFlux` mesure sa largeur (ResizeObserver) et dessine à l'échelle 1 : mois et valeurs restent à 12 px de 360 à
+1920 px, et la hauteur suit la largeur dans une plage lisible (140 px au minimum).
 
 ## Animations
 

@@ -10,6 +10,15 @@ import { useCommercant } from "@/lib/commercant";
 import { fcfa } from "@/lib/format";
 import type { Estimation as VueEstimation, Commercant, InstitutionPublique } from "@/lib/types";
 
+function Actions() {
+  return (
+    <>
+      <LienBouton href="/app/simulateur" variante="trait" grand icone={Calculator} className="w-full">Et si je demandais plus&nbsp;?</LienBouton>
+      <LienBouton href="/app/conseils" variante="discret" icone={Lightbulb} className="w-full">Comment augmenter mon plafond</LienBouton>
+    </>
+  );
+}
+
 export default function Estimation() {
   const { id } = useCommercant();
   const [inst, setInst] = useState("inst-lagune");
@@ -37,7 +46,7 @@ export default function Estimation() {
   return (
     // Téléphone : une colonne. Ordinateur : montant et actions à gauche, courbe et raisons à droite.
     <section className="grid gap-6 lg:grid-cols-[minmax(20rem,28rem)_minmax(0,1fr)] lg:items-start lg:gap-x-[clamp(2rem,4vw,4rem)]">
-      <div className="space-y-6 lg:col-start-1 lg:row-start-1">
+      <div className="space-y-6 lg:sticky lg:top-6 lg:col-start-1 lg:row-start-1">
       {/* Combien, à quel prix, que faire : tout tient dans ce bloc, au-dessus de la ligne de flottaison. */}
       <div className="rounded-3xl bg-surface p-5 shadow-carte lg:p-7">
         <p className="text-encre-2">Bonjour {prenom}, vous pouvez emprunter jusqu'à</p>
@@ -71,9 +80,11 @@ export default function Estimation() {
       </div>
 
       {insts.donnees && <ChoixInstitution institutions={insts.donnees} valeur={inst} onChange={setInst} />}
+      {/* Ordinateur : les actions suivent le sélecteur, sans trou ; sur téléphone elles restent en bas de page. */}
+      <div className="hidden gap-2 lg:grid"><Actions /></div>
       </div>
 
-      <div className="min-w-0 space-y-6 lg:col-start-2 lg:row-span-2 lg:row-start-1">
+      <div className="min-w-0 space-y-6 lg:col-start-2 lg:row-start-1">
       {a && (
         <div className="space-y-2 lg:rounded-3xl lg:border lg:border-trait lg:bg-surface lg:p-6">
           <h2 className="titre text-xl">Vos ventes, semaine par semaine</h2>
@@ -90,10 +101,7 @@ export default function Estimation() {
       )}
       </div>
 
-      <div className="grid gap-2 pt-1 lg:col-start-1 lg:row-start-2">
-        <LienBouton href="/app/simulateur" variante="trait" grand icone={Calculator} className="w-full">Et si je demandais plus&nbsp;?</LienBouton>
-        <LienBouton href="/app/conseils" variante="discret" icone={Lightbulb} className="w-full">Comment augmenter mon plafond</LienBouton>
-      </div>
+      <div className="grid gap-2 pt-1 lg:hidden"><Actions /></div>
     </section>
   );
 }

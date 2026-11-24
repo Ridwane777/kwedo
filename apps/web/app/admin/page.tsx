@@ -14,6 +14,55 @@ type Ligne = { id: string; nom: string; dossiers: number; a_traiter: number; cre
 type Evenement = { type: string; horodatage: string; acteur: string; institution_id: string | null; detail: string };
 type Apercu = { maintenant: string; version_moteur: string; commercants: number; dossiers: number; credits: number; institutions: Ligne[]; journal: Evenement[] };
 
+/**
+ * Répartition des dossiers, calculée uniquement à partir de l'aperçu existant (aucune donnée ajoutée) :
+ * à traiter = a_traiter ; décidés = dossiers − à traiter ; dont crédit ouvert = crédits.
+ */
+function Repartition({ institutions }: { institutions: Ligne[] }) {
+  const lignes = institutions.map((i) => {
+    const decides = Math.max(0, i.dossiers - i.a_traiter);
+    const credits = Math.min(i.credits, decides);
+    return { ...i, decides, credits, sansCredit: decides - credits };
+  });
+  const tot = lignes.reduce((s, i) => ({ t: s.t + i.a_traiter, d: s.d + i.sansCredit, c: s.c + i.credits }), { t: 0, d: 0, c: 0 });
+  const max = Math.max(1, ...lignes.map((i) => i.dossiers));
+  const SEG = [
+    { cle: "a_traiter", label: "À traiter", classe: "bg-ambre", total: tot.t },
+    { cle: "sansCredit", label: "Décidés sans crédit", classe: "bg-encre-3", total: tot.d },
+    { cle: "credits", label: "Crédit ouvert", classe: "bg-bon", total: tot.c },
+  ] as const;
+  return (
+    <div className="space-y-4 rounded-2xl border border-trait bg-surface p-4">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h3 className="font-semibold">Répartition des dossiers</h3>
+        <p className="text-xs text-encre-2">Calculée depuis les volumes ci-dessus</p>
+      </div>
+      <dl className="grid grid-cols-3 gap-2">
+        {SEG.map((s) => (
+          <div key={s.cle} className="rounded-xl bg-fond p-3">
+            <dt className="flex items-start gap-1.5 text-xs text-encre-2"><span aria-hidden="true" className={`mt-1 h-2 w-2 shrink-0 rounded-full ${s.classe}`} />{s.label}</dt>
+            <dd className="montant mt-1 text-2xl leading-none">{s.total}</dd>
+          </div>
+        ))}
+      </dl>
+      <ul className="space-y-3">
+        {lignes.map((i) => (
+          <li key={i.id}>
+            <p className="mb-1 flex justify-between gap-3 text-sm"><span className="min-w-0 truncate">{i.nom}</span><span className="chiffres shrink-0 whitespace-nowrap text-encre-2">{i.dossiers} dossier{i.dossiers > 1 ? "s" : ""}</span></p>
+            <div className="flex h-3 overflow-hidden rounded-full bg-surface-2" role="img"
+              aria-label={`${i.nom} : ${i.a_traiter} à traiter, ${i.sansCredit} décidés sans crédit ouvert, ${i.credits} avec crédit ouvert`}>
+              {SEG.map((s) => {
+                const v = i[s.cle];
+                return v ? <span key={s.cle} className={s.classe} style={{ width: `${(v / max) * 100}%` }} /> : null;
+              })}
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 function Tableau({ u }: { u: Utilisateur }) {
   const { donnees: a, erreur, recharger } = useApi<Apercu>("/admin/apercu");
   const [occupe, setOccupe] = useState<string | null>(null);
@@ -79,7 +128,7 @@ function Tableau({ u }: { u: Utilisateur }) {
         </dl>
 
         {/* Grand écran : institutions à gauche, activité et commandes à droite, sur toute la largeur. */}
-        <div className="grid gap-8 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] xl:items-start">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-8 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] xl:items-start">
         <section className="space-y-3">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h2 className="titre text-xl">Institutions</h2>
@@ -104,9 +153,10 @@ function Tableau({ u }: { u: Utilisateur }) {
               ))}
             </ul>
           )}
+          {institutions.length > 0 && <Repartition institutions={institutions} />}
         </section>
 
-        <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px] xl:grid-cols-1 2xl:grid-cols-[minmax(0,1fr)_280px]">
+        <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px] xl:grid-cols-1">
           <div className="min-w-0 space-y-3">
             <h2 className="titre text-xl">Activité récente</h2>
             {!a.journal.length ? <Vide titre="Aucune activité">Les événements de la plateforme s'affichent ici au fil de l'eau.</Vide> : (
@@ -138,11 +188,11 @@ function Tableau({ u }: { u: Utilisateur }) {
               <Simule quoi="Simulé" />
             </div>
             <p className="text-encre-2">Elles agissent sur toute la plateforme.</p>
-            <div className="flex gap-2">
-              <BoutonIcone icone={FastForward} label="Avancer l'horloge de 7 jours" ancre="gauche" className="border border-trait" disabled={!!occupe} aria-busy={occupe === "avancer"}
-                onClick={() => void commande("avancer", "/demo/avancer", { jours: 7 }, "Horloge avancée de 7 jours.")} />
-              <BoutonIcone icone={RotateCcw} label="Réinitialiser la démo…" className="border border-trait" disabled={!!occupe} aria-expanded={confirmer}
-                onClick={() => setConfirmer(true)} />
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+              <Bouton variante="trait" icone={FastForward} disabled={!!occupe} aria-busy={occupe === "avancer"}
+                onClick={() => void commande("avancer", "/demo/avancer", { jours: 7 }, "Horloge avancée de 7 jours.")}>Avancer de 7 jours</Bouton>
+              <Bouton variante="trait" icone={RotateCcw} disabled={!!occupe} aria-expanded={confirmer}
+                onClick={() => setConfirmer(true)}>Réinitialiser</Bouton>
             </div>
             {confirmer && (
               <div className="space-y-2 rounded-xl bg-alerte-doux p-3">

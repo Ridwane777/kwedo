@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { mkdirSync, writeFileSync } from "node:fs";
 
 // Marque cauri : pistes, tailles, clair et sombre ; favicon, icône d'application et image Open Graph servis.
-const CAP = `${process.env.KWEDO_CAPTURES ?? ".captures"}/revue-vitrine`;
+const CAP = `${process.env.KWEDO_CAPTURES ?? ".captures"}/revue-finitions`;
 
 for (const colorScheme of ["light", "dark"] as const) {
   test(`marque et pistes de logo (${colorScheme})`, async ({ page }) => {

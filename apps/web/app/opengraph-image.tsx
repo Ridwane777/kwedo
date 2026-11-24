@@ -16,7 +16,8 @@ export default function ImageOg() {
             <path d={CAURI.jambe} stroke="#0e1d18" strokeWidth="4.6" strokeLinecap="round" fill="none" />
             <path d={CAURI.coquille} fill="#0a5a47" />
             <path d={CAURI.ouverture} fill="#f2f4f3" />
-            <path d={CAURI.dents} stroke="#0a5a47" strokeWidth=".75" strokeLinecap="round" />
+            <path d={CAURI.dents} stroke="#f2f4f3" strokeWidth=".38" strokeLinecap="round" />
+            <path d={CAURI.canaux} fill="#f2f4f3" />
           </svg>
           <div style={{ fontSize: 72, fontWeight: 700, letterSpacing: -2 }}>Kwedo</div>
         </div>
