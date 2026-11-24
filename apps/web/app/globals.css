@@ -25,6 +25,14 @@
   --ambre-doux: #faebc8;
   --focus: #0a5a47;
   --cadre: #0e1d18;         /* bord du téléphone de la démo */
+  --action: #0a5a47;        /* fond du bouton principal (= marque en clair) */
+  --sur-action: #f2f4f3;
+  --montant: #0a5a47;       /* gros montants (= marque en clair, texte neutre en sombre) */
+  --logo-barre: #0e1d18;    /* marque cauri : barre du K */
+  --logo-cauri: #0a5a47;    /* marque cauri : coquille (ivoire sable en sombre) */
+  --scene: #0a5a47;         /* panneau de marque (connexion) : vert en clair, graphite en sombre */
+  --sur-scene: #f2f4f3;
+  --sur-scene-2: #d7ebe3;
   --ombre: 0 1px 0 rgb(14 29 24 / 0.04), 0 8px 24px -12px rgb(14 29 24 / 0.18);
 }
 
@@ -35,51 +43,67 @@
 :root { color-scheme: light; }
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --fond: #0c1613;
-  --surface: #13201c;
-  --surface-2: #1a2925;
-  --surface-3: #23352f;
-  --trait: #2e423b;
-  --encre: #e8efec;
-  --encre-2: #b5c3bd;
-  --encre-3: #93a39c;
-  --marque: #6fd0ae;
-  --marque-doux: #10362b;
-  --alerte: #ff9a8f;
-  --alerte-doux: #42140f;
-  --bon: #87d49a;
-  --bon-doux: #143220;
-  --ambre: #e9b54a;
-  --ambre-encre: #f3d38a;
-  --ambre-doux: #3a2b08;
-  --focus: #6fd0ae;
-  --cadre: #3a5148;
-  --ombre: 0 1px 0 rgb(0 0 0 / 0.3), 0 8px 24px -12px rgb(0 0 0 / 0.6);
+  --fond: #141312;
+  --surface: #1c1b19;
+  --surface-2: #252422;
+  --surface-3: #2f2d2a;
+  --trait: #3b3936;
+  --encre: #ecebe7;
+  --encre-2: #c2beb7;
+  --encre-3: #a29d95;
+  --marque: #8db3a4;
+  --marque-doux: #263330;
+  --action: #3c5f53;
+  --sur-action: #f1efea;
+  --montant: #ecebe7;
+  --alerte: #e3a197;
+  --alerte-doux: #3b2522;
+  --bon: #9ec4a6;
+  --bon-doux: #24302a;
+  --ambre: #cfa55a;
+  --ambre-encre: #e5cc93;
+  --ambre-doux: #372f20;
+  --focus: #a9c9bc;
+  --cadre: #3b3936;
+  --logo-barre: #ecebe7;
+  --logo-cauri: #d4c6a1;
+  --scene: #1f1e1c;
+  --sur-scene: #ecebe7;
+  --sur-scene-2: #c2beb7;
+  --ombre: 0 0 0 1px rgb(255 255 255 / 0.04);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]):not([data-theme="dark"]) {
     color-scheme: dark;
-    --fond: #0c1613;
-    --surface: #13201c;
-    --surface-2: #1a2925;
-    --surface-3: #23352f;
-    --trait: #2e423b;
-    --encre: #e8efec;
-    --encre-2: #b5c3bd;
-    --encre-3: #93a39c;
-    --marque: #6fd0ae;
-    --marque-doux: #10362b;
-    --alerte: #ff9a8f;
-    --alerte-doux: #42140f;
-    --bon: #87d49a;
-    --bon-doux: #143220;
-    --ambre: #e9b54a;
-    --ambre-encre: #f3d38a;
-    --ambre-doux: #3a2b08;
-    --focus: #6fd0ae;
-    --cadre: #3a5148;
-    --ombre: 0 1px 0 rgb(0 0 0 / 0.3), 0 8px 24px -12px rgb(0 0 0 / 0.6);
+    --fond: #141312;
+    --surface: #1c1b19;
+    --surface-2: #252422;
+    --surface-3: #2f2d2a;
+    --trait: #3b3936;
+    --encre: #ecebe7;
+    --encre-2: #c2beb7;
+    --encre-3: #a29d95;
+    --marque: #8db3a4;
+    --marque-doux: #263330;
+    --action: #3c5f53;
+    --sur-action: #f1efea;
+    --montant: #ecebe7;
+    --alerte: #e3a197;
+    --alerte-doux: #3b2522;
+    --bon: #9ec4a6;
+    --bon-doux: #24302a;
+    --ambre: #cfa55a;
+    --ambre-encre: #e5cc93;
+    --ambre-doux: #372f20;
+    --focus: #a9c9bc;
+    --cadre: #3b3936;
+    --logo-barre: #ecebe7;
+    --logo-cauri: #d4c6a1;
+    --scene: #1f1e1c;
+    --sur-scene: #ecebe7;
+    --sur-scene-2: #c2beb7;
+    --ombre: 0 0 0 1px rgb(255 255 255 / 0.04);
   }
 }
 
@@ -102,6 +126,14 @@
   --color-ambre-encre: var(--ambre-encre);
   --color-ambre-doux: var(--ambre-doux);
   --color-cadre: var(--cadre);
+  --color-action: var(--action);
+  --color-sur-action: var(--sur-action);
+  --color-montant: var(--montant);
+  --color-logo-cauri: var(--logo-cauri);
+  --color-logo-barre: var(--logo-barre);
+  --color-scene: var(--scene);
+  --color-sur-scene: var(--sur-scene);
+  --color-sur-scene-2: var(--sur-scene-2);
   --font-serif: var(--font-titre), system-ui, sans-serif;
   --font-sans: var(--font-texte), system-ui, sans-serif;
   --shadow-carte: var(--ombre);
@@ -121,6 +153,61 @@ body { font-family: var(--font-sans); font-variant-numeric: tabular-nums; -webki
 .apparait { animation: apparaitre .35s ease-out both; }
 @keyframes pulse-doux { 0%,100% { opacity: .5 } 50% { opacity: 1 } }
 .chargement { animation: pulse-doux 1.2s ease-in-out infinite; background: var(--surface-3); border-radius: 6px; }
+
+/* Cauris : empilement (remboursements) et chargement. transform + opacity seulement. */
+@keyframes cauri-empile { from { opacity: 0; transform: translateY(-14px); } to { opacity: 1; transform: none; } }
+.cauri-empile { animation: cauri-empile .45s cubic-bezier(.2,.8,.2,1) both; }
+/* ---------- Pleine largeur (ADR 0012) : gouttières fluides ; seules les lignes de texte sont limitées. ---------- */
+.gouttiere { padding-inline: clamp(1.25rem, 4.5vw, 5rem); }
+
+/* Images propres à un thème (captures de l'app en clair et en sombre). display:none : l'autre image n'est pas chargée. */
+.seul-sombre { display: none; }
+:root[data-theme="dark"] .seul-clair { display: none; }
+:root[data-theme="dark"] .seul-sombre { display: block; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]):not([data-theme="dark"]) .seul-clair { display: none; }
+  :root:not([data-theme="light"]):not([data-theme="dark"]) .seul-sombre { display: block; }
+}
+
+/* Écrans du téléphone qui se succèdent (fondu). Sans animation, le premier écran reste affiché. */
+/* Trois écrans, 4 s chacun : visible de 0 à 30 % du cycle, fondu vers 33 %, retour à 100 %. */
+@keyframes ecran-suivant { 0%, 30% { opacity: 1; } 33.3%, 97% { opacity: 0; } 100% { opacity: 1; } }
+.defile > * { position: absolute; inset: 0; }
+.defile > *:not(:first-child) { opacity: 0; }
+@media (prefers-reduced-motion: no-preference) {
+  .defile > * { animation: ecran-suivant 12s infinite; }
+  .defile > *:nth-child(1) { animation-delay: 0s; }
+  .defile > *:nth-child(2) { animation-delay: 4s; }
+  .defile > *:nth-child(3) { animation-delay: 8s; }
+  .defile > *:not(:first-child) { opacity: 0; }
+  .defile > *:first-child { opacity: 1; }
+}
+
+/* Compteur : milliers comptés de 0 à --cible en CSS ; la valeur exacte est donnée en texte aux lecteurs d'écran. */
+@property --milliers { syntax: "<integer>"; initial-value: 0; inherits: false; }
+.compteur { --milliers: var(--cible); counter-reset: m var(--milliers); }
+.compteur::before { content: counter(m); }
+@media (prefers-reduced-motion: no-preference) {
+  .compteur { animation: compter 1.8s cubic-bezier(.2,.7,.2,1) .3s both; }
+  @keyframes compter { from { --milliers: 0; } to { --milliers: var(--cible); } }
+}
+
+/* Révélations au défilement : amélioration progressive, le contenu reste visible sans elles. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .revele { animation: revele linear both; animation-timeline: view(); animation-range: entry 0% cover 28%; }
+    @keyframes revele { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: none; } }
+    .fil-progres { transform-origin: top; animation: fil linear both; animation-timeline: view(); animation-range: cover 10% cover 70%; }
+    @keyframes fil { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cauri-flotte { animation: cauri-flotte 7s ease-in-out infinite; }
+  @keyframes cauri-flotte { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-10px) rotate(-4deg); } }
+}
+
+@keyframes cauri-tourne { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-18deg) scale(.94); } }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }

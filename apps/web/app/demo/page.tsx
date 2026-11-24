@@ -120,7 +120,7 @@ export default function Demo() {
             {TEMPS.map((x, i) => (
               <li key={x.titre}>
                 <button onClick={() => setK(i)} aria-current={i === k ? "step" : undefined} title={x.titre}
-                  className={`h-9 w-full rounded-md text-sm font-medium ${i === k ? "bg-marque text-fond" : i < k ? "bg-marque-doux text-marque" : "bg-surface-2 text-encre-2"}`}>{i + 1}</button>
+                  className={`h-9 w-full rounded-md text-sm font-medium ${i === k ? "bg-action text-sur-action" : i < k ? "bg-marque-doux text-marque" : "bg-surface-2 text-encre-2"}`}>{i + 1}</button>
               </li>
             ))}
           </ol>

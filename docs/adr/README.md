@@ -13,3 +13,4 @@
 | [0009](0009-comptes-roles-cloisonnement.md) | Profils de démonstration, rôles et cloisonnement des institutions (pas d'authentification) | accepté |
 | [0010](0010-systeme-design-comptoir.md) | Système de design « comptoir » à la place du « registre vivant » | accepté (police d'interface remplacée par 0011) |
 | [0011](0011-police-public-sans.md) | Public Sans comme police d'interface | accepté |
+| [0012](0012-marque-cauri-vitrine.md) | Marque cauri, vitrine pleine largeur, mode sombre graphite | accepté (remplace la marque et le sombre de 0010) |

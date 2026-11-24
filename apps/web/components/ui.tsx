@@ -17,7 +17,7 @@ export function Simule({ quoi = "Données simulées", className = "" }: { quoi?:
 
 type Variante = "plein" | "trait" | "discret" | "danger";
 const STYLES: Record<Variante, string> = {
-  plein: "bg-marque text-fond shadow-carte hover:brightness-110 active:translate-y-px",
+  plein: "bg-action text-sur-action shadow-carte hover:brightness-110 active:translate-y-px",
   trait: "border border-trait bg-surface text-encre hover:border-encre-3 active:translate-y-px",
   discret: "text-marque underline-offset-4 hover:underline",
   danger: "border border-alerte bg-surface text-alerte hover:bg-alerte-doux",

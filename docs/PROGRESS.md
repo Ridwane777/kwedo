@@ -96,3 +96,18 @@ d'attente sous charge (passé seul puis dans la suite complète) ; à surveiller
 | 4 | Thème | Clair / Sombre / Système via `data-theme`, script avant rendu (aucun flash), `localStorage` protégé, Système suit le téléphone en direct (CSS), iframes synchronisées. Contrastes AA mesurés dans les deux thèmes (`scripts/contrastes.mjs`) ; axe sur tous les écrans principaux en clair et en sombre (`e2e/qualite.spec.ts`) ; persistance testée |
 | 5 | ADR | 0010 restauré tel que sur `main`, statut seul annoté ; ADR 0011 (Public Sans) ajouté à l'index |
 | — | Vérification | build OK, `test:api` OK, `npx playwright test` **83/83** ; 178 captures (chaque écran et rôle, 360/1440, clair/sombre, offre, crédit en cours, 9 temps de démo, menus ouverts) dans `.captures/revue-finale/` |
+
+## Mission vitrine (`docs/MISSION-VITRINE.md`, branche `vitrine`)
+
+| # | Demande | Preuve |
+|---|---|---|
+| 1 | Pleine largeur | Gouttières fluides (`.gouttiere`), plus de colonne centrée : accueil, connexion (deux panneaux, univers de marque animé), admin (deux colonnes en grand écran), console, démo ; espace commerçant avec navigation latérale sur ordinateur (montant et actions à gauche, courbe et raisons à droite), barre du bas sur téléphone. `e2e/vitrine.spec.ts` : 4 groupes d'écrans × 360/768/1440/1920 × clair/sombre, aucun débordement |
+| 2 | Logo cauri | Cauri-K (barre et jambe du K, bras supérieur en cauri à ouverture dentée) ; 3 pistes comparées sur `/design` ; deux défauts de dessin corrigés en cours (dents en travers qui évoquaient un ballon, puis feuille sans dents). `Marque`, `Cauri` (couleur, mono), favicon SVG adaptatif, icône d'application, image Open Graph, manifeste ; pile de cauris, chargement. Aucun récit historique ni étymologie revendiquée |
+| 3 | Accueil | 9 sections : héros à deux entrées avec vrais écrans, problème (chiffres « à recontrôler »), solution au défilement, 5 vraies captures de l'app sans badge de magasin, simulateur interactif « exemple », calcul, institutions, confiance et limites, état honnête (limite du moteur sur les activités jamais vues), FAQ, appel à l'action, pied de page. Captures générées depuis l'app (`playwright.vitrine.config.ts`) |
+| 4 | Animations | CSS seulement (`transform`, `opacity`) : courbe tracée, compteur `@property`, écrans en fondu, cauris, révélations au défilement sous `@supports` ; tout coupé sous mouvement réduit ; `motion` non ajouté |
+| 5 | Sombre | Graphite neutre chaud, accent désaturé, jetons `action`, `montant`, `scene`, `logo-*` ; clair inchangé hors logo ; `node scripts/contrastes.mjs --strict` : AA sur chaque niveau de surface |
+| — | Poids de l'accueil | Avant : 779 ko bruts. Après : 1 010 ko bruts, 486 ko compressés (images 118, polices 180, JS 150). Défaut trouvé : `sizes` invalide (clamp) qui chargeait les captures en pleine largeur (images 355 → 118 ko) ; préchargement des liens désactivé sur l'accueil. Budget testé : 520 ko compressés (`e2e/poids.spec.ts`) |
+| — | Vérification | build OK, `test:api` OK, `npx playwright test` **119/119** (axe en clair et en sombre) ; captures dans `.captures/revue-vitrine/` ; ADR 0012, `docs/design.md` |
+
+Limite : les captures pleine page sont prises en mouvement réduit (sinon les révélations au défilement restent dans
+leur état initial hors de la vue) ; les animations elles-mêmes se vérifient dans le navigateur.

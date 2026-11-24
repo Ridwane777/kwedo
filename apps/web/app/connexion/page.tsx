@@ -4,7 +4,7 @@ import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
-import { Marque } from "@/components/motif";
+import { Cauri, Marque } from "@/components/motif";
 import { BoutonTheme } from "@/components/user-button";
 import { Chargement, Erreur, Simule } from "@/components/ui";
 import { connecter, useApi } from "@/lib/api";
@@ -44,7 +44,7 @@ function Choix() {
     ["Plateforme Kwedo", donnees.filter((p) => p.role === "admin")],
   ];
   return (
-    <div className="space-y-6">
+    <div className="grid gap-6 2xl:grid-cols-2 2xl:items-start">
       {echec && <p role="alert" className="rounded-xl bg-alerte-doux p-3 text-sm text-alerte">{echec}</p>}
       {groupes.map(([titre, profils]) => (
         <section key={titre}>
@@ -77,16 +77,27 @@ function Choix() {
 
 export default function Connexion() {
   return (
-    <div className="min-h-dvh lg:grid lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-      <aside className="hidden flex-col justify-between bg-marque p-12 text-fond lg:flex">
-        <Link href="/" aria-label="Accueil Kwedo"><Marque inverse /></Link>
-        <div>
-          <p className="titre max-w-md text-[2.6rem] leading-[1.05]">Combien, à quel prix, et quoi faire maintenant.</p>
-          <p className="mt-4 max-w-sm opacity-85">Un espace pour le commerçant, une console pour l'institution, une vue de supervision pour la plateforme.</p>
+    <div className="min-h-dvh lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+      {/* Univers de marque : la courbe se trace, les cauris s'empilent (CSS, coupé sous mouvement réduit). */}
+      <aside className="relative hidden overflow-hidden bg-scene p-[clamp(2.5rem,4vw,4.5rem)] text-sur-scene lg:flex lg:flex-col lg:justify-between">
+        <Link href="/" aria-label="Accueil Kwedo"><Marque mono couleur="text-sur-scene" /></Link>
+        <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 top-1/3 opacity-90">
+          <svg viewBox="0 0 600 300" preserveAspectRatio="none" className="h-full w-full">
+            <path className="trace" style={{ "--longueur": 1400 } as React.CSSProperties} fill="none" stroke="currentColor" strokeOpacity=".55" strokeWidth="2.5"
+              d="M0 230 C40 220 60 240 100 210 S160 220 200 190 S260 200 300 170 S360 185 400 140 S460 150 500 110 S560 90 600 60" />
+            <path fill="none" stroke="currentColor" strokeOpacity=".22" strokeDasharray="6 8" d="M0 205 H600" />
+          </svg>
         </div>
-        <p className="max-w-sm text-sm opacity-85">Prototype de démonstration : chaque profil est fictif et ne demande pas de mot de passe.</p>
+        <div className="relative grid grid-cols-[minmax(0,1fr)_auto] items-end gap-8">
+          <div>
+            <p className="titre max-w-[16ch] text-[clamp(2.2rem,3.6vw,3.6rem)] leading-[1.02]">Combien, à quel prix, et quoi faire maintenant.</p>
+            <p className="mt-4 max-w-[46ch] text-sur-scene-2">Un espace pour le commerçant, une console pour l'institution, une vue de supervision pour la plateforme.</p>
+          </div>
+          <span className="text-sur-scene-2 opacity-80"><Cauri taille={150} mono className="cauri-flotte" /></span>
+        </div>
+        <p className="relative max-w-[52ch] text-sm text-sur-scene-2">Prototype de démonstration : chaque profil est fictif et ne demande pas de mot de passe.</p>
       </aside>
-      <div className="mx-auto w-full max-w-xl px-5 py-6 lg:py-12">
+      <div className="gouttiere w-full py-6 lg:py-12">
         <header className="flex items-center justify-between gap-3 pb-6 lg:justify-end">
           <Link href="/" aria-label="Accueil Kwedo" className="lg:hidden"><Marque /></Link>
           <div className="flex items-center gap-2"><Simule quoi="Profils fictifs" /><BoutonTheme /></div>

@@ -84,7 +84,7 @@ export default function PageOffre() {
     <section className="space-y-6">
       <div className="space-y-1">
         <p className="text-encre-2">{o.institution} vous propose</p>
-        <p className="montant text-5xl text-marque">{fcfa(o.montant_offre)}</p>
+        <p className="montant text-5xl text-montant">{fcfa(o.montant_offre)}</p>
         <Simule quoi="Offre fictive" />
       </div>
       <dl className="divide-y divide-trait border-y border-trait text-[16px]">

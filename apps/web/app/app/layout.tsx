@@ -1,17 +1,22 @@
 import type { Metadata } from "next";
-import { Lisiere } from "@/components/motif";
 import { FournisseurCommercant } from "@/lib/commercant";
-import { EnteteCommercant, NavCommercant } from "./nav";
+import { EnteteCommercant, NavCommercant, NavLaterale } from "./nav";
 
 export const metadata: Metadata = { title: "Mon crédit" };
 
+/**
+ * Téléphone : en-tête, contenu, barre de navigation en bas.
+ * Ordinateur (≥ 1024 px) : navigation latérale et contenu sur toute la largeur restante.
+ */
 export default function LayoutCommercant({ children }: { children: React.ReactNode }) {
   return (
     <FournisseurCommercant>
-      <div className="mx-auto flex min-h-dvh max-w-md flex-col">
+      <div className="flex min-h-dvh flex-col">
         <EnteteCommercant />
-        <Lisiere hauteur={10} />
-        <main className="flex-1 px-5 pb-28 pt-5">{children}</main>
+        <div className="flex flex-1">
+          <NavLaterale />
+          <main className="gouttiere min-w-0 flex-1 pb-28 pt-5 lg:pb-12 lg:pt-8">{children}</main>
+        </div>
         <NavCommercant />
       </div>
     </FournisseurCommercant>

@@ -129,7 +129,7 @@ export default function Fiche() {
           <section aria-labelledby="t-ana" className="grid gap-4 rounded-2xl border border-trait bg-surface p-4 sm:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
             <div>
               <h2 id="t-ana" className="text-sm font-semibold text-encre-2">Montant proposé par le moteur</h2>
-              <p className="montant mt-1 text-[2.6rem] leading-none text-marque">{fcfa(a.plafond)}</p>
+              <p className="montant mt-1 text-[2.6rem] leading-none text-montant">{fcfa(a.plafond)}</p>
               <p className="mt-2 text-encre-2">{a.duree_semaines} échéances de {fcfa(a.echeance_hebdo)}. Plafond de la formule : {fcfa(plafondFormule)}.</p>
             </div>
             <dl className="grid content-start gap-3">

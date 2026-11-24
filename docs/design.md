@@ -21,16 +21,45 @@ de travail, fiche de décision au clavier, ton calme. Aucun écran, logo ni coul
 
 | Token | Clair | Sombre | Rôle |
 |---|---|---|---|
-| `fond` | #f2f4f3 | #0c1613 | fond minéral froid |
-| `surface` | #ffffff | #13201c | cartes, tableaux |
-| `surface-2/3`, `trait` | #e7ecea / #d9e0dd / #c9d2ce | #1a2925 / #23352f / #2e423b | survol, chargement, filets |
-| `encre`, `encre-2`, `encre-3` | #0e1d18 / #3b4a44 / #56645e | #e8efec / #b5c3bd / #93a39c | texte |
-| `marque` (+ `-doux`) | #0a5a47 | #6fd0ae | action principale, montants, élément actif |
-| `bon` (+ `-doux`) | #1d6b35 | #87d49a | payé, à jour, validé |
-| `ambre` (+ `-encre`, `-doux`) | #c98a0b | #e9b54a | à vérifier ; `ambre` jamais en texte |
-| `alerte` (+ `-doux`) | #b0261c | #ff9a8f | retard, refus, destruction |
+| `fond` | #f2f4f3 | #141312 | fond (sombre : graphite neutre légèrement chaud, sans teinte verte) |
+| `surface` | #ffffff | #1c1b19 | cartes, tableaux |
+| `surface-2/3`, `trait` | #e7ecea / #d9e0dd / #c9d2ce | #252422 / #2f2d2a / #3b3936 | survol, chargement, filets |
+| `encre`, `encre-2`, `encre-3` | #0e1d18 / #3b4a44 / #56645e | #ecebe7 / #c2beb7 / #a29d95 | texte |
+| `marque` (+ `-doux`) | #0a5a47 | #8db3a4 / #263330 | liens, élément actif, petits signaux |
+| `action` / `sur-action` | #0a5a47 / #f2f4f3 | #3c5f53 / #f1efea | bouton principal (sobre en sombre) |
+| `montant` | #0a5a47 | #ecebe7 | gros montants (texte clair neutre en sombre) |
+| `bon` (+ `-doux`) | #1d6b35 | #9ec4a6 | payé, à jour, validé |
+| `ambre` (+ `-encre`, `-doux`) | #c98a0b | #cfa55a | à vérifier ; `ambre` jamais en texte |
+| `alerte` (+ `-doux`) | #b0261c | #e3a197 | retard, refus, destruction |
+| `logo-barre` / `logo-cauri` | #0e1d18 / #0a5a47 | #ecebe7 / #d4c6a1 | marque cauri-K |
+| `scene` / `sur-scene` | #0a5a47 / #f2f4f3 | #1f1e1c / #ecebe7 | panneau de marque de la connexion |
+| `cadre` | #0e1d18 | #3b3936 | bord des téléphones (démo, accueil) |
 
-Jeton `cadre` (#0e1d18 / #3a5148) : bord du téléphone de la démo, dessiné pour chaque thème.
+Mode sombre (ADR 0012) : la profondeur vient de la clarté des surfaces, pas des ombres ; pas de grand aplat vert ;
+l'accent est réservé à une action par écran et aux petits signaux. Les blocs sombres de `globals.css` sont écrits
+par `node scripts/theme-sombre.mjs apps/web/app/globals.css` à partir d'une seule liste. Contrastes mesurés sur
+**chaque niveau de surface**, dans les deux thèmes : `node scripts/contrastes.mjs --strict`.
+
+## Marque : le cauri-K (ADR 0012)
+
+En fon, *akwɛ́* signifie à la fois « cauri » et « argent ». Barre et jambe d'un K à l'encre, bras supérieur en cauri
+avec son ouverture dentée. Pistes comparées sur `/design`. Composants : `Marque`, `Cauri` (couleur ou `mono`),
+`PileCauris` (une pièce par part remboursée), `CauriChargement`. Fichiers : `app/icon.svg` (suit le thème du
+système), `app/apple-icon.tsx`, `app/opengraph-image.tsx`, `app/manifest.ts`. Ni récit historique, ni visuel
+rituel ; l'étymologie de « Kwedo » n'est pas revendiquée.
+
+## Mise en page pleine largeur
+
+Gouttières fluides `.gouttiere` (`clamp(1.25rem, 4.5vw, 5rem)`) ; grilles qui se réorganisent ; seules les lignes de
+texte sont limitées (60 à 70 caractères). Contrôle à 360, 768, 1440 et 1920 px, clair et sombre :
+`e2e/vitrine.spec.ts`, captures dans `.captures/revue-vitrine/`.
+
+## Animations
+
+CSS seulement, `transform` et `opacity` : `.trace` (courbe), `.compteur` (montant compté via `@property`), `.defile`
+(écrans du téléphone en fondu), `.cauri-empile`, `.cauri-flotte`, `.revele` et `.fil-progres` (au défilement, sous
+`@supports (animation-timeline: view())`, donc absentes sans prise en charge et le contenu reste visible).
+Tout est coupé sous `prefers-reduced-motion`. Console et admin : micro-interactions seulement.
 
 ## Thème clair, sombre, système
 
@@ -67,21 +96,30 @@ l'historique est rechargée, donc le retour arrière ne rouvre pas l'espace. Mas
 
 ### Contrastes (WCAG 2.1, `node scripts/contrastes.mjs`)
 
-| Paire | Clair | Sombre |
+Le script lit `globals.css` et mesure chaque texte sur **chaque niveau de surface** (fond, surface, surface-2,
+surface-3), dans les deux thèmes, plus les paires dédiées. Plus faible valeur par ligne (2026-11-24) :
+
+| Texte (seuil) | Clair, minimum | Sombre, minimum |
 |---|---|---|
-| encre / fond | 15,74 | 15,78 |
-| encre-2 / fond | 8,45 | 10,09 |
-| encre-3 / fond | 5,62 | 6,98 |
-| encre-3 / surface-2 | 5,20 | 5,74 |
-| marque / fond (et texte fond sur bouton marque) | 7,41 | 9,92 |
-| marque / marque-doux | 6,58 | 7,14 |
-| alerte / alerte-doux | 5,26 | 7,67 |
-| bon / bon-doux | 5,38 | 7,91 |
-| ambre-encre / ambre-doux | 7,18 | 9,48 |
-| fond / encre (infobulle) | 15,74 | 15,78 |
-| ambre-encre / surface (icône d'alerte) | 8,48 | 11,59 |
-| encre-2 / surface-2 (survol) | 7,82 | 8,29 |
-| marque / surface (actif, liens) | 8,18 | 9,04 |
+| encre (4,5) | 12,97 | 11,51 |
+| encre-2 (4,5) | 6,96 | 7,42 |
+| encre-3 (4,5) | 4,63 | 5,09 |
+| marque (4,5) | 6,10 | 5,96 |
+| montant (4,5) | 6,10 | 11,51 |
+| alerte (4,5) | 4,99 | 6,41 |
+| bon (4,5) | 4,88 | 7,13 |
+| ambre-encre (4,5) | 6,32 | 8,75 |
+| focus (3) | 6,10 | 7,69 |
+| sur-action / action (4,5) | 7,41 | 6,19 |
+| marque / marque-doux (4,5) | 6,58 | 5,70 |
+| alerte / alerte-doux (4,5) | 5,26 | 6,66 |
+| bon / bon-doux (4,5) | 5,38 | 7,12 |
+| ambre-encre / ambre-doux (4,5) | 7,18 | 8,42 |
+| sur-scene, sur-scene-2 / scene (4,5) | 7,41, 6,58 | 13,96, 9,00 |
+| logo-cauri / fond (3, graphique) | 7,41 | 10,95 |
+
+L'`ambre` clair (2,2 à 3,0 selon la surface) n'est jamais seul porteur de sens : c'est un point ou un liseré qui
+accompagne un libellé. Il est mesuré pour information.
 
 Les deux thèmes sont aussi contrôlés par axe (WCAG 2.1 AA) sur les écrans principaux : `e2e/qualite.spec.ts`.
 

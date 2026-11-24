@@ -35,12 +35,14 @@ export default function Estimation() {
 
   const a = est.donnees;
   return (
-    <section className="space-y-6">
+    // Téléphone : une colonne. Ordinateur : montant et actions à gauche, courbe et raisons à droite.
+    <section className="grid gap-6 lg:grid-cols-[minmax(20rem,28rem)_minmax(0,1fr)] lg:items-start lg:gap-x-[clamp(2rem,4vw,4rem)]">
+      <div className="space-y-6 lg:col-start-1 lg:row-start-1">
       {/* Combien, à quel prix, que faire : tout tient dans ce bloc, au-dessus de la ligne de flottaison. */}
-      <div className="rounded-3xl bg-surface p-5 shadow-carte">
+      <div className="rounded-3xl bg-surface p-5 shadow-carte lg:p-7">
         <p className="text-encre-2">Bonjour {prenom}, vous pouvez emprunter jusqu'à</p>
         {a ? (
-          <p className="montant apparait mt-1 text-[3.1rem] leading-none text-marque" aria-live="polite">{fcfa(a.plafond)}</p>
+          <p className="montant apparait mt-1 text-[3.1rem] leading-none text-montant" aria-live="polite">{fcfa(a.plafond)}</p>
         ) : est.erreur ? <div className="mt-2"><Erreur message={est.erreur} reessayer={est.recharger} /></div> : <div className="chargement mt-2 h-12 w-4/5" />}
         {a && (
           <>
@@ -69,11 +71,13 @@ export default function Estimation() {
       </div>
 
       {insts.donnees && <ChoixInstitution institutions={insts.donnees} valeur={inst} onChange={setInst} />}
+      </div>
 
+      <div className="min-w-0 space-y-6 lg:col-start-2 lg:row-span-2 lg:row-start-1">
       {a && (
-        <div className="space-y-2">
+        <div className="space-y-2 lg:rounded-3xl lg:border lg:border-trait lg:bg-surface lg:p-6">
           <h2 className="titre text-xl">Vos ventes, semaine par semaine</h2>
-          <CourbeFlux serie={a.serie_hebdo} prudent={a.encaissement_prudent} median={a.indicateurs.encaissement_median} debut={a.indicateurs.debut} />
+          <CourbeFlux serie={a.serie_hebdo} prudent={a.encaissement_prudent} median={a.indicateurs.encaissement_median} debut={a.indicateurs.debut} hauteur={240} />
         </div>
       )}
 
@@ -84,8 +88,9 @@ export default function Estimation() {
           <ChaineCalcul a={a} />
         </div>
       )}
+      </div>
 
-      <div className="grid gap-2 pt-1">
+      <div className="grid gap-2 pt-1 lg:col-start-1 lg:row-start-2">
         <LienBouton href="/app/simulateur" variante="trait" grand icone={Calculator} className="w-full">Et si je demandais plus&nbsp;?</LienBouton>
         <LienBouton href="/app/conseils" variante="discret" icone={Lightbulb} className="w-full">Comment augmenter mon plafond</LienBouton>
       </div>
