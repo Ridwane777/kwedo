@@ -148,7 +148,7 @@ export default function Fiche() {
                 Demandé : <strong>{FREQ[d.frequence_demandee].chaque}</strong>, {duree({ duree_mois: d.duree_mois_demandee, duree_semaines: a.duree_semaines })}
                 {(d.frequence !== d.frequence_demandee || d.duree_mois !== d.duree_mois_demandee) && <> · retenu : {FREQ[d.frequence].chaque}, {duree({ duree_mois: d.duree_mois, duree_semaines: d.duree_offre })}</>}
               </p>
-              {a.risque_valide === false && <p className="mt-1 text-xs text-ambre-encre">Risque non validé pour cette fréquence : modèle hebdomadaire appliqué à l'échéance équivalente par semaine (ADR 0015).</p>}
+              {(a.risque_valide === false || a.risque_eprouve === false) && <p className="mt-1 text-xs text-ambre-encre">Risque moins éprouvé pour cette fréquence au dernier run d'évaluation (ADR 0016).</p>}
             </div>
             <dl className="grid content-start gap-3">
               <div>

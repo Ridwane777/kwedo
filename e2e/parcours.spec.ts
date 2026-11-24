@@ -27,11 +27,11 @@ test("parcours complet : estimation → décision → offre → remboursement �
   await expect(page.getByText(/moins éprouvée/)).toHaveCount(0);
   await capture(page, "1-estimation");
 
-  // 1 bis. Fréquence et durée au choix (options de l'institution) : échéance exacte recalculée, mention prudente
+  // 1 bis. Fréquence et durée au choix (options de l'institution) : échéance exacte recalculée, sans mention prudente
   await page.getByRole("radiogroup", { name: "Je rembourse" }).getByText("Chaque mois").click();
   await expect(page.getByRole("radio", { name: "Chaque mois" })).toBeChecked();
   await expect(page.getByTestId("phrase-echeance")).toContainText(/chaque mois pendant 6 mois \(6 échéances\)/);
-  await expect(page.getByText(/moins éprouvée que le remboursement hebdomadaire/)).toBeVisible();
+  await expect(page.getByText(/moins éprouvée/)).toHaveCount(0); // mensuel éprouvé au run 2026-11-24-frequences (ADR 0016)
   await page.getByLabel("Pendant").selectOption("12");
   await expect(page.getByTestId("phrase-echeance")).toContainText(/chaque mois pendant 12 mois \(12 échéances\)/);
   await page.getByLabel("Selon les règles de").selectOption("inst-baobab");

@@ -16,6 +16,7 @@ import secrets  # noqa: E402
 
 import numpy as np  # noqa: E402
 from kwedo_engine import VERSION, Parametres, analyser, echeance  # noqa: E402
+from kwedo_engine.moteur import FREQUENCES_EPROUVEES  # noqa: E402
 from kwedo_engine.moteur import FREQUENCES, PERIODE, SEMAINES_PAR_MOIS, l_max, serie_periode  # noqa: E402
 
 from .connecteurs import EmecefSimule, NotificationsSimulees, OperateurSimule  # noqa: E402
@@ -278,8 +279,9 @@ class Service:
         res["parametres"] = {k: res["parametres"][k] for k in ("n", "i", "frequence", "duree_mois")}
         for interne in ("l_max", "l_simulation", "echeance_supportable", "decote_anciennete", "risque", "recommandation", "graine"):
             res.pop(interne)
-        # Côté commerçant : seulement « estimation éprouvée ou non » (risque non validé hors hebdomadaire, ADR 0015).
-        res["estimation_eprouvee"] = res.pop("risque_valide")
+        # Côté commerçant : seulement « estimation éprouvée ou non » (fréquence ayant passé le run final, ADR 0016).
+        res.pop("risque_valide")
+        res["estimation_eprouvee"] = res.pop("risque_eprouve")
         per = PERIODE[res["frequence"]]
         res["chaine_calcul"] = [f"Niveau prudent de vos encaissements : {_f(res['encaissement_prudent'])} par {per}",
                                 (f"Échéance pour ce montant : {_f(res['echeance_hebdo'])} par semaine, sur {res['duree_semaines']} semaines"
@@ -471,7 +473,7 @@ class Service:
         out.update({"plafond_estime": a["plafond"], "raisons": raisons_commercant(a["raisons"]), "conseils": a["conseils"],
                     "decision": dec, "credit": self.un("SELECT id FROM credits WHERE dossier_id = ?", did),
                     "delai_versement_h": self.modalites(d["institution_id"])["delai_versement_h"],
-                    "estimation_eprouvee": d["frequence"] == "hebdomadaire"})
+                    "estimation_eprouvee": d["frequence"] in FREQUENCES_EPROUVEES})
         if d["montant_offre"]:
             p = parametres_dossier(a["parametres"], d["frequence"], d["duree_mois"], d["duree_offre"])
             e = echeance(d["montant_offre"], p)

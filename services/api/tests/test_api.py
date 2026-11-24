@@ -271,7 +271,7 @@ class TestEcheances(unittest.TestCase):
         e = c.get(f"{base}?institution_id=inst-baobab").json()  # Baobab : mensuel seulement, 6 à 12 mois
         self.assertEqual(e["modalites"], {"frequences": ["mensuelle"], "duree_min_mois": 6, "duree_max_mois": 12, "delai_versement_h": 72})
         self.assertEqual((e["frequence"], e["nb_echeances"]), ("mensuelle", 6))
-        self.assertFalse(e["estimation_eprouvee"])
+        self.assertTrue(e["estimation_eprouvee"])  # mensuel éprouvé au run 2026-11-24-frequences
         self.assertEqual(c.get(f"{base}?institution_id=inst-baobab&frequence=hebdomadaire").status_code, 422)
         self.assertEqual(c.get(f"{base}?institution_id=inst-baobab&frequence=mensuelle&duree_mois=4").status_code, 422)
         self.assertEqual(c.get(f"{base}?institution_id=inst-solidaire&frequence=quinzaine&duree_mois=9").status_code, 422)
@@ -325,7 +325,7 @@ class TestEcheances(unittest.TestCase):
         agent = client(s, "agent-baobab")
         fiche = agent.get(f"/dossiers/{did}").json()
         self.assertEqual((fiche["frequence_demandee"], fiche["duree_mois_demandee"]), ("mensuelle", 9))
-        self.assertFalse(fiche["analyse"]["risque_valide"])
+        self.assertTrue(fiche["analyse"]["risque_valide"])
         # Ajustement hors limites refusé, dans les limites accepté (12 mois).
         ko = agent.post(f"/dossiers/{did}/decisions", json={"type": "ajuste", "motif": "Durée allongée pour alléger.", "montant_decide": 100_000, "duree_mois": 24})
         self.assertEqual(ko.status_code, 422)

@@ -1,5 +1,8 @@
 # Périmètre de l'évaluation : remboursement hebdomadaire seulement
 
+> **Dépassé le 2026-11-24 par l'ADR 0016** : le risque est désormais appris, calibré et évalué pour chaque fréquence
+> et durée (`protocole-frequences.md`, `runs/2026-11-24-frequences/`). Ce texte reste pour l'historique.
+
 > Note ajoutée le 2026-11-24 (ADR 0015). Elle ne modifie aucun résultat publié : `README.md`, `resultats.json`
 > et `runs/` sont inchangés.
 

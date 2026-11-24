@@ -1,0 +1,17 @@
+{
+ "note": "Graines tirées au hasard (module secrets) et committées AVANT le run final unique du risque toutes fréquences (protocole-frequences.md). Jamais utilisées pendant le développement. Générateur de test, 400 commerçants par graine.",
+ "graines": [
+  597777275,
+  799250785,
+  78200955,
+  841487941,
+  298230120,
+  655188641,
+  191848246,
+  509086181,
+  204379099,
+  458807348
+ ],
+ "commercants_par_graine": 400,
+ "graine_bootstrap": 261776
+}

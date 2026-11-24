@@ -61,7 +61,7 @@ export function ChoixModalites({ a, onChange, desactive }: {
   );
 }
 
-/** Mention discrète hors hebdomadaire : le risque n'a été évalué que sur des échéances hebdomadaires. */
+/** Mention discrète si la fréquence choisie n'a pas passé le run final d'évaluation (ADR 0016). */
 export function MentionPrudente({ a }: { a: Pick<Estimation, "estimation_eprouvee"> }) {
   if (a.estimation_eprouvee) return null;
   return <p className="text-xs text-encre-2">Estimation prudente, moins éprouvée que le remboursement hebdomadaire.</p>;

@@ -3,7 +3,59 @@
 > **Tout est mesuré sur données simulées.** Les impayés sont ceux du simulateur : ces chiffres montrent que la
 > chaîne fonctionne et où elle est faible, **pas** une performance sur de vrais commerçants.
 
-## Passe de correction (moteur 0.2.0) — à lire en premier
+## Risque toutes fréquences (ADR 0016) — à lire en premier
+
+Protocole figé avant le run : `protocole-frequences.md` ; graines : `graines-frequences.json` ; résultats complets :
+`runs/2026-11-24-frequences/resultats.json`. **Un seul run final effectué. Résultat : critères complets non atteints
+(activités jamais vues, calibration), les trois fréquences passent la règle « éprouvée ».** Données simulées.
+
+```
+nice -n 10 sh ml/construire_jeux.sh                                  # réglage a/b/v (≈ 6 min, 4 cœurs)
+nice -n 10 .venv/bin/python ml/train_frequences.py                  # v3 : unique contre par fréquence, calibration par fréquence (≈ 5 min)
+nice -n 10 .venv/bin/python ml/evaluate_frequences.py dev           # contrôle sur le réglage (partition v)
+nice -n 10 .venv/bin/python ml/construire_final_frequences.py       # jeux finaux + jeu du run 1 (2 × 4 000)
+nice -n 10 .venv/bin/python ml/evaluate_frequences.py final 2026-11-24-frequences   # ≈ 5 min
+```
+
+Part d'échéances manquées à montant total égal (4 000 commerçants, générateur de test ; jamais vus = artisanat et
+quincaillerie, n = 1 130). IC 95 % bootstrap apparié de la différence moteur − règle ; ✅ = entièrement < 0.
+
+| Cellule | Éch. | Moteur | Moy. × k | IC moteur − moy. | Méd. × k | IC moteur − méd. | Jamais vus : moteur / moy. / méd. | IC jamais vus (moy. ; méd.) | ECE |
+|---|---|---|---|---|---|---|---|---|---|
+| hebdomadaire 3 mois | 13 | **1,43 %** | 1,77 % | [-0,47 ; -0,21] pt ✅ | 1,74 % | [-0,45 ; -0,18] pt ✅ | 2,07 % / 1,94 % / 1,95 % | [+0,02 ; +0,24] pt ❌ ; [+0,03 ; +0,22] pt ❌ | 0,085 |
+| hebdomadaire 6 mois | 26 | **0,86 %** | 1,23 % | [-0,50 ; -0,24] pt ✅ | 1,19 % | [-0,46 ; -0,21] pt ✅ | 1,29 % / 1,21 % / 1,19 % | [−0,00 ; +0,15] pt ❌ ; [+0,03 ; +0,17] pt ❌ | 0,088 |
+| hebdomadaire 9 mois | 39 | **0,74 %** | 1,10 % | [-0,50 ; -0,23] pt ✅ | 1,07 % | [-0,46 ; -0,20] pt ✅ | 1,20 % / 1,07 % / 1,06 % | [+0,04 ; +0,21] pt ❌ ; [+0,06 ; +0,21] pt ❌ | 0,092 |
+| hebdomadaire 12 mois | 52 | **0,69 %** | 1,06 % | [-0,51 ; -0,24] pt ✅ | 1,03 % | [-0,49 ; -0,22] pt ✅ | 1,14 % / 1,03 % / 1,01 % | [+0,02 ; +0,19] pt ❌ ; [+0,04 ; +0,22] pt ❌ | 0,095 |
+| quinzaine 3 mois | 7 | **1,73 %** | 2,18 % | [-0,60 ; -0,31] pt ✅ | 2,21 % | [-0,64 ; -0,35] pt ✅ | 2,41 % / 2,33 % / 2,36 % | [-0,04 ; +0,22] pt ❌ ; [-0,07 ; +0,19] pt ❌ | 0,057 |
+| quinzaine 6 mois | 13 | **1,25 %** | 1,72 % | [-0,60 ; -0,34] pt ✅ | 1,72 % | [-0,60 ; -0,35] pt ✅ | 1,63 % / 1,57 % / 1,59 % | [-0,05 ; +0,15] pt ❌ ; [-0,04 ; +0,11] pt ❌ | 0,060 |
+| quinzaine 9 mois | 20 | **1,20 %** | 1,64 % | [-0,56 ; -0,33] pt ✅ | 1,65 % | [-0,57 ; -0,34] pt ✅ | 1,61 % / 1,58 % / 1,54 % | [-0,06 ; +0,12] pt ❌ ; [-0,01 ; +0,15] pt ❌ | 0,068 |
+| quinzaine 12 mois | 26 | **1,20 %** | 1,65 % | [-0,57 ; -0,33] pt ✅ | 1,65 % | [-0,56 ; -0,34] pt ✅ | 1,53 % / 1,50 % / 1,48 % | [-0,05 ; +0,12] pt ❌ ; [-0,02 ; +0,13] pt ❌ | 0,072 |
+| mensuelle 3 mois | 3 | **2,47 %** | 2,92 % | [-0,68 ; -0,23] pt ✅ | 2,96 % | [-0,72 ; -0,27] pt ✅ | 3,00 % / 2,89 % / 2,92 % | [-0,15 ; +0,38] pt ❌ ; [-0,15 ; +0,35] pt ❌ | 0,036 |
+| mensuelle 6 mois | 6 | **1,89 %** | 2,35 % | [-0,60 ; -0,30] pt ✅ | 2,37 % | [-0,63 ; -0,33] pt ✅ | 2,07 % / 1,95 % / 1,95 % | [-0,04 ; +0,28] pt ❌ ; [-0,01 ; +0,26] pt ❌ | 0,050 |
+| mensuelle 9 mois | 9 | **1,85 %** | 2,27 % | [-0,57 ; -0,28] pt ✅ | 2,27 % | [-0,56 ; -0,28] pt ✅ | 2,05 % / 2,04 % / 1,98 % | [-0,13 ; +0,15] pt ❌ ; [-0,04 ; +0,18] pt ❌ | 0,057 |
+| mensuelle 12 mois | 12 | **1,86 %** | 2,28 % | [-0,56 ; -0,28] pt ✅ | 2,29 % | [-0,56 ; -0,29] pt ✅ | 1,97 % / 1,99 % / 2,01 % | [-0,15 ; +0,10] pt ❌ ; [-0,15 ; +0,06] pt ❌ | 0,067 |
+
+Calibration par fréquence (4 durées réunies ; critère C3 : ECE ≤ 0,05 et écart ≤ 5 pts) :
+
+| Fréquence | Risque annoncé moyen | Observé | ECE | Écart moyen | C3 | C1 (test complet) | Éprouvée | Réussite complète |
+|---|---|---|---|---|---|---|---|---|
+| hebdomadaire | 11,78 % | 20,63 % | 0,089 | 7,5 pts | ❌ | 4/4 | ✅ | ❌ |
+| quinzaine | 11,31 % | 17,73 % | 0,064 | 7,1 pts | ❌ | 4/4 | ✅ | ❌ |
+| mensuelle | 10,79 % | 15,96 % | 0,052 | 6,6 pts | ❌ | 4/4 | ✅ | ❌ |
+
+- **Mieux que les règles naïves** sur le test complet dans les 12 cellules, IC excluant zéro (C1, C2 ✅).
+- **Pas mieux sur les activités jamais vues** dans aucune cellule ; en hebdomadaire le moteur y est même légèrement
+  moins bon (IC entièrement au-dessus de zéro dans 7 cas sur 8). Même faiblesse qu'au run 1.
+- **Risque sous-estimé** sous la dérive du générateur de test pour les trois fréquences (C3 ❌), moins en mensuel.
+  Sur le réglage, ECE 0,017 / 0,014 / 0,015 (`ml/artifacts/dev-frequences-reglage-v.json`).
+- **Règle « éprouvée »** (C1 dans ≥ 3 durées sur 4 et ECE ≤ max(0,05 ; ECE hebdomadaire + 0,01)) : ✅ pour les trois ;
+  la mention « moins éprouvée » disparaît de l'interface. Cela veut dire « au moins aussi éprouvée que
+  l'hebdomadaire », pas « probabilité fiable ».
+- **Non-régression hebdomadaire** (jeu du run 1, 26 échéances, modèle v3 contre v2 publié) : 0,84 % contre 0,93 %
+  d'échéances manquées (montant total accordé 1 811 M contre 1 843 M FCFA, −1,7 %) ; jamais vus 1,41 % contre 1,41 % ;
+  ECE 0,091 contre 0,089 (+0,0015). ✅ selon le protocole. Koffi : 495 000 FCFA inchangé, risque 7,85 % (8,46 % avant).
+
+## Passe de correction (moteur 0.2.0)
 
 Protocole figé avant tout run : `protocole-final.md` ; graines : `graines-finales.json` ; runs : `runs/`.
 **Nombre de runs finaux effectués : 1 (sur 3 autorisés). Résultat : échec publié.**

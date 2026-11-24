@@ -1,6 +1,6 @@
 # ADR 0015 : fréquence et durée de remboursement au choix du commerçant
 
-- Statut : accepté
+- Statut : accepté ; limite du risque hors hebdomadaire levée par l'[ADR 0016](0016-risque-toutes-frequences.md)
 - Date : 2026-11-24
 
 ## Contexte
