@@ -135,7 +135,8 @@ def equipe_echeance(s, u, b, pp):
 @route("GET", r"/auth/profils", public)
 def profils(s, q, b, h):
     noms = {i["id"]: i["nom"] for i in s.q("SELECT id, nom FROM institutions")}
-    return [{"id": k, "role": p["role"], "nom": p["nom"], "institution": noms.get(p["institution_id"])} for k, p in auth.PROFILS.items()]
+    return [{"id": k, "role": p["role"], "nom": p["nom"], "institution": noms.get(p["institution_id"]), "libelle": p.get("libelle")}
+            for k, p in auth.PROFILS.items()]
 
 
 @route("POST", r"/auth/connexion", public)
@@ -320,6 +321,11 @@ def params(s, q, b, h, inst):
 def nv_params(s, q, b, h, inst):
     kw = {k: b[k] for k in CHAMPS_PARAMETRES if k in b}
     return s.nouveaux_parametres(inst, h["X-Acteur"], **kw)
+
+
+@route("POST", r"/institutions/(?P<inst>[\w-]+)/parametres/apercu", responsable_institution)
+def apercu_params(s, q, b, h, inst):
+    return s.apercu_parametres(inst, **{k: b[k] for k in s.BORNES_APERCU if k in b})
 
 
 @route("GET", r"/journal", connecte_pro)

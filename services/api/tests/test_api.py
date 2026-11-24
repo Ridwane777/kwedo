@@ -154,6 +154,20 @@ class TestCloisonnement(unittest.TestCase):
         self.assertEqual(client(self.s, "agent-lagune").post("/institutions/inst-lagune/parametres", json={"m": 0.29}).status_code, 403)
         self.assertEqual(client(self.s, "responsable-lagune").post("/institutions/inst-lagune/parametres", json={"m": 0.3}).status_code, 200)
 
+    def test_apercu_parametres_reserve_au_responsable_et_sans_ecriture(self):
+        chemin = "/institutions/inst-lagune/parametres/apercu"
+        for p in ("agent-lagune", "responsable-baobab", "admin"):
+            self.assertEqual(client(self.s, p).post(chemin, json={"s": 0.5}).status_code, 403, p)
+        versions = len(self.s.historique_parametres("inst-lagune"))
+        r = client(self.s, "responsable-lagune").post(chemin, json={"s": 0.6, "seuil_risque": 0.2})
+        self.assertEqual(r.status_code, 200)
+        a = r.json()
+        self.assertGreater(a["nb_dossiers"], 0)
+        self.assertGreaterEqual(a["plafond_moyen"]["apres"], a["plafond_moyen"]["avant"])  # marge plus haute, tolérance plus large
+        self.assertLessEqual(a["au_dessus_tolerance"]["apres"], a["au_dessus_tolerance"]["avant"])
+        self.assertEqual(len(self.s.historique_parametres("inst-lagune")), versions)  # rien n'est écrit
+        self.assertEqual(client(self.s, "responsable-lagune").post(chemin, json={"s": 3}).status_code, 422)
+
     def test_admin_supervise_sans_detail(self):
         c = client(self.s, "admin")
         a = c.get("/admin/apercu")
@@ -218,6 +232,7 @@ class TestCloisonnement(unittest.TestCase):
         from kwedo_api.service import raisons_commercant
         r = raisons_commercant([{"code": "formule", "effet": 0, "texte": "… limite le prélèvement à 35 % de la marge …"}])
         self.assertNotIn("35", r[0]["texte"])
+        self.assertNotIn("formule", r[0]["texte"].lower())
 
     def test_credits_echeances_et_offres_cloisonnes(self):
         s = self.s
@@ -252,6 +267,49 @@ class TestCloisonnement(unittest.TestCase):
             c = client(self.s, p)
             for chemin in ("/demo/avancer", "/demo/reinitialiser", "/relances/executer"):
                 self.assertIn(c.post(chemin, json={"jours": 1}).status_code, (401, 403), (p, chemin))
+
+
+class TestPaletteDemo(unittest.TestCase):
+    """Données de démo contrastées : risques calculés par le moteur, pas imposés."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.s = Service(str(Path(cls.tmp.name) / "p.sqlite"))
+        cls.s.reinitialiser()
+
+    def test_dossiers_au_dessus_et_en_dessous_de_la_tolerance(self):
+        f = self.s.file("inst-lagune", tri="risque")
+        self.assertEqual(len(f), 8)  # tous les commerçants de démo sauf la persona
+        self.assertGreaterEqual(sum(not d["dans_tolerance"] for d in f), 1)
+        self.assertGreaterEqual(sum(d["dans_tolerance"] for d in f), 1)
+        self.assertEqual([d["risque_demande"] for d in f], sorted((d["risque_demande"] for d in f), reverse=True))
+        self.assertGreaterEqual(sum(d["montant_demande"] > d["plafond"] for d in f), 1)  # au moins une demande au-dessus du plafond
+        baobab = self.s.file("inst-baobab")
+        self.assertEqual(len(baobab), 1)
+        self.assertFalse(baobab[0]["dans_tolerance"])
+
+    def test_raisons_nomment_la_cause(self):
+        f = {d["commercant_id"]: d for d in self.s.file("inst-lagune")}
+        baisse = self.s.dossier(f["com-hounkpe"]["id"], acteur=None)
+        self.assertLess(baisse["analyse"]["indicateurs"]["tendance_hebdo"], -0.03)
+        self.assertIn("tendance", [r["code"] for r in baisse["analyse"]["raisons"] if r["effet"] > 0])
+        conc = self.s.dossier(f["com-yaba"]["id"], acteur=None)
+        self.assertGreater(conc["analyse"]["indicateurs"]["part_plus_gros_payeur"], 0.4)
+        self.assertIn("concentration", [a["code"] for a in conc["analyse"]["alertes"]])
+
+    def test_profil_commercant_a_risque(self):
+        c = client(self.s, "commercant-risque")
+        self.assertIn("Commerçant à risque", [p["libelle"] for p in c.get("/auth/profils").json()])
+        e = c.get("/commercants/com-yaba/estimation?institution_id=inst-lagune&montant_souhaite=530000").json()
+        self.assertTrue(e["souhait"]["au_dessus_du_seuil"])
+        self.assertTrue(any("Diversifiez" in x for x in e["conseils"]))
+
+    def test_aucune_formule_a_l_ecran(self):
+        c = client(self.s, "agent-lagune")
+        for d in self.s.file("inst-lagune"):
+            r = c.get(f"/dossiers/{d['id']}").json()
+            self.assertFalse(any("formule" in x["texte"].lower() for x in r["analyse"]["raisons"]))
 
 
 class TestEcheances(unittest.TestCase):

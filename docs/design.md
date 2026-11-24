@@ -148,7 +148,7 @@ Les deux thèmes sont aussi contrôlés par axe (WCAG 2.1 AA) sur les écrans pr
 - `Simule` : étiquette discrète (point ambre, fond surface) ; toujours présente, jamais criarde.
 - `Chargement`, `Vide`, `Erreur` : états soignés ; l'erreur dit quoi faire (réessayer, vérifier le serveur).
 - `ChoixModalites` (`components/estimation.tsx`, ADR 0015) : fréquence en boutons segmentés (une seule option →
-  texte « seule formule de cette institution »), durée en liste de mois ; uniquement les options de l'institution.
+  texte « seule option de cette institution »), durée en liste de mois ; uniquement les options de l'institution.
   L'échéance se lit en une phrase : « 41 500 FCFA chaque mois pendant 6 mois ». `MentionPrudente` : une ligne en
   petit, couleur secondaire, jamais d'alerte rouge (« estimation prudente, moins éprouvée… »).
 - Dépôt du dossier : un seul bouton principal, puis trois étapes numérotées dans une carte (institution →
@@ -171,6 +171,27 @@ Les deux thèmes sont aussi contrôlés par axe (WCAG 2.1 AA) sur les écrans pr
   activité récente sans données nominatives, commandes de démo avec confirmation avant réinitialisation.
 - **Connexion** : panneau de marque à gauche sur grand écran, profils groupés par institution ; « Profils fictifs »
   et l'absence de mot de passe sont dits clairement.
+
+## Ce qui est affiché du calcul (formule hors des écrans)
+
+Décision du propriétaire : la formule du moteur (plafond, encaissement prudent, part prélevable, annuité) reste dans
+le moteur et dans `docs/` (ADR, évaluation) ; elle ne s'affiche ni au commerçant ni à l'agent. La décision se lit par
+**la demande et son risque**.
+
+- **Commerçant** : « Pourquoi ce montant » (raisons du moteur) puis un bouton « Comment ce montant est calculé » qui
+  ouvre trois phrases sans symbole (une mauvaise période de vos ventes et une marge de sécurité ; 2 000 scénarios ;
+  l'institution décide), avec nombre d'échéances, durée et coût total. Les raisons et le « Pourquoi » restent
+  séparés : l'un dit ce qui pèse sur *ce* commerçant, l'autre la méthode commune.
+- **Console, fiche** : montant demandé, objet, risque de la demande et tolérance ; plafond prudent et son risque en
+  repère ; raisons. Onglet « Comment c'est calculé » en mots (moteur et graine pour le rejeu). La borne de la
+  contre-proposition, toujours appliquée par le serveur, s'énonce : « au-delà, les ventes ne permettent pas de
+  rembourser prudemment ».
+- **Console, paramètres** : chaque réglage porte un nom en clair et une phrase d'effet ; l'aperçu (responsable seul)
+  montre, avant enregistrement, le plafond prudent moyen, le risque moyen de la demande et le nombre de demandes
+  au-dessus de la tolérance pour les dossiers en attente, avant / après, recalculés par le moteur.
+- **Vitrine** : simulateur « calcul simplifié », décrit en mots. Le journal d'audit n'est pas concerné.
+- Contrôle : `e2e/formule.spec.ts` lit toutes les pages de `/app` et `/console` (panneaux repliés compris) et
+  échoue sur `L_max`, `C_p` ou « formule ».
 
 ## Mouvement
 

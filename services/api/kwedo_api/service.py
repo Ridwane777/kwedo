@@ -52,6 +52,12 @@ DEMANDES_DEMO = [
     (0.6, "ponctuel", "Réparer le toit de la boutique avant la saison des pluies."),
     (1.2, "autre", "Ouvrir un second point de vente au marché de Cotonou."),
 ]
+# Profils à risque (formule hors des écrans, palette contrastée) : demande en multiple du plafond prudent,
+# institutions où le dossier est déposé. Le risque de la demande est celui que calcule le moteur.
+DEMANDES_RISQUE = {
+    "com-hounkpe": (1.4, "stock", "Doubler le stock de wax pour rattraper la baisse des ventes.", ("inst-lagune",)),
+    "com-yaba": (1.5, "equipement", "Une vitrine réfrigérée pour les crèmes et parfums.", ("inst-lagune", "inst-baobab")),
+}
 CHAMPS_PARAMETRES = ("m", "s", "n", "i", "percentile", "seuil_risque", "frequences", "duree_min_mois", "duree_max_mois", "delai_versement_h")
 
 
@@ -92,11 +98,14 @@ def _f(montant) -> str:
     return "—" if montant is None else f"{int(montant):,}".replace(",", " ") + " FCFA"
 
 
-RAISON_FORMULE = "La formule de l'institution limite la part de vos encaissements consacrée au remboursement : c'est elle qui fixe le plafond."
+# Formule hors des écrans : la raison moteur « formule » est dite en mots, sans la nommer ni citer s.
+RAISON_FORMULE = ("Les règles de remboursement de l'institution limitent la part de vos encaissements consacrée au remboursement : "
+                  "au-delà, vos ventes ne permettent pas de rembourser prudemment.")
 
 
 def raisons_commercant(raisons: list[dict]) -> list[dict]:
-    """Le texte moteur de la raison « formule » cite la part prélevable s de l'institution : remplacé côté commerçant."""
+    """Le texte moteur de la raison « formule » cite la part prélevable s et nomme la formule : remplacé à l'écran
+    (commerçant et console ; le dossier stocké et le journal d'audit gardent le texte moteur)."""
     return [{**r, "texte": RAISON_FORMULE} if r["code"] == "formule" else r for r in raisons]
 
 
@@ -211,12 +220,12 @@ class Service:
             self._inserer_commercant(c["id"], c["nom"], c["telephone"], c["type_activite"], c["compte_separe"], c["transactions"])
         # File de la console : tous les commerçants sauf la persona (elle enverra son dossier pendant la démo).
         for k, c in enumerate(d["commercants"][1:]):
-            inst = "inst-lagune"
-            self.consentir(c["id"], inst, "accorde")
-            fois, cat, objet = DEMANDES_DEMO[k % len(DEMANDES_DEMO)]
-            plafond = self.estimation(c["id"], inst)["plafond"] or 100_000
-            self.envoyer_dossier(c["id"], inst, montant=max(MONTANT_DEMANDE_MIN, round(plafond * fois / 5_000) * 5_000),
-                                 categorie=cat, objet=objet)
+            fois, cat, objet, insts = DEMANDES_RISQUE.get(c["id"], (*DEMANDES_DEMO[k % len(DEMANDES_DEMO)], ("inst-lagune",)))
+            for inst in insts:
+                self.consentir(c["id"], inst, "accorde")
+                plafond = self.estimation(c["id"], inst)["plafond"] or 100_000
+                self.envoyer_dossier(c["id"], inst, montant=max(MONTANT_DEMANDE_MIN, round(plafond * fois / 5_000) * 5_000),
+                                     categorie=cat, objet=objet)
         return {"ok": True, "maintenant": DEBUT_DEMO, "commercants": len(d["commercants"])}
 
     def _inserer_commercant(self, cid, nom, tel, activite, separe, txs):
@@ -500,6 +509,7 @@ class Service:
                 self.db.execute("UPDATE dossiers SET statut = 'en_analyse', ouvert_le = ? WHERE id = ?", (self._iso(), did))
                 d["statut"], d["ouvert_le"] = "en_analyse", self._iso()
         d["analyse"] = json.loads(d.pop("analyse_json"))
+        d["analyse"]["raisons"] = raisons_commercant(d["analyse"]["raisons"])
         d["commercant"] = self.commercant(d["commercant_id"])
         d["institution"] = self.un("SELECT * FROM institutions WHERE id = ?", d["institution_id"])
         d["consentement_actif"] = self.consentement_actif(d["commercant_id"], d["institution_id"])
@@ -566,10 +576,13 @@ class Service:
 
     def rejouer(self, did: str) -> dict:
         """Audit : rejoue l'analyse avec la graine et les paramètres enregistrés."""
-        d = self.dossier(did, acteur=None)
-        res = analyser(self.transactions(d["commercant_id"]), d["analyse"]["parametres"], graine=d["graine"],
+        d = self.un("SELECT * FROM dossiers WHERE id = ?", did)
+        if not d:
+            raise ErreurMetier(404, "dossier inconnu")
+        stockee = json.loads(d["analyse_json"])  # sortie moteur enregistrée, pas la vue reformulée pour l'écran
+        res = analyser(self.transactions(d["commercant_id"]), stockee["parametres"], graine=d["graine"],
                        montant_souhaite=d["montant_demande"])
-        return {"identique": json.loads(json.dumps(res)) == d["analyse"], "plafond": res["plafond"]}
+        return {"identique": json.loads(json.dumps(res)) == stockee, "plafond": res["plafond"]}
 
     def offre(self, cid: str, did: str) -> dict:
         """Vue commerçant d'un dossier : statut, offre, raisons. Jamais les alertes ni les modèles."""
@@ -769,6 +782,41 @@ class Service:
         except sqlite3.IntegrityError:
             raise ErreurMetier(422, "paramètre hors bornes")
         return self.parametres(inst)
+
+    BORNES_APERCU = {"m": (0.05, 1), "s": (0.05, 1), "n": (1, 104), "i": (0.0001, 0.19), "percentile": (1, 50), "seuil_risque": (0.01, 0.5)}
+
+    def apercu_parametres(self, inst: str, **kw) -> dict:
+        """Effet d'un réglage proposé, avant enregistrement, sur les dossiers en attente de l'institution :
+        plafond prudent moyen et risque moyen de la demande, avant (analyse du dossier) et après (recalcul moteur,
+        même graine, mêmes modalités). Rien n'est écrit."""
+        actuels = self.parametres(inst)
+        nv = {}
+        for k, (lo, hi) in self.BORNES_APERCU.items():
+            try:
+                v = float(kw.get(k, actuels[k]))
+            except (TypeError, ValueError):
+                raise ErreurMetier(422, f"{k} : nombre attendu")
+            if not lo <= v <= hi:
+                raise ErreurMetier(422, "paramètre hors bornes")
+            nv[k] = int(v) if k in ("n", "percentile") else v
+        dossiers = self.q("SELECT id, commercant_id, analyse_json, graine, frequence, duree_mois, montant_demande FROM dossiers "
+                          "WHERE institution_id = ? AND statut IN ('recu','en_analyse','complement') ORDER BY cree_le", inst)
+        avant, apres = [], []
+        for d in dossiers:
+            a = json.loads(d["analyse_json"])
+            montant = d["montant_demande"] or a["plafond"] or MONTANT_DEMANDE_MIN
+            avant.append((a["plafond"], a["souhait"]["risque"] if a.get("souhait") else a["risque"]))
+            p = parametres_dossier({**a["parametres"], **nv}, d["frequence"], d["duree_mois"], a["duree_semaines"] if d["duree_mois"] is None else None)
+            r = analyser(self.transactions(d["commercant_id"]), p, graine=d["graine"], montant_souhaite=montant, avec_raisons=False)
+            apres.append((r["plafond"], r["souhait"]["risque"]))
+
+        def moy(xs, k):
+            return round(sum(x[k] for x in xs) / len(xs), 4) if xs else None
+        return {"nb_dossiers": len(dossiers), "seuil_risque": {"avant": actuels["seuil_risque"], "apres": nv["seuil_risque"]},
+                "plafond_moyen": {"avant": moy(avant, 0), "apres": moy(apres, 0)},
+                "risque_moyen": {"avant": moy(avant, 1), "apres": moy(apres, 1)},
+                "au_dessus_tolerance": {"avant": sum(x[1] > actuels["seuil_risque"] for x in avant),
+                                        "apres": sum(x[1] > nv["seuil_risque"] for x in apres)}}
 
     def historique_parametres(self, inst: str) -> list[dict]:
         return self.q("SELECT * FROM parametres_moteur WHERE institution_id = ? ORDER BY id DESC", inst)

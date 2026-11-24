@@ -3,7 +3,7 @@
 import { Calculator, Lightbulb, Link2, Send } from "lucide-react";
 import { useState } from "react";
 import { CourbeFlux } from "@/components/courbe-flux";
-import { ChaineCalcul, ChoixInstitution, ChoixModalites, MentionPrudente, PlafondConditions, PlafondSelonDuree, prudentHebdo, Raisons, requeteModalites } from "@/components/estimation";
+import { CommentCalcule, ChoixInstitution, ChoixModalites, MentionPrudente, PlafondConditions, PlafondSelonDuree, prudentHebdo, Raisons, requeteModalites } from "@/components/estimation";
 import { Chargement, Erreur, LienBouton, Simule } from "@/components/ui";
 import { useApi } from "@/lib/api";
 import { useCommercant } from "@/lib/commercant";
@@ -22,7 +22,7 @@ function Actions() {
 export default function Estimation() {
   const { id } = useCommercant();
   const [inst, setInst] = useState("inst-lagune");
-  // Fréquence et durée : rien tant que le commerçant garde la formule par défaut de l'institution.
+  // Fréquence et durée : rien tant que le commerçant garde le choix par défaut de l'institution.
   const [choix, setChoix] = useState<{ frequence: Frequence; duree: number } | null>(null);
   const insts = useApi<InstitutionPublique[]>("/institutions");
   const com = useApi<{ commercant: Commercant }>(`/commercants/${id}`);
@@ -110,7 +110,7 @@ export default function Estimation() {
         <div className="space-y-3">
           <h2 className="titre text-xl">Pourquoi ce montant</h2>
           <Raisons raisons={a.raisons} />
-          <ChaineCalcul a={a} />
+          <CommentCalcule a={a} />
         </div>
       )}
       </div>

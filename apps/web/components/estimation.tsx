@@ -19,7 +19,7 @@ export function ChoixInstitution({ institutions, valeur, onChange }: { instituti
   );
 }
 
-/** Niveau prudent ramené à la semaine, pour la courbe hebdomadaire (hors hebdomadaire, C_p est par période). */
+/** Niveau prudent ramené à la semaine, pour la courbe hebdomadaire (hors hebdomadaire, le niveau prudent est par période). */
 export const prudentHebdo = (a: Pick<Estimation, "encaissement_prudent" | "frequence">) =>
   a.encaissement_prudent / ({ hebdomadaire: 1, quinzaine: 2, mensuelle: 52 / 12 } as const)[a.frequence];
 
@@ -40,7 +40,7 @@ export function ChoixModalites({ a, onChange, desactive }: {
       <div>
         <p className="text-sm text-encre-2" id="lib-frequence">Je rembourse</p>
         {m.frequences.length === 1 ? (
-          <p className="mt-1 font-medium">{FREQ[m.frequences[0] ?? a.frequence].nom} <span className="text-sm font-normal text-encre-2">(seule formule de cette institution)</span></p>
+          <p className="mt-1 font-medium">{FREQ[m.frequences[0] ?? a.frequence].nom} <span className="text-sm font-normal text-encre-2">(seule option de cette institution)</span></p>
         ) : (
           <div role="radiogroup" aria-labelledby="lib-frequence" className="mt-1 grid gap-2" style={{ gridTemplateColumns: `repeat(${m.frequences.length}, minmax(0, 1fr))` }}>
             {m.frequences.map((f) => (
@@ -121,7 +121,7 @@ export function MentionPrudente({ a }: { a: Pick<Estimation, "estimation_eprouve
   return <p className="text-xs text-encre-2">Estimation prudente, moins éprouvée que le remboursement hebdomadaire.</p>;
 }
 
-/** Choix courant envoyé à l'API (rien tant que le commerçant garde la formule par défaut). */
+/** Choix courant envoyé à l'API (rien tant que le commerçant garde le choix par défaut). */
 export function requeteModalites(choix: { frequence: Frequence; duree: number } | null): string {
   return choix ? `&frequence=${choix.frequence}&duree_mois=${choix.duree}` : "";
 }
@@ -146,18 +146,21 @@ export function Raisons({ raisons }: { raisons: Analyse["raisons"] }) {
   );
 }
 
-export function ChaineCalcul({ a }: { a: Estimation }) {
+/** Méthode en trois phrases, sans symbole ni variable : la formule reste dans le moteur et la documentation. */
+export function CommentCalcule({ a }: { a: Estimation }) {
   const [ouvert, setOuvert] = useState(false);
   return (
     <div className="text-sm">
       <Bouton variante="trait" icone={ouvert ? ChevronUp : Calculator} aria-expanded={ouvert} onClick={() => setOuvert(!ouvert)}>
-        {ouvert ? "Masquer le calcul" : "Voir le calcul"}
+        Comment ce montant est calculé
       </Bouton>
       {ouvert && (
-        <ol className="apparait mt-2 space-y-1.5 border-l-2 border-ambre pl-3 text-encre-2">
-          {a.chaine_calcul.map((l) => <li key={l}>{l}</li>)}
-          <li className="text-xs">Moteur {a.version_moteur} · {a.nb_echeances} échéances ({FREQ[a.frequence].chaque}) sur {duree({ duree_mois: a.parametres.duree_mois, duree_semaines: a.duree_semaines })} · taux {pct(a.taux_periode, 2)} par {FREQ[a.frequence].periode}</li>
-        </ol>
+        <div className="apparait mt-2 space-y-1.5 border-l-2 border-ambre pl-3 text-encre-2" data-testid="comment-calcule">
+          <p>On part d'une mauvaise {FREQ[a.frequence].periode} de vos ventes, pas de la moyenne, et on garde une marge de sécurité pour vos autres dépenses.</p>
+          <p>On teste ensuite 2 000 scénarios de vos ventes à venir : le montant retenu est le plus haut que vous rembourseriez dans presque tous ces scénarios.</p>
+          <p>C'est une estimation : l'institution décide ensuite d'accorder, d'ajuster ou de refuser.</p>
+          <p className="text-xs">{a.nb_echeances} échéances ({FREQ[a.frequence].chaque}) sur {duree({ duree_mois: a.parametres.duree_mois, duree_semaines: a.duree_semaines })} · coût total {fcfa(a.cout_total)}</p>
+        </div>
       )}
     </div>
   );
