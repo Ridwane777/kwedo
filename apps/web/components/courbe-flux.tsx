@@ -14,7 +14,8 @@ type Props = {
   titre?: string;
 };
 
-const L = 640;
+const L0 = 640; // largeur de repli avant la première mesure (rendu serveur)
+const TEXTE = 12; // taille des libellés et valeurs, en pixels, quelle que soit la largeur
 
 function lisse(points: [number, number][]): string {
   if (points.length < 2) return "";
@@ -35,8 +36,21 @@ function lisse(points: [number, number][]): string {
 export function CourbeFlux({ serie, prudent, median, choc = 0, debut, hauteur = 220, dense = false, titre }: Props) {
   const id = useId().replace(/:/g, "");
   const ref = useRef<SVGPathElement>(null);
+  const cadre = useRef<HTMLElement>(null);
   const [longueur, setLongueur] = useState(2000);
-  const H = hauteur;
+  // Le dessin se fait à l'échelle 1 (viewBox = largeur réelle) : les textes gardent 12 px à toutes les largeurs.
+  const [L, setL] = useState(L0);
+  useLayoutEffect(() => {
+    const el = cadre.current;
+    if (!el) return;
+    const mesurer = () => { const w = Math.round(el.getBoundingClientRect().width); if (w > 0) setL(w); };
+    mesurer();
+    const ro = new ResizeObserver(mesurer);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  // Hauteur : celle demandée, réduite sur les écrans étroits pour garder des proportions lisibles.
+  const H = Math.min(hauteur, Math.max(140, Math.round(L * 0.45)));
   const haut = 14, bas = dense ? 22 : 26, droite = dense ? 64 : 8;
   const max = useMemo(() => Math.max(1, ...serie) * 1.08, [serie]);
   const x = (k: number) => (serie.length <= 1 ? 0 : (k / (serie.length - 1)) * (L - droite));
@@ -49,7 +63,7 @@ export function CourbeFlux({ serie, prudent, median, choc = 0, debut, hauteur = 
 
   useLayoutEffect(() => {
     if (ref.current) setLongueur(Math.ceil(ref.current.getTotalLength()));
-  }, [serie.length]);
+  }, [serie.length, L]);
   const [trace, setTrace] = useState(false);
   useEffect(() => { setTrace(true); }, []);
 
@@ -76,7 +90,7 @@ export function CourbeFlux({ serie, prudent, median, choc = 0, debut, hauteur = 
   const resume = `${titre ?? "Encaissements vérifiés par semaine"} sur ${serie.length} semaines. Niveau prudent ${fcfa(prudent * f)}, niveau habituel ${fcfa(median * f)} par semaine${choc ? `, avec une baisse simulée de ${Math.round(-choc * 100)} %` : ""}.`;
 
   return (
-    <figure className="w-full">
+    <figure ref={cadre} className="w-full min-w-0">
       <svg viewBox={`0 0 ${L} ${H}`} className="block h-auto w-full overflow-visible" role="img" aria-label={resume}>
         <defs>
           <linearGradient id={`g${id}`} x1="0" x2="0" y1="0" y2="1">
@@ -105,12 +119,12 @@ export function CourbeFlux({ serie, prudent, median, choc = 0, debut, hauteur = 
         />
         <circle cx={pts[pts.length - 1]![0]} cy={pts[pts.length - 1]![1]} r="4" fill="var(--ambre)" stroke="var(--fond)" strokeWidth="2" style={{ transition: "all .35s ease" }} />
         {mois.map((m) => (
-          <text key={m.k} x={x(m.k)} y={H - 4} fontSize={dense ? 11 : 17} fill="var(--encre-2)">{m.label}</text>
+          <text key={m.k} x={x(m.k)} y={H - 6} fontSize={TEXTE} fill="var(--encre-2)">{m.label}</text>
         ))}
         {dense && (
           <>
-            <text x={L - droite + 6} y={Math.max(yP + 4, yM + 17)} fontSize="11" fill="var(--bon)" className="chiffres">{Math.round((prudent * f) / 1000)} k</text>
-            <text x={L - droite + 6} y={yM + 4} fontSize="11" fill="var(--encre-2)" className="chiffres">{Math.round((median * f) / 1000)} k</text>
+            <text x={L - droite + 6} y={Math.max(yP + 4, yM + 17)} fontSize={TEXTE} fill="var(--bon)" className="chiffres">{Math.round((prudent * f) / 1000)} k</text>
+            <text x={L - droite + 6} y={yM + 4} fontSize={TEXTE} fill="var(--encre-2)" className="chiffres">{Math.round((median * f) / 1000)} k</text>
           </>
         )}
       </svg>
