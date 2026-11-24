@@ -199,3 +199,60 @@ leur état initial hors de la vue) ; les animations elles-mêmes se vérifient d
 | 3 | Cause | Activités jamais vues : 50 / 64 / 75 % de (A), 100 % de (B). Profil → activité à 99 % ; extrapolation ticket élevé → sûr (quincaillerie 4,8 % annoncé, 30,8 % observé). Reste : dépenses personnelles et semaines vides, non observables. Pente b ≈ 0,61 |
 | 4 | Pistes | Plancher « risque simulé » pour activité inconnue (ECE 0,18 → 0,12, sans réglage sur le test) ; recalibration (0,079 → 0,012, mais réglage 0,007 → 0,084 : rejetée sans données réelles). Rien appliqué, pas d'ADR |
 | — | Règles | `docs/evaluation/runs` et `ml/artifacts` intacts ; intermédiaires supprimés ; `test:engine` vert |
+
+## Mission formule hors des écrans (`docs/MISSION-FORMULE.md`, branche `formule`)
+
+| # | Demande | Preuve |
+|---|---|---|
+| 1 | Fiche console | Plus de « formule X FCFA », « Plafond de la formule », « la formule reste le plafond ». Gardés : montant demandé, objet, risque de la demande et tolérance, plafond prudent et son risque en repère, raisons. Borne de la contre-proposition (`L_max`, toujours appliquée par le serveur) énoncée en mots : « Au-delà, les ventes ne permettent pas de rembourser prudemment. » Onglet « Chaîne de calcul » → « Comment c'est calculé », en mots (moteur + graine pour le rejeu). La raison moteur `formule` est reformulée à l'écran (commerçant et console) ; le dossier stocké, `rejouer` et le journal d'audit gardent la sortie moteur |
+| 2 | « Voir le calcul » | Remplacé par le bouton « Comment ce montant est calculé » : 3 phrases sans symbole (mauvaise période + marge de sécurité ; 2 000 scénarios ; l'institution décide) + échéances, durée, coût total. **Choix : pas de fusion avec « Pourquoi ce montant »** — les raisons disent ce qui pèse sur ce commerçant, ce bloc dit la méthode commune ; il reste sous les raisons, replié |
+| 3 | Paramètres | Ligne `R = C_p × m × s · L_max = …` retirée ; chaque réglage : nom en clair + phrase d'effet ; historique avec en-têtes en clair. Aperçu avant enregistrement (responsable seul) : plafond prudent moyen, risque moyen de la demande, demandes au-dessus de la tolérance, avant / après, recalculés par le moteur (graine de chaque dossier), rien n'est écrit |
+| 4 | Ailleurs | Vitrine : « Exemple, calcul simplifié », phrase en mots (plus de 20ᵉ centile × m × s). « seule formule de cette institution » → « seule option ». Recherche `L_max|C_p|formule|annuit` dans `apps/web` : ne restent que des commentaires de code et des noms de champs. `docs/design.md` : section « Ce qui est affiché du calcul ». Pas d'ADR (décision d'affichage, sans effet sur le moteur ni le contrat de données) |
+| 5 | Profils à risque | Voir ci-dessous |
+| — | Vérification | `test:api` 33/33 (4 nouveaux : palette, causes, profil à risque, aucune formule dans les raisons ; aperçu réservé et sans écriture), `test:engine` 25/25, `test:gen` 11/11, build OK. E2E : `formule.spec.ts` 3/3 (nouveau : aucune page `/app` et `/console` avec `L_max`, `C_p`, « formule », panneaux repliés compris ; fiche à risque ; aperçu des paramètres), `parcours` 3/3, `demande` 3/3, `demo` 1/1 (10 temps). `ecrans.spec.ts` adapté (10 temps) mais non relancé (captures complètes, hors écrans ciblés) |
+
+**Route à ajouter à `attaque.py`** :
+- `POST /institutions/{id}/parametres/apercu` (nouvelle ; corps : `m`, `s`, `n`, `i`, `percentile`, `seuil_risque` ; règle : responsable de cette institution, 403 pour l'agent, une autre institution ou l'admin ; 422 hors bornes ; n'écrit rien).
+- `GET /auth/profils` : champ `libelle` ajouté ; nouveau profil `commercant-risque` (`com-yaba`) pour `POST /auth/connexion`.
+
+### Données de démo : mesure avant (`scripts/mesure_demo.py`, file Lagune triée par risque)
+
+| Commerçant | Plafond prudent | Demandé | Risque demande | Tolérance | Régularité (CV) | Tendance / sem. | Plus gros payeur | Part pro | Semaines |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| Rachidi | 260 000 | 365 000 | 9,4 % | 10 % | 0,25 | −2,5 % | 15 % | 89 % | 52 |
+| Séna | 400 000 | 320 000 | 7,9 % | 10 % | 0,38 | −5,5 % | 20 % | 98 % | 52 |
+| Koffi | 495 000 | 495 000 | 7,8 % | 10 % | 0,69 | +29,3 % | 23 % | 95 % | 52 |
+| Edwige | 320 000 | 160 000 | 3,8 % | 10 % | 0,25 | +0,1 % | 11 % | 79 % | 52 |
+| Gildas | 480 000 | 290 000 | 3,3 % | 10 % | 0,40 | +1,9 % | 16 % | 98 % | 52 |
+| Nafissatou | 50 000 | 90 000 | 0,4 % | 10 % | 0,62 | +2,5 % | 23 % | 92 % | 10 |
+
+Constat : **aucune demande au-dessus de la tolérance**, aucun dossier chez Baobab ; le retour du propriétaire est fondé.
+
+### Après : deux profils à risque ajoutés par le générateur existant
+
+Graines cherchées avec `scripts/chercher_profils.py` (générateur `test`, réglages inchangés) puis vérifiées avec
+`scripts/raisons_profil.py` ; le risque est **celui du moteur**, seul le montant demandé (multiple du plafond, comme
+les autres dossiers de démo) est un choix de scénario. Rien d'écrit à la main, modèle inchangé.
+
+| Commerçant | Profil | Plafond prudent | Demandé | Risque demande | Tolérance | Cause lue dans le moteur |
+|---|---|---:|---:|---:|---:|---|
+| Hounkpè Dossou (tissus, graine 60025) | à risque (a) | 920 000 | 1 290 000 | **25,2 %** | 10 % | tendance −6,0 %/sem. (ventes −5,5 % sur les 8 dernières semaines contre les 8 précédentes), CV 0,42 ; raison moteur « Votre activité baisse ces dernières semaines, ce qui réduit le plafond » |
+| Yaba Agossou (cosmétique, graine 50007, concentration, compte non séparé) | à risque (b) | 355 000 | 530 000 | **17,9 %** | 10 % | un payeur = 52 % des encaissements (alerte moteur), CV 0,49 (raison « varient beaucoup ») ; conseils « Diversifiez… » |
+| Yaba Agossou chez Baobab | à risque (b) | 445 000 | 670 000 | **16,8 %** | 7 % | idem, mensuel |
+| Rachidi Akanni | limite | 260 000 | 365 000 | 9,4 % | 10 % | demande 40 % au-dessus du plafond, juste sous la tolérance |
+| Edwige, Gildas | sains | — | — | 3,8 % / 3,3 % | 10 % | — |
+
+Au-dessus du plafond : Hounkpè, Yaba, Rachidi, Nafissatou. (c) historique court : Nafissatou (10 semaines, décote
+d'ancienneté). Écarts honnêtes : la part pro de Yaba reste à 92 % malgré le compte non séparé (le générateur mêle
+peu de flux personnels) ; les raisons du moteur ne chiffrent pas la baisse (« vos ventes ont baissé de 35 % »)
+— le chiffre est dans les indicateurs de la fiche (tendance par semaine), pas inventé dans une raison. Écarté :
+téléphonie graine 40004 (plafond nul, mais raisons « réguliers » et « progresse » : cause illisible).
+
+- Console : file Lagune de 8 dossiers triable par risque (Hounkpè puis Yaba en tête), un dossier chez Baobab ;
+  fiche : pastille « Au-dessus de la tolérance » et raisons du moteur (testé : `test_raisons_nomment_la_cause`, E2E).
+- Commerçant : profil « Commerçant à risque » (Yaba Agossou) sur `/connexion` : plafond bas au regard de ses ventes,
+  Conseils « Diversifiez les clients » et régularité, avertissement au dépôt au-dessus du plafond.
+- Démo guidée : temps 6 « Sain ou à risque » (Edwige / Hounkpè côte à côte : risque, raisons, décision proposée).
+- Tests adaptés : `demo.spec.ts`, `ecrans.spec.ts` (10 temps), `parcours.spec.ts` (« seule option ») ; test API :
+  au moins un dossier au-dessus et un en dessous de la tolérance. Empreinte `data/demo/demo.json` : `f9d7c042…`
+  (les 7 commerçants existants sont inchangés, mêmes graines).

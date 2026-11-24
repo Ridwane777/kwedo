@@ -20,6 +20,9 @@ SECRET = os.environ.get("KWEDO_SECRET") or secrets.token_hex(32)
 
 PROFILS = {
     "commercant": {"role": "commercant", "nom": "Afiavi Houngbo", "login": "com-afiavi", "commercant_id": "com-afiavi", "institution_id": None},
+    # L'autre côté : un profil à risque (dépendance à un seul client, ventes irrégulières), plafond bas.
+    "commercant-risque": {"role": "commercant", "nom": "Yaba Agossou", "login": "com-yaba", "commercant_id": "com-yaba", "institution_id": None,
+                          "libelle": "Commerçant à risque"},
     "agent-lagune": {"role": "agent", "nom": "Agent de crédit", "login": "agent.lagune", "commercant_id": None, "institution_id": "inst-lagune"},
     "responsable-lagune": {"role": "responsable", "nom": "Responsable crédit", "login": "responsable.lagune", "commercant_id": None, "institution_id": "inst-lagune"},
     "agent-baobab": {"role": "agent", "nom": "Agent de crédit", "login": "agent.baobab", "commercant_id": None, "institution_id": "inst-baobab"},

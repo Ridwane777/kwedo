@@ -36,7 +36,7 @@ test("parcours complet : estimation → décision → offre → remboursement �
   await page.getByLabel("Pendant").selectOption("12");
   await expect(page.getByTestId("phrase-echeance")).toContainText(/chaque mois pendant 12 mois \(12 échéances\)/);
   await page.getByLabel("Selon les règles de").selectOption("inst-baobab");
-  await expect(page.getByText("(seule formule de cette institution)")).toBeVisible();
+  await expect(page.getByText("(seule option de cette institution)")).toBeVisible();
   await expect(page.getByLabel("Pendant").locator("option")).toHaveCount(7); // 6 à 12 mois
   await page.getByLabel("Selon les règles de").selectOption("inst-lagune");
 
@@ -79,7 +79,7 @@ test("parcours complet : estimation → décision → offre → remboursement �
   // Deuxième institution, au mois (Baobab : mensuel seulement), depuis le bouton de l'estimation
   await page.goto("/app");
   await page.getByLabel("Selon les règles de").selectOption("inst-baobab");
-  await expect(page.getByText("(seule formule de cette institution)")).toBeVisible();
+  await expect(page.getByText("(seule option de cette institution)")).toBeVisible();
   await page.getByRole("link", { name: "Envoyer mon dossier" }).click();
   await page.getByTestId("montant-souhaite").fill("600000");
   await page.getByText("Achat de stock", { exact: true }).click();

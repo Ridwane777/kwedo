@@ -36,10 +36,12 @@ const pourAgent = (t: string) => t
   .replace(/vous encaissez/g, "le commerçant encaisse")
   .replace(/Vos encaissements/g, "Ses encaissements")
   .replace(/Votre activité/g, "Son activité")
-  .replace(/Votre historique/g, "Son historique");
+  .replace(/Votre historique/g, "Son historique")
+  .replace(/vos encaissements/g, "ses encaissements")
+  .replace(/vos ventes/g, "ses ventes");
 const decimales = (t: string) => t.replace(/(\d)\.(\d)/g, "$1,$2");
 
-const ONGLETS = ["Flux et indicateurs", "Chaîne de calcul", "Modèles", "Journal d'accès"] as const;
+const ONGLETS = ["Flux et indicateurs", "Comment c'est calculé","Modèles", "Journal d'accès"] as const;
 
 /** Onglets ARIA : flèches gauche/droite, Début/Fin ; chaque panneau reste dans le DOM pour ne rien retirer. */
 function Onglets({ panneaux }: { panneaux: React.ReactNode[] }) {
@@ -103,7 +105,6 @@ export default function Fiche() {
   if (!d) return <Chargement lignes={8} label="Chargement du dossier" />;
   const dem = d.demande;
   const a = d.analyse, ind = a.indicateurs;
-  const plafondFormule = a.l_max;
   const alertes = a.alertes ?? [];
   const seuil = a.parametres.seuil_risque;
   const moisDemandes = d.duree_mois ?? Math.round((a.duree_semaines * 12) / 52);
@@ -126,7 +127,9 @@ export default function Fiche() {
   }
 
   const motifValide = motif.trim().length >= 10;
-  const borne = Math.max(plafondFormule, d.montant_demande ?? 0);
+  // Borne que le serveur fait respecter ; à l'écran, elle s'énonce en mots.
+  const borne = Math.max(a.l_max, d.montant_demande ?? 0);
+  const auDelaBorne = type === "ajuste" && !modifie && montant > borne;
   const montantValide = type !== "ajuste" || (montant >= 5000 && montant <= (d.montant_demande ?? Infinity) && (modifie || montant <= borne));
 
   return (
@@ -171,7 +174,7 @@ export default function Fiche() {
               </div>
               <div>
                 <dt className="text-sm font-semibold text-encre-2">Repère : plafond prudent</dt>
-                <dd className="text-sm">{fcfa(a.plafond)} ({pct(dem.risque_plafond, 1)} de risque) · formule {fcfa(plafondFormule)}</dd>
+                <dd className="text-sm">{fcfa(a.plafond)} ({pct(dem.risque_plafond, 1)} de risque)</dd>
                 <dd className="text-sm text-encre-2">Recommandation au plafond : {RECO[a.recommandation]}{a.provisoire ? ", provisoire" : ""}</dd>
               </div>
             </dl>
@@ -226,7 +229,7 @@ export default function Fiche() {
             <div key="flux" className="space-y-4">
               <CourbeFlux serie={a.serie_hebdo} prudent={a.encaissement_prudent} median={ind.encaissement_median} debut={ind.debut} dense hauteur={190} />
               <dl className="grid gap-x-8 md:grid-cols-2">
-                <Ligne l={`Encaissement prudent (p${a.parametres.percentile})`} v={fcfa(a.encaissement_prudent)} />
+                <Ligne l="Encaissement d'une mauvaise semaine" v={fcfa(a.encaissement_prudent)} />
                 <Ligne l="Encaissement médian" v={fcfa(ind.encaissement_median)} />
                 <Ligne l="Régularité (écart relatif)" v={pct(ind.regularite_cv)} />
                 <Ligne l="Jours actifs par semaine" v={ind.jours_actifs.toLocaleString("fr-FR")} />
@@ -240,9 +243,11 @@ export default function Fiche() {
                 <Ligne l="Exclu : circulaires" v={fcfa(ind.exclu_circulaires)} />
               </dl>
             </div>,
-            <div key="calcul">
-              <ol className="list-decimal space-y-1 pl-5">{a.chaine_calcul.map((l) => <li key={l}>{decimales(l).replace(/annoncé [\d,]+\s?%/, `annoncé ${pct(a.risque, 1)}`)}</li>)}</ol>
-              <p className="mt-3 text-xs text-encre-2">Moteur {d.version_moteur}, graine {d.graine}, {decimales(`m=${a.parametres.m}, s=${a.parametres.s}, n=${a.parametres.n}, i=${a.parametres.i}`)}, {nombre(a.parametres.trajectoires)} trajectoires.</p>
+            <div key="calcul" className="space-y-2" data-testid="comment-calcule">
+              <p>Le moteur part d'une mauvaise période de ventes du commerçant, pas de sa moyenne, et garde une marge de sécurité sur ce qu'il peut rembourser.</p>
+              <p>Il teste ensuite {nombre(a.parametres.trajectoires)} avenirs possibles de ses ventes : le risque est la part des avenirs où au moins une échéance serait manquée, corrigée par un modèle calibré. Le plafond prudent est le plus haut montant dont le risque reste dans la tolérance de l'institution.</p>
+              <p>L'institution décide : accorder, contre-proposer, refuser ou demander un complément.</p>
+              <p className="text-xs text-encre-2">Rejouable à l'identique : moteur {d.version_moteur}, graine {d.graine}. Réglages : page Paramètres.</p>
             </div>,
             <div key="modeles">
               {a.modeles ? (
@@ -253,7 +258,7 @@ export default function Fiche() {
                     <Ligne l="Probabilité de défaut" v={pct(a.modeles.proba_defaut, 1)} />
                     <Ligne l="Score d'anomalie" v={a.modeles.score_anomalie.toLocaleString("fr-FR")} />
                   </dl>
-                  <p className="mt-2 text-xs text-encre-2">La probabilité de défaut est le risque calibré au montant proposé ; la formule reste le plafond.</p>
+                  <p className="mt-2 text-xs text-encre-2">La probabilité de défaut est le risque calibré au montant proposé.</p>
                 </>
               ) : <p className="text-encre-2">Aucun modèle appliqué à ce dossier.</p>}
             </div>,
@@ -286,7 +291,8 @@ export default function Fiche() {
                     <input inputMode="numeric" value={nombre(montant)} onChange={(e) => setMontant(Number(e.target.value.replace(/\D/g, "")) || 0)}
                       className="chiffres mt-1 block min-h-11 w-full rounded-xl border border-trait bg-fond px-3" aria-invalid={!montantValide} />
                     <span className={`text-xs ${montantValide ? "text-encre-2" : "text-alerte"}`}>
-                      {d.montant_demande ? `Pas plus que demandé (${fcfa(d.montant_demande)}).` : `Plafond de la formule : ${fcfa(plafondFormule)}.`}
+                      {auDelaBorne ? "Au-delà, les ventes ne permettent pas de rembourser prudemment."
+                        : d.montant_demande ? `Pas plus que demandé (${fcfa(d.montant_demande)}).` : "Au-delà du plafond prudent, les ventes ne permettent pas de rembourser prudemment."}
                     </span>
                   </label>
                 )}

@@ -31,7 +31,7 @@ export function SimulateurVitrine() {
   return (
     <div className="grid gap-6 rounded-3xl border border-trait bg-surface p-5 sm:p-8 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
       <div className="space-y-6">
-        <div className="flex flex-wrap items-center gap-2"><Simule quoi="Exemple, formule simplifiée" /></div>
+        <div className="flex flex-wrap items-center gap-2"><Simule quoi="Exemple, calcul simplifié" /></div>
         <label htmlFor={idV} className="block">
           <span className="flex items-baseline justify-between gap-3"><span className="font-semibold">Ventes d'une semaine habituelle</span><output htmlFor={idV} className="chiffres font-semibold">{fcfa(ventes)}</output></span>
           <input id={idV} type="range" min={50_000} max={800_000} step={10_000} value={ventes} onChange={(e) => setVentes(Number(e.target.value))}
@@ -48,7 +48,7 @@ export function SimulateurVitrine() {
           <p className="mt-2 text-encre-2" data-testid="plafond-conditions">Jusqu'à {fcfa(r.plafond)}, remboursés chaque semaine pendant {N} semaines (6 mois), soit {fcfa(r.echeance)} par semaine, aux conditions d'une institution d'exemple. Ce n'est pas un crédit accordé : l'institution décide.</p>
         </div>
         <p className="max-w-[60ch] text-sm text-encre-2">
-          Calcul simplifié : une mauvaise semaine (20ᵉ centile) × part de marge {String(M).replace(".", ",")} × part prélevable {String(S).replace(".", ",")}, sur {N} semaines au taux de 0,35 % par semaine.
+          Calcul simplifié : on part d'une mauvaise semaine de ventes, on n'en consacre qu'une petite part au remboursement, sur {N} semaines au taux de l'institution.
           Le moteur de l'application y ajoute 2 000 scénarios de ventes et des contrôles de cohérence.
         </p>
       </div>
