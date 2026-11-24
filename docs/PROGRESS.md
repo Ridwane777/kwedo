@@ -111,3 +111,15 @@ d'attente sous charge (passé seul puis dans la suite complète) ; à surveiller
 
 Limite : les captures pleine page sont prises en mouvement réduit (sinon les révélations au défilement restent dans
 leur état initial hors de la vue) ; les animations elles-mêmes se vérifient dans le navigateur.
+
+## Mission finitions (`docs/MISSION-FINITIONS.md`, branche `finitions`)
+
+| # | Demande | Preuve |
+|---|---|---|
+| 1 | Logo en grand format | Cauri redessiné par calcul (`scripts/geometrie-cauri.mjs`) : coquille ovale bombée, ouverture fine et légèrement courbe d'une pointe à l'autre, 12 petites dents courtes par lèvre creusées vers l'extérieur, encoches aux deux bouts ; plus aucune hachure en travers. Trois itérations jugées sur captures (dents en travers puis rainures longues évoquaient encore un ballon). Version simplifiée sous 24 px. Favicon, icône d'application, image de partage, pile de cauris mis à jour. Connexion : la courbe passe au-dessus du texte et ne croise plus le logo |
+| 2 | Mois des courbes | `CourbeFlux` dessine à l'échelle 1 (largeur mesurée) : libellés et valeurs à 12 px de 360 à 1920 px, hauteur bornée |
+| 3 | Bouton Σ | « Voir le calcul » avec icône (et « Masquer le calcul ») |
+| 4 | Commandes admin | « Avancer de 7 jours » et « Réinitialiser », icône + libellé |
+| 5 | Vide à 1920 px | Admin : répartition des dossiers (à traiter, décidés sans crédit, crédit ouvert), par institution et au total, calculée uniquement depuis l'aperçu existant ; activité sur toute sa colonne. Commerçant : actions sous le sélecteur, colonne gauche collante. Défaut trouvé : débordement à 360 px dû à la grille parente, corrigé |
+| 6 | Téléphones de l'accueil | Cause : l'arrondi du cadre mangeait les bords de la barre du bas. Cadre à « menton », écran aux coins bas presque droits, image jamais recadrée ; « Estimation » et « Activité » entiers |
+| — | Vérification | build OK, `test:api` OK, `npx playwright test` **119/119** ; captures 360/768/1440/1920 clair et sombre dans `.captures/revue-finitions/`. Un blocage d'attente réseau sur la démo en fin de suite (test passé 4/4 seul) : attente bornée, vérification de fin de chargement conservée |
