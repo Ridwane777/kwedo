@@ -49,9 +49,9 @@ export function Cauri({ taille = 28, mono = false, className = "" }: { taille?: 
 }
 
 /** Marque complète : symbole + mot. */
-export function Marque({ taille = 28, avecMot = true, mono = false }: { taille?: number; avecMot?: boolean; mono?: boolean; inverse?: boolean }) {
+export function Marque({ taille = 28, avecMot = true, mono = false, couleur = "text-encre" }: { taille?: number; avecMot?: boolean; mono?: boolean; inverse?: boolean; couleur?: string }) {
   return (
-    <span className="inline-flex items-center gap-2 text-encre" aria-label="Kwedo">
+    <span className={`inline-flex items-center gap-2 ${couleur}`} aria-label="Kwedo">
       <Cauri taille={taille} mono={mono} />
       {avecMot && <span className="titre text-[1.4rem] leading-none tracking-tight">Kwedo</span>}
     </span>
@@ -67,17 +67,18 @@ export function Lisiere({ className = "" }: { className?: string; hauteur?: numb
  * Pile de cauris : un cauri par part remboursée, qui s'empile de bas en haut.
  * `part` entre 0 et 1 ; animation d'empilement en CSS (transform + opacity), coupée sous prefers-reduced-motion.
  */
-export function PileCauris({ part, total = 8, className = "" }: { part: number; total?: number; className?: string }) {
+export function PileCauris({ part, total = 8, className = "", mono = false }: { part: number; total?: number; className?: string; mono?: boolean }) {
+  const [plein, vide, fente] = mono ? ["currentColor", "currentColor", "var(--scene)"] : ["var(--logo-cauri)", "var(--trait)", "var(--fond)"];
   const pleins = Math.round(Math.max(0, Math.min(1, part)) * total);
   return (
     <svg aria-hidden="true" viewBox={`0 0 40 ${total * 9 + 6}`} className={className}>
       {Array.from({ length: total }, (_, k) => {
         const y = (total - 1 - k) * 9 + 3;
-        const plein = k < pleins;
+        const estPlein = k < pleins;
         return (
-          <g key={k} className={plein ? "cauri-empile" : ""} style={{ animationDelay: `${k * 90}ms` }}>
-            <ellipse cx={20 + (k % 2 ? 3 : -3)} cy={y + 4} rx="11" ry="4" fill={plein ? "var(--logo-cauri)" : "none"} stroke={plein ? "none" : "var(--trait)"} />
-            {plein && <path d={`M${12 + (k % 2 ? 3 : -3)} ${y + 4}h16`} stroke="var(--fond)" strokeWidth="1" strokeLinecap="round" />}
+          <g key={k} className={estPlein ? "cauri-empile" : ""} style={{ animationDelay: `${k * 90}ms` }}>
+            <ellipse cx={20 + (k % 2 ? 3 : -3)} cy={y + 4} rx="11" ry="4" fill={estPlein ? plein : "none"} stroke={estPlein ? "none" : vide} strokeOpacity={mono ? 0.35 : 1} />
+            {estPlein && <path d={`M${12 + (k % 2 ? 3 : -3)} ${y + 4}h16`} stroke={fente} strokeWidth="1" strokeLinecap="round" />}
           </g>
         );
       })}

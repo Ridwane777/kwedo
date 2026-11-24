@@ -30,15 +30,15 @@ function Tableau({ u }: { u: Utilisateur }) {
 
   const entete = (
     <header className="relative z-20 border-b border-trait bg-surface">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 py-3 sm:px-8">
+      <div className="gouttiere flex flex-wrap items-center justify-between gap-3 py-3">
         <div className="flex items-center gap-3"><Marque taille={26} /><span className="rounded-full bg-encre px-2.5 py-0.5 text-xs font-semibold text-fond">Admin général</span></div>
         <UserButton u={u} espace="pro" />
       </div>
     </header>
   );
 
-  if (erreur) return <>{entete}<div className="mx-auto max-w-6xl px-5 py-8 sm:px-8"><Erreur message={erreur} reessayer={recharger} /></div></>;
-  if (!a) return <>{entete}<div className="mx-auto max-w-6xl px-5 py-8 sm:px-8"><Chargement lignes={8} label="Chargement de la supervision" /></div></>;
+  if (erreur) return <>{entete}<div className="gouttiere py-8"><Erreur message={erreur} reessayer={recharger} /></div></>;
+  if (!a) return <>{entete}<div className="gouttiere py-8"><Chargement lignes={8} label="Chargement de la supervision" /></div></>;
 
   const noms = Object.fromEntries(a.institutions.map((i) => [i.id, i.nom]));
   const chiffres = [["Institutions", a.institutions.length], ["Commerçants", a.commercants], ["Dossiers", a.dossiers], ["Crédits", a.credits]] as const;
@@ -56,7 +56,7 @@ function Tableau({ u }: { u: Utilisateur }) {
   return (
     <div className="min-h-dvh text-[14px]">
       {entete}
-      <div className="mx-auto max-w-6xl space-y-8 px-5 py-7 sm:px-8">
+      <div className="gouttiere space-y-8 py-7">
         <section className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <h1 className="titre text-[2rem] leading-tight">Supervision de la plateforme</h1>
@@ -78,6 +78,8 @@ function Tableau({ u }: { u: Utilisateur }) {
           ))}
         </dl>
 
+        {/* Grand écran : institutions à gauche, activité et commandes à droite, sur toute la largeur. */}
+        <div className="grid gap-8 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] xl:items-start">
         <section className="space-y-3">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h2 className="titre text-xl">Institutions</h2>
@@ -104,7 +106,7 @@ function Tableau({ u }: { u: Utilisateur }) {
           )}
         </section>
 
-        <section className="grid gap-6 lg:grid-cols-[1fr_300px]">
+        <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px] xl:grid-cols-1 2xl:grid-cols-[minmax(0,1fr)_280px]">
           <div className="min-w-0 space-y-3">
             <h2 className="titre text-xl">Activité récente</h2>
             {!a.journal.length ? <Vide titre="Aucune activité">Les événements de la plateforme s'affichent ici au fil de l'eau.</Vide> : (
@@ -157,6 +159,7 @@ function Tableau({ u }: { u: Utilisateur }) {
             {msg && <p role={msg.ok ? "status" : "alert"} className={`text-sm font-medium ${msg.ok ? "text-bon" : "text-alerte"}`}>{msg.t}</p>}
           </aside>
         </section>
+        </div>
       </div>
     </div>
   );

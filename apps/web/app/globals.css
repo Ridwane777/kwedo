@@ -30,6 +30,9 @@
   --montant: #0a5a47;       /* gros montants (= marque en clair, texte neutre en sombre) */
   --logo-barre: #0e1d18;    /* marque cauri : barre du K */
   --logo-cauri: #0a5a47;    /* marque cauri : coquille (ivoire sable en sombre) */
+  --scene: #0a5a47;         /* panneau de marque (connexion) : vert en clair, graphite en sombre */
+  --sur-scene: #f2f4f3;
+  --sur-scene-2: #d7ebe3;
   --ombre: 0 1px 0 rgb(14 29 24 / 0.04), 0 8px 24px -12px rgb(14 29 24 / 0.18);
 }
 
@@ -64,6 +67,9 @@
   --cadre: #3b3936;
   --logo-barre: #ecebe7;
   --logo-cauri: #d4c6a1;
+  --scene: #1f1e1c;
+  --sur-scene: #ecebe7;
+  --sur-scene-2: #c2beb7;
   --ombre: 0 0 0 1px rgb(255 255 255 / 0.04);
 }
 
@@ -94,6 +100,9 @@
     --cadre: #3b3936;
     --logo-barre: #ecebe7;
     --logo-cauri: #d4c6a1;
+    --scene: #1f1e1c;
+    --sur-scene: #ecebe7;
+    --sur-scene-2: #c2beb7;
     --ombre: 0 0 0 1px rgb(255 255 255 / 0.04);
   }
 }
@@ -122,6 +131,9 @@
   --color-montant: var(--montant);
   --color-logo-cauri: var(--logo-cauri);
   --color-logo-barre: var(--logo-barre);
+  --color-scene: var(--scene);
+  --color-sur-scene: var(--sur-scene);
+  --color-sur-scene-2: var(--sur-scene-2);
   --font-serif: var(--font-titre), system-ui, sans-serif;
   --font-sans: var(--font-texte), system-ui, sans-serif;
   --shadow-carte: var(--ombre);
@@ -145,6 +157,56 @@ body { font-family: var(--font-sans); font-variant-numeric: tabular-nums; -webki
 /* Cauris : empilement (remboursements) et chargement. transform + opacity seulement. */
 @keyframes cauri-empile { from { opacity: 0; transform: translateY(-14px); } to { opacity: 1; transform: none; } }
 .cauri-empile { animation: cauri-empile .45s cubic-bezier(.2,.8,.2,1) both; }
+/* ---------- Pleine largeur (ADR 0012) : gouttières fluides ; seules les lignes de texte sont limitées. ---------- */
+.gouttiere { padding-inline: clamp(1.25rem, 4.5vw, 5rem); }
+
+/* Images propres à un thème (captures de l'app en clair et en sombre). display:none : l'autre image n'est pas chargée. */
+.seul-sombre { display: none; }
+:root[data-theme="dark"] .seul-clair { display: none; }
+:root[data-theme="dark"] .seul-sombre { display: block; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]):not([data-theme="dark"]) .seul-clair { display: none; }
+  :root:not([data-theme="light"]):not([data-theme="dark"]) .seul-sombre { display: block; }
+}
+
+/* Écrans du téléphone qui se succèdent (fondu). Sans animation, le premier écran reste affiché. */
+@keyframes ecran-suivant { 0%, 22% { opacity: 1; } 25%, 97% { opacity: 0; } 100% { opacity: 1; } }
+.defile > * { position: absolute; inset: 0; }
+.defile > *:not(:first-child) { opacity: 0; }
+@media (prefers-reduced-motion: no-preference) {
+  .defile > * { animation: ecran-suivant 16s infinite; }
+  .defile > *:nth-child(1) { animation-delay: 0s; }
+  .defile > *:nth-child(2) { animation-delay: 4s; }
+  .defile > *:nth-child(3) { animation-delay: 8s; }
+  .defile > *:nth-child(4) { animation-delay: 12s; }
+  .defile > *:not(:first-child) { opacity: 0; }
+  .defile > *:first-child { opacity: 1; }
+}
+
+/* Compteur : milliers comptés de 0 à --cible en CSS ; la valeur exacte est donnée en texte aux lecteurs d'écran. */
+@property --milliers { syntax: "<integer>"; initial-value: 0; inherits: false; }
+.compteur { --milliers: var(--cible); counter-reset: m var(--milliers); }
+.compteur::before { content: counter(m); }
+@media (prefers-reduced-motion: no-preference) {
+  .compteur { animation: compter 1.8s cubic-bezier(.2,.7,.2,1) .3s both; }
+  @keyframes compter { from { --milliers: 0; } to { --milliers: var(--cible); } }
+}
+
+/* Révélations au défilement : amélioration progressive, le contenu reste visible sans elles. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .revele { animation: revele linear both; animation-timeline: view(); animation-range: entry 0% cover 28%; }
+    @keyframes revele { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: none; } }
+    .fil-progres { transform-origin: top; animation: fil linear both; animation-timeline: view(); animation-range: cover 10% cover 70%; }
+    @keyframes fil { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cauri-flotte { animation: cauri-flotte 7s ease-in-out infinite; }
+  @keyframes cauri-flotte { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-10px) rotate(-4deg); } }
+}
+
 @keyframes cauri-tourne { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-18deg) scale(.94); } }
 
 @media (prefers-reduced-motion: reduce) {

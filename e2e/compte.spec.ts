@@ -26,7 +26,7 @@ async function menuVisible(page: Page) {
   expect(b.y + b.height, "menu sous le bas de l'écran").toBeLessThanOrEqual(vp.height);
   // Jamais masqué par la barre de navigation du bas (espace commerçant).
   const nav = page.getByRole("navigation", { name: "Navigation principale" });
-  if (await nav.count()) expect(b.y + b.height, "menu sous la barre du bas").toBeLessThanOrEqual((await nav.boundingBox())!.y);
+  if (await nav.isVisible()) expect(b.y + b.height, "menu sous la barre du bas").toBeLessThanOrEqual((await nav.boundingBox())!.y);
   return menu;
 }
 
