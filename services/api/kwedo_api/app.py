@@ -212,9 +212,14 @@ def estimation(s, q, b, h, cid):
                         q.get("frequence") or None, _int(q.get("duree_mois")))
 
 
+@route("GET", r"/commercants/(?P<cid>[\w-]+)/plafonds", commercant_du_chemin)
+def plafonds(s, q, b, h, cid):
+    return s.plafonds(cid, q.get("institution_id", "inst-lagune"), q.get("frequence") or None)
+
+
 @route("GET", r"/commercants/(?P<cid>[\w-]+)/conseils", commercant_du_chemin)
 def conseils(s, q, b, h, cid):
-    return s.conseils(cid, q.get("institution_id", "inst-lagune"))
+    return s.conseils(cid, q.get("institution_id", "inst-lagune"), q.get("frequence") or None, _int(q.get("duree_mois")))
 
 
 @route("GET", r"/commercants/(?P<cid>[\w-]+)/consentements", commercant_du_chemin)
@@ -247,8 +252,16 @@ def file(s, q, b, h):
 
 @route("POST", r"/dossiers", commercant_du_corps)
 def envoyer(s, q, b, h):
-    d = s.envoyer_dossier(b.get("commercant_id", ""), b.get("institution_id", ""), b.get("frequence") or None, _int(b.get("duree_mois")))
-    return {k: d[k] for k in ("id", "institution_id", "statut", "frequence", "duree_mois")}  # jamais les alertes côté commerçant
+    d = s.envoyer_dossier(b.get("commercant_id", ""), b.get("institution_id", ""), b.get("frequence") or None, _int(b.get("duree_mois")),
+                          b.get("montant_demande"), b.get("objet_categorie"), b.get("objet"))
+    # Jamais les alertes ni le risque côté commerçant.
+    return {k: d[k] for k in ("id", "institution_id", "statut", "frequence", "duree_mois", "montant_demande", "objet_categorie", "objet_texte")}
+
+
+@route("GET", r"/dossiers/(?P<did>[\w-]+)/risque", equipe_dossier)
+def risque_termes(s, q, b, h, did):
+    """Risque recalculé pour une contre-proposition (montant, fréquence, durée dans les modalités de l'institution)."""
+    return s.evaluer(did, _int(q.get("montant")), q.get("frequence") or None, _int(q.get("duree_mois")))
 
 
 @route("GET", r"/dossiers/(?P<did>[\w-]+)", equipe_dossier)

@@ -15,6 +15,8 @@ type Offre = {
   echeance?: number; cout_total?: number; taux_periode?: number; nb_echeances?: number; raisons: Raison[]; conseils: string[];
   frequence: Frequence; duree_mois: number | null; frequence_demandee: Frequence; duree_mois_demandee: number | null;
   delai_versement_h: number; estimation_eprouvee: boolean;
+  montant_demande: number | null; objet_libelle: string | null; objet_texte: string | null;
+  nature?: "demande_acceptee" | "contre_proposition"; ecart_montant?: number;
   decision: { type: string; motif: string } | null; credit: { id: string } | null;
 };
 
@@ -85,8 +87,19 @@ export default function PageOffre() {
   return (
     <section className="space-y-6">
       <div className="space-y-1">
+        {o.nature && (
+          <p data-testid="nature-offre" className={`inline-block rounded-full px-3 py-1 text-sm font-semibold ${o.nature === "demande_acceptee" ? "bg-bon-doux text-bon" : "bg-ambre-doux text-ambre-encre"}`}>
+            {o.nature === "demande_acceptee" ? "Votre demande est acceptée" : "Contre-proposition de l'institution"}
+          </p>
+        )}
         <p className="text-encre-2">{o.institution} vous propose</p>
         <p className="montant text-5xl text-montant">{fcfa(o.montant_offre)}</p>
+        {o.montant_demande && (
+          <p className="text-sm text-encre-2" data-testid="ecart-demande">
+            Vous aviez demandé {fcfa(o.montant_demande)}{o.objet_libelle ? ` (${o.objet_libelle.toLowerCase()})` : ""}
+            {o.nature === "contre_proposition" && o.ecart_montant ? ` : écart de ${fcfa(o.ecart_montant)}.` : "."}
+          </p>
+        )}
         <Simule quoi="Offre fictive" />
       </div>
       <dl className="divide-y divide-trait border-y border-trait text-[16px]">
@@ -103,7 +116,7 @@ export default function PageOffre() {
       )}
       {!o.estimation_eprouvee && <p className="text-xs text-encre-2">Estimation prudente, moins éprouvée que le remboursement hebdomadaire.</p>}
       {o.decision?.motif && o.decision.type === "ajuste" && (
-        <p className="text-sm text-encre-2">Votre estimation était de {fcfa(o.plafond_estime)}. Motif de l'agent : « {o.decision.motif} »</p>
+        <p className="text-sm text-encre-2">Votre plafond estimé était de {fcfa(o.plafond_estime)} ({FREQ[o.frequence_demandee].chaque}, aux conditions de {o.institution}). Motif de l'agent : « {o.decision.motif} »</p>
       )}
       <label className="block">
         <span className="text-encre-2">Je préfère emprunter moins (facultatif)</span>

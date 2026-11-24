@@ -395,7 +395,32 @@ def analyser(transactions: list[dict], parametres: dict | Parametres | None = No
         else:
             r_souhait = risque_pour_montant(seuils, montant_souhaite, p)
         res["souhait"] = souhait(montant_souhaite, hebdo, r_souhait, c_p, p, decote * facteur_modele)
+        res["souhait"].update(raisons_demande(montant_souhaite, c_p, plafond, p))
     return res
+
+
+def raisons_demande(montant: int, c_p: float, plafond: int, p: Parametres) -> dict:
+    """Raisons rédigées pour un montant demandé librement (pas celui du moteur) : poids de l'échéance sur une
+    mauvaise période et écart au plafond prudent. Aucune valeur de réglage de l'institution n'y figure."""
+    e = echeance(montant, p)
+    part = e / c_p if c_p > 0 else None
+    per, mauvaise = PERIODE[p.frequence], MAUVAISE[p.frequence]
+    raisons = []
+    if part is not None:
+        poids = ("elle laisse une marge confortable" if part <= 0.25 else "elle reste supportable" if part <= 0.5
+                 else "elle pèse lourd" if part <= 1 else "elle dépasse ce qui est encaissé")
+        raisons.append({"code": "part_mauvaise_periode", "texte": f"L'échéance demandée ({_fcfa(e)} par {per}) représente "
+                        f"{_pc(part)} de {mauvaise} ({_fcfa(c_p)} encaissés au moins) : {poids}."})
+    if plafond and montant > plafond:
+        raisons.append({"code": "au_dessus_du_plafond", "texte": f"Le montant demandé dépasse de {_pc(montant / plafond - 1)} "
+                        f"le plafond prudent ({_fcfa(plafond)}) pour ces modalités."})
+    elif plafond:
+        raisons.append({"code": "sous_le_plafond", "texte": f"Le montant demandé reste sous le plafond prudent ({_fcfa(plafond)}) "
+                        "pour ces modalités."})
+    else:
+        raisons.append({"code": "sans_plafond", "texte": "Aucun montant n'est jugé prudent pour ces modalités à ce jour."})
+    return {"part_mauvaise_periode": round(part, 4) if part is not None else None, "nb_echeances": p.nb,
+            "cout_total": round(e * p.nb - montant), "raisons": raisons}
 
 
 def _raisons(hebdo, p, graine, choc, decote, plafond, ind, fv, c_p, lmax, l_sim, mod=None):

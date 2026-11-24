@@ -18,7 +18,8 @@ test("parcours complet : estimation → décision → offre → remboursement �
   // 1. Estimation avec raisons, étiquette « simulé »
   await page.setViewportSize({ width: 360, height: 780 });
   await page.goto("/app");
-  await expect(page.getByText("vous pouvez emprunter jusqu'à")).toBeVisible();
+  await expect(page.getByText("votre plafond estimé")).toBeVisible();
+  await expect(page.getByTestId("plafond-conditions").first()).toContainText(/Jusqu'à .* remboursés chaque semaine pendant 26 semaines, aux conditions de Caisse Lagune/);
   await expect(page.getByText(/\d[\d\s]*\sFCFA/).first()).toBeVisible();
   await expect(page.getByText("Démo simulée")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Pourquoi ce montant" })).toBeVisible();
@@ -50,8 +51,12 @@ test("parcours complet : estimation → décision → offre → remboursement �
   await page.getByRole("button", { name: "Déposer mon dossier de crédit" }).click();
   await page.getByRole("radio", { name: /Caisse Lagune/ }).check();
   await page.getByRole("button", { name: "Continuer" }).click();
+  await page.getByTestId("montant-souhaite").fill("600000");
+  await page.getByText("Achat de stock", { exact: true }).click();
+  await page.getByLabel("En une phrase, à quoi servira-t-il ?").fill("Acheter des pagnes avant les fêtes.");
   await expect(page.getByTestId("phrase-echeance")).toContainText("chaque semaine pendant 26 semaines");
   await page.getByRole("button", { name: "Continuer" }).click();
+  expect((await page.getByTestId("recap-montant").textContent())!.replace(/\D/g, "")).toBe("600000");
   await expect(page.getByText("J'accepte que Caisse Lagune Microfinance (fictive) consulte mon dossier de crédit.")).toBeVisible();
   await expect(page.getByText("sous 48 h après accord")).toBeVisible();
   const signer = page.getByRole("button", { name: "Signer et envoyer" });
@@ -76,6 +81,9 @@ test("parcours complet : estimation → décision → offre → remboursement �
   await page.getByLabel("Selon les règles de").selectOption("inst-baobab");
   await expect(page.getByText("(seule formule de cette institution)")).toBeVisible();
   await page.getByRole("link", { name: "Envoyer mon dossier" }).click();
+  await page.getByTestId("montant-souhaite").fill("600000");
+  await page.getByText("Achat de stock", { exact: true }).click();
+  await page.getByLabel("En une phrase, à quoi servira-t-il ?").fill("Acheter des pagnes avant les fêtes.");
   await expect(page.getByTestId("phrase-echeance")).toContainText("chaque mois pendant 6 mois");
   await page.getByRole("button", { name: "Continuer" }).click();
   await expect(page.getByText("sous 72 h après accord")).toBeVisible();
@@ -96,13 +104,16 @@ test("parcours complet : estimation → décision → offre → remboursement �
   await connecter(agent.request, "agent-lagune");
   await agent.goto("/console");
   await agent.getByRole("link", { name: "Afiavi Houngbo" }).click();
-  await expect(agent.getByText("Montant proposé par le moteur")).toBeVisible();
-  await expect(agent.getByTestId("modalites-demandees")).toContainText("Demandé : chaque semaine, 26 semaines");
+  expect((await agent.getByTestId("montant-demande").textContent())!.replace(/\D/g, "")).toBe("600000");
+  await expect(agent.getByText("« Acheter des pagnes avant les fêtes. »")).toBeVisible();
+  await expect(agent.getByTestId("risque-demande")).toContainText(/tolérance/);
+  await expect(agent.getByTestId("modalites-demandees")).toContainText("chaque semaine, 26 semaines");
   await agent.keyboard.press("a");
   await expect(agent.getByLabel("Fréquence")).toHaveValue("hebdomadaire");
   await expect(agent.getByLabel("Durée").locator("option")).toHaveCount(10); // limites Lagune : 3 à 12 mois
   const champ = agent.getByLabel("Montant décidé (FCFA)");
-  await champ.fill("600000");
+  await champ.fill("400000");
+  await expect(agent.getByTestId("risque-contre")).toContainText("Risque recalculé");
   await agent.getByRole("button", { name: "Enregistrer la décision" }).isDisabled();
   await agent.getByLabel(/Justificatif/).fill("Saison creuse en janvier : prudence sur le montant.");
   await agent.getByRole("button", { name: "Enregistrer la décision" }).click();
@@ -119,6 +130,8 @@ test("parcours complet : estimation → décision → offre → remboursement �
   await page.goto("/app/dossier");
   await page.getByRole("link", { name: /Voir l'offre/ }).click();
   await expect(page.getByText("vous propose")).toBeVisible();
+  await expect(page.getByTestId("nature-offre")).toHaveText("Contre-proposition de l'institution");
+  await expect(page.getByTestId("ecart-demande")).toContainText(/écart de .200/);
   await capture(page, "5-offre");
   await page.getByRole("button", { name: /^Accepter/ }).click();
   await expect(page).toHaveURL(/\/app\/credit/);

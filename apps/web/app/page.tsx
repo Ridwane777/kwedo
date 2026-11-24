@@ -115,6 +115,7 @@ export default function Accueil() {
                   <span aria-hidden="true"><span className="compteur" style={{ "--cible": 400 } as React.CSSProperties} /> 000 FCFA</span>
                   <span className="sr-only">400 000 FCFA</span>
                 </p>
+                <p className="mt-1 text-sm text-encre-2" data-testid="plafond-conditions">Jusqu'à 400 000 FCFA, remboursés chaque semaine pendant 6 mois, aux conditions d'une institution fictive</p>
                 <div className="mt-4"><CourbeFlux serie={EXEMPLE} prudent={210000} median={247000} debut="2026-05-25" hauteur={170} /></div>
               </div>
               <div className="flex items-center gap-4 rounded-3xl border border-trait bg-surface p-5">

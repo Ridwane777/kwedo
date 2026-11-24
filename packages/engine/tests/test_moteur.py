@@ -96,6 +96,21 @@ class TestMoteur(unittest.TestCase):
         self.assertFalse(r["souhait"]["atteignable"])
         self.assertTrue(r["souhait"]["manque"])
 
+    def test_raisons_de_la_demande(self):
+        """ADR 0017 : raisons rédigées pour le montant demandé, sans réglage de l'institution."""
+        r = analyser(self.honnete["transactions"], P, graine=1, montant_souhaite=self.res["plafond"] * 2)
+        s = r["souhait"]
+        codes = [x["code"] for x in s["raisons"]]
+        self.assertEqual(codes, ["part_mauvaise_periode", "au_dessus_du_plafond"])
+        self.assertAlmostEqual(s["part_mauvaise_periode"], s["echeance"] / r["encaissement_prudent"], places=3)
+        self.assertIn("mauvaise semaine", s["raisons"][0]["texte"])
+        self.assertAlmostEqual(s["cout_total"], s["echeance"] * s["nb_echeances"] - s["montant"], delta=s["nb_echeances"])
+        bas = analyser(self.honnete["transactions"], P, graine=1, montant_souhaite=max(5_000, self.res["plafond"] // 2))
+        self.assertEqual(bas["souhait"]["raisons"][1]["code"], "sous_le_plafond")
+        self.assertLessEqual(bas["souhait"]["risque"], s["risque"])
+        for x in s["raisons"]:
+            self.assertNotIn("seuil", x["texte"])
+
 
 def _graine(cid, inst):  # même graine que l'API (service._g)
     return int(hashlib.sha256(f"{cid}:{inst}".encode()).hexdigest()[:8], 16)

@@ -111,7 +111,19 @@ paths:
       parameters:
         - {name: id, in: path, required: true, schema: {type: string}}
         - {name: institution_id, in: query, schema: {type: string}}
+        - {name: frequence, in: query, description: "ADR 0017 : effets calculés pour cette fréquence", schema: {enum: [hebdomadaire, quinzaine, mensuelle]}}
+        - {name: duree_mois, in: query, schema: {type: integer, minimum: 3, maximum: 12}}
       responses: {'200': {description: ok}, '401': {description: sans session}, '403': {description: autre commerçant ou rôle pro}}
+  /commercants/{id}/plafonds:
+    get:
+      summary: "Plafond selon la durée (3, 6, 9, 12 mois dans les modalités de l'institution) : plafond, échéance, coût total (ADR 0017)"
+      x-acces: le commerçant lui-même
+      security: [{commercant: []}]
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string}}
+        - {name: institution_id, in: query, schema: {type: string}}
+        - {name: frequence, in: query, schema: {enum: [hebdomadaire, quinzaine, mensuelle]}}
+      responses: {'200': {description: "institution, frequence, modalites, lignes[duree_mois, plafond, echeance, nb_echeances, cout_total]"}, '403': {description: autre commerçant}, '422': {description: fréquence non proposée}}
   /commercants/{id}/consentements:
     get: {summary: Liste des consentements, x-acces: le commerçant lui-même, security: [{commercant: []}], responses: {'200': {description: ok}}}
     post:
@@ -130,13 +142,24 @@ paths:
   /commercants/{id}/dossiers/{dossier}:
     get: {summary: Vue commerçant d'un dossier (statut, offre, raisons ; sans alertes ni réglages), x-acces: le commerçant du dossier, security: [{commercant: []}], responses: {'200': {description: ok}, '404': {description: inconnu ou hors périmètre}}}
   /dossiers:
-    get: {summary: File de dossiers de l'institution de la session (filtre statut, tri), x-acces: agent ou responsable, security: [{pro: []}], responses: {'200': {description: ok}}}
+    get: {summary: File de dossiers de l'institution de la session (filtre statut, tri), x-acces: agent ou responsable, description: "tri : priorite, anciennete ou risque (risque de la demande décroissant) ; lignes avec montant_demande, risque_demande, dans_tolerance", security: [{pro: []}], responses: {'200': {description: ok}}}
     post:
       summary: Envoi du dossier (exige un consentement actif)
       x-acces: le commerçant du corps (commercant_id)
       security: [{commercant: []}]
-      requestBody: {content: {application/json: {schema: {type: object, required: [commercant_id, institution_id], properties: {commercant_id: {type: string}, institution_id: {type: string}, frequence: {enum: [hebdomadaire, quinzaine, mensuelle]}, duree_mois: {type: integer, minimum: 3, maximum: 12}}}}}}
-      responses: {'201': {description: créé (id, institution_id, statut, frequence, duree_mois)}, '403': {description: pas de consentement ou autre commerçant}, '422': {description: modalités hors limites de l'institution}}
+      requestBody: {content: {application/json: {schema: {type: object, required: [commercant_id, institution_id, montant_demande, objet_categorie, objet], properties: {commercant_id: {type: string}, institution_id: {type: string}, frequence: {enum: [hebdomadaire, quinzaine, mensuelle]}, duree_mois: {type: integer, minimum: 3, maximum: 12}, montant_demande: {type: integer, minimum: 5000, maximum: 50000000}, objet_categorie: {enum: [stock, equipement, fonds_roulement, ponctuel, autre]}, objet: {type: string, maxLength: 200}}}}}}
+      responses: {'201': {description: créé (id, institution_id, statut, frequence, duree_mois, montant_demande, objet_categorie, objet_texte)}, '403': {description: pas de consentement ou autre commerçant}, '422': {description: modalités hors limites, montant ou objet invalide}}
+  /dossiers/{id}/risque:
+    get:
+      summary: "Risque de défaut pour des termes (montant, fréquence, durée) : demande ou contre-proposition (ADR 0017)"
+      x-acces: équipe de l'institution du dossier
+      security: [{pro: []}]
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string}}
+        - {name: montant, in: query, schema: {type: integer}}
+        - {name: frequence, in: query, schema: {enum: [hebdomadaire, quinzaine, mensuelle]}}
+        - {name: duree_mois, in: query, schema: {type: integer}}
+      responses: {'200': {description: "risque, seuil_risque, dans_tolerance, echeance, cout_total, plafond, risque_plafond, part_mauvaise_periode, raisons"}, '404': {description: inconnu ou hors périmètre}, '422': {description: hors modalités}}
   /dossiers/{id}:
     get: {summary: Fiche analysée (journalise l'accès), x-acces: équipe de l'institution du dossier, security: [{pro: []}], responses: {'200': {content: {application/json: {schema: {$ref: '#/components/schemas/Analyse'}}}}, '404': {description: inconnu ou hors périmètre}}}
   /dossiers/{id}/rejouer:

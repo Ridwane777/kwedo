@@ -45,7 +45,7 @@ export function SimulateurVitrine() {
         <div aria-live="polite" className="rounded-2xl bg-fond p-4">
           <p className="text-encre-2">Plafond d'exemple</p>
           <p className="montant text-[clamp(2.2rem,5vw,3.4rem)] leading-none text-montant">{fcfa(r.plafond)}</p>
-          <p className="mt-2 text-encre-2">soit {fcfa(r.echeance)} par semaine pendant {N} semaines</p>
+          <p className="mt-2 text-encre-2" data-testid="plafond-conditions">Jusqu'à {fcfa(r.plafond)}, remboursés chaque semaine pendant {N} semaines (6 mois), soit {fcfa(r.echeance)} par semaine, aux conditions d'une institution d'exemple. Ce n'est pas un crédit accordé : l'institution décide.</p>
         </div>
         <p className="max-w-[60ch] text-sm text-encre-2">
           Calcul simplifié : une mauvaise semaine (20ᵉ centile) × part de marge {String(M).replace(".", ",")} × part prélevable {String(S).replace(".", ",")}, sur {N} semaines au taux de 0,35 % par semaine.

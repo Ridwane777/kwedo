@@ -3,7 +3,7 @@
 import { Calculator, Lightbulb, Link2, Send } from "lucide-react";
 import { useState } from "react";
 import { CourbeFlux } from "@/components/courbe-flux";
-import { ChaineCalcul, ChoixInstitution, ChoixModalites, MentionPrudente, prudentHebdo, Raisons, requeteModalites } from "@/components/estimation";
+import { ChaineCalcul, ChoixInstitution, ChoixModalites, MentionPrudente, PlafondConditions, PlafondSelonDuree, prudentHebdo, Raisons, requeteModalites } from "@/components/estimation";
 import { Chargement, Erreur, LienBouton, Simule } from "@/components/ui";
 import { useApi } from "@/lib/api";
 import { useCommercant } from "@/lib/commercant";
@@ -51,12 +51,13 @@ export default function Estimation() {
       <div className="space-y-6 lg:sticky lg:top-6 lg:col-start-1 lg:row-start-1">
       {/* Combien, à quel prix, que faire : tout tient dans ce bloc, au-dessus de la ligne de flottaison. */}
       <div className="rounded-3xl bg-surface p-5 shadow-carte lg:p-7">
-        <p className="text-encre-2">Bonjour {prenom}, vous pouvez emprunter jusqu'à</p>
+        <p className="text-encre-2">Bonjour {prenom}, votre plafond estimé</p>
         {a ? (
           <p className="montant apparait mt-1 text-[3.1rem] leading-none text-montant" aria-live="polite">{fcfa(a.plafond)}</p>
         ) : est.erreur ? <div className="mt-2"><Erreur message={est.erreur} reessayer={est.recharger} /></div> : <div className="chargement mt-2 h-12 w-4/5" />}
         {a && (
           <>
+            <PlafondConditions className="mt-2" montant={a.plafond} frequence={a.frequence} duree={{ duree_mois: a.parametres.duree_mois, duree_semaines: a.duree_semaines }} institution={a.institution} />
             <dl className="mt-5 grid grid-cols-2 gap-2">
               <div className="rounded-2xl bg-fond p-3">
                 <dt className="text-sm text-encre-2">{FREQ[a.frequence].nom}</dt>
@@ -96,6 +97,12 @@ export default function Estimation() {
         <div className="space-y-2 lg:rounded-3xl lg:border lg:border-trait lg:bg-surface lg:p-6">
           <h2 className="titre text-xl">Vos ventes, semaine par semaine</h2>
           <CourbeFlux serie={a.serie_hebdo} prudent={prudentHebdo(a)} median={a.indicateurs.encaissement_median} debut={a.indicateurs.debut} hauteur={240} />
+        </div>
+      )}
+
+      {a && a.institution_id === inst && (
+        <div className="lg:rounded-3xl lg:border lg:border-trait lg:bg-surface lg:p-6">
+          <PlafondSelonDuree cid={id} inst={inst} frequence={a.frequence} />
         </div>
       )}
 

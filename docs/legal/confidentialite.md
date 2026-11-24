@@ -8,6 +8,10 @@ pour le compte de l'institution (sous-traitant) — qualification à confirmer.
 - Flux du compte marchand : date, montant, sens, contrepartie **anonymisée**, nature. Jamais le contenu des messages,
   les contacts ni le compte personnel.
 - Dossiers, décisions, échéances, paiements, relances.
+- Demande de crédit (ADR 0017) : montant souhaité et **objet du crédit** (catégorie parmi cinq + une phrase de
+  200 caractères au plus). Minimisation : aucune pièce justificative, la phrase sert seulement à la décision de
+  l'institution destinataire ; elle n'est visible ni des autres institutions ni de l'administration de la
+  plateforme. L'interface invite à ne pas y écrire d'information personnelle sensible (santé, famille).
 - **Jamais** : genre, origine, religion, santé, opinions.
 
 ## Finalités
