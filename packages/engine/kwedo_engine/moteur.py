@@ -32,6 +32,9 @@ FREQUENCES = {"hebdomadaire": 1.0, "quinzaine": 2.0, "mensuelle": SEMAINES_PAR_M
 PERIODE = {"hebdomadaire": "semaine", "quinzaine": "quinzaine", "mensuelle": "mois"}
 MAUVAISE = {"hebdomadaire": "une mauvaise semaine", "quinzaine": "une mauvaise quinzaine", "mensuelle": "un mauvais mois"}
 DUREE_MOIS_MIN, DUREE_MOIS_MAX = 3, 12
+# Fréquences dont le risque a passé le run final (docs/evaluation/protocole-frequences.md, critère « éprouvée ») ;
+# hors de cette liste, l'interface garde la mention « estimation moins éprouvée ».
+FREQUENCES_EPROUVEES = frozenset({"hebdomadaire"})
 
 
 @dataclass(frozen=True)
@@ -182,20 +185,38 @@ def ind_depuis_hebdo(ind: dict, hebdo: np.ndarray) -> dict:
             "saisonnalite": round(float(top.mean() / med - 1), 3) if med else 0.0}
 
 
+def _median_periode(hebdo: np.ndarray, p: Parametres) -> float:
+    return float(np.median(serie_periode(hebdo, p))) if len(hebdo) else 0.0
+
+
+def risque_frequence_montant(mod, p: Parametres, base, hebdo, seuils, prudent, median, montant, choc=0.0) -> float:
+    """v3 : risque calibré d'au moins une échéance manquée pour ce montant, à la fréquence et la durée de `p`."""
+    X = decision.lignes_frequence(base, hebdo, seuils, [echeance(montant, p)], prudent, median, p.w, p.nb, choc)
+    return float(decision.risque_frequence(mod, p.frequence, X)[0])
+
+
 def plafond_complet(hebdo, p, graine, ind, fv, choc=0.0, decote=1.0, mod="auto"):
     """v0.2 : plus grand montant ≤ L_max × décote dont le risque CALIBRÉ reste ≤ seuil (ADR 0008).
 
     Renvoie (plafond, c_p, lmax, l_risque, seuils, risque_au_plafond, calibre). Sans modèle : v0.1.
 
-    Hors hebdomadaire, le modèle (entraîné et évalué sur des échéances hebdomadaires uniquement, non réentraîné)
-    est appliqué au montant équivalent : échéance de la période et seuils simulés ramenés à la semaine (÷ w),
-    encaissement prudent hebdomadaire. `analyser` marque alors le résultat `risque_valide: false`.
+    Modèle v3 (ADR 0016) : risque appris et calibré par fréquence, pour chaque fréquence et durée.
+    Repli v2 (modèle hebdomadaire seul) : hors hebdomadaire, appliqué au montant équivalent (échéance et seuils
+    ramenés à la semaine) ; `analyser` marque alors le résultat `risque_valide: false`.
     """
     mod = decision.charger() if mod == "auto" else mod
     plafond, c_p, lmax, l_sim, seuils = _plafond(hebdo, p, graine, choc, decote)
     if mod is None or not c_p:
         return plafond, c_p, lmax, l_sim, seuils, (risque_pour_montant(seuils, plafond, p) if plafond else 0.0), False
     base = decision.profil(ind_depuis_hebdo(ind, hebdo), hebdo, fv)
+    if "frequences" in mod:  # v3 (ADR 0016) : risque appris et calibré pour la fréquence et la durée choisies
+        prudent, median = c_p / (1 + choc), _median_periode(hebdo, p)
+        a = annuite(p.ip, p.nb)
+        l_risque, _ = decision.montant_max_frequence(mod, p.frequence, base, hebdo, seuils, prudent, median, p.w, p.nb,
+                                                     2 * lmax, p.seuil_risque, a, PAS, choc)
+        plafond = int(max(0.0, min(lmax, l_risque)) * decote // PAS * PAS)
+        r = risque_frequence_montant(mod, p, base, hebdo, seuils, prudent, median, plafond, choc) if plafond else 0.0
+        return plafond, c_p, lmax, float(l_risque), seuils, r, True
     hebdo_seul = p.frequence == "hebdomadaire"
     p20 = c_p / (1 + choc) if hebdo_seul else float(np.percentile(hebdo, p.percentile))
     a = annuite(p.ip, p.nb) * p.w  # montant → échéance équivalente par semaine (w = 1 : inchangé)
@@ -308,6 +329,7 @@ def analyser(transactions: list[dict], parametres: dict | Parametres | None = No
     effet_modele = 0
     facteur_modele = 1.0
     hebdo_seul = p.frequence == "hebdomadaire"
+    v3 = bool(mod and "frequences" in mod)
     per = PERIODE[p.frequence]
     e_plafond = echeance(plafond, p) if plafond else 0.0
     res = {
@@ -331,7 +353,8 @@ def analyser(transactions: list[dict], parametres: dict | Parametres | None = No
         "duree_mois": p.duree_mois or round(p.horizon / SEMAINES_PAR_MOIS, 1),
         "echeance": round(e_plafond),
         "taux_periode": p.ip,
-        "risque_valide": hebdo_seul,
+        "risque_valide": bool(calibre and (v3 or hebdo_seul)),
+        "risque_eprouve": bool(calibre and (v3 or hebdo_seul) and p.frequence in FREQUENCES_EPROUVEES),
         "risque": round(risque, 4),
         "recommandation": reco,
         "raisons": raisons,
@@ -344,7 +367,7 @@ def analyser(transactions: list[dict], parametres: dict | Parametres | None = No
             f"× part restant après coûts m = {p.m:g} × part prélevable s = {p.s:g} → échéance supportable {_fcfa(c_p * p.m * p.s)}",
             (f"Sur {p.n} semaines au taux {p.i:.2%} par semaine → plafond théorique {_fcfa(lmax)}" if hebdo_seul else
              f"{p.nb} échéances ({p.frequence}) au taux {p.ip:.2%} par {per} → plafond théorique {_fcfa(lmax)}"),
-            *([] if hebdo_seul else [f"Risque : modèle hebdomadaire appliqué à l'échéance équivalente par semaine "
+            *([] if hebdo_seul or v3 else [f"Risque : modèle hebdomadaire appliqué à l'échéance équivalente par semaine "
                                      f"({_fcfa(e_plafond / p.w)}) — non validé pour cette fréquence"]),
             (f"Simulation de {p.trajectoires} avenirs + modèle de risque calibré (entraîné sur données simulées) : "
              f"montant au risque ≤ {_pc(p.seuil_risque)} → {_fcfa(l_sim)}" if calibre else
@@ -356,7 +379,11 @@ def analyser(transactions: list[dict], parametres: dict | Parametres | None = No
     }
     res["conseils"] = conseils(res, p)
     if montant_souhaite:
-        if calibre:
+        if calibre and v3:
+            r_souhait = risque_frequence_montant(mod, p, decision.profil(ind_depuis_hebdo(ind, hebdo), hebdo, fv), hebdo,
+                                                 seuils, c_p / (1 + choc_ventes), _median_periode(hebdo, p),
+                                                 montant_souhaite, choc_ventes)
+        elif calibre:
             base = decision.profil(ind, hebdo, fv)
             if hebdo_seul:
                 r_souhait = float(decision.risque(mod, decision.lignes_montant(
