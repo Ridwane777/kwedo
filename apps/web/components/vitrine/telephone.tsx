@@ -6,7 +6,7 @@ export function Capture({ nom, alt, l = 360, h = 760, prioritaire = false, sizes
   return (
     <>
       <Image src={`/ecrans/${nom}-clair.jpg`} alt={alt} {...commun} className={`seul-clair ${commun.className}`} />
-      <Image src={`/ecrans/${nom}-sombre.jpg`} alt="" aria-hidden="true" {...commun} priority={false} loading="lazy" className={`seul-sombre ${commun.className}`} />
+      <Image src={`/ecrans/${nom}-sombre.jpg`} alt="" aria-hidden="true" {...commun} priority={false} loading={prioritaire ? "eager" : "lazy"} className={`seul-sombre ${commun.className}`} />
     </>
   );
 }

@@ -123,3 +123,12 @@ leur état initial hors de la vue) ; les animations elles-mêmes se vérifient d
 | 5 | Vide à 1920 px | Admin : répartition des dossiers (à traiter, décidés sans crédit, crédit ouvert), par institution et au total, calculée uniquement depuis l'aperçu existant ; activité sur toute sa colonne. Commerçant : actions sous le sélecteur, colonne gauche collante. Défaut trouvé : débordement à 360 px dû à la grille parente, corrigé |
 | 6 | Téléphones de l'accueil | Cause : l'arrondi du cadre mangeait les bords de la barre du bas. Cadre à « menton », écran aux coins bas presque droits, image jamais recadrée ; « Estimation » et « Activité » entiers |
 | — | Vérification | build OK, `test:api` OK, `npx playwright test` **119/119** ; captures 360/768/1440/1920 clair et sombre dans `.captures/revue-finitions/`. Un blocage d'attente réseau sur la démo en fin de suite (test passé 4/4 seul) : attente bornée, vérification de fin de chargement conservée |
+
+## Mission ajustements (`docs/MISSION-AJUSTEMENTS.md`, branche `ajustements`)
+
+| # | Demande | Preuve |
+|---|---|---|
+| 1 | Admin équilibré | Page en colonne pleine hauteur ; en grand écran les deux colonnes s'étirent : à gauche institutions, répartition et « Activité par type » (décisions, accès, interventions, réglages publiés, consentements, et événements par institution), comptée sur le journal déjà servi ; à droite le journal entier avec défilement interne (zone focalisable), commandes de démo dessous. Aucune donnée ajoutée à l'API, aucune valeur de réglage |
+| 2 | Accueil | Sections « Où on en est. » et « Comment le plafond est calculé. » supprimées, lien « Le calcul » retiré, plus de mention de la formule dans « Un plafond prudent ». Alternance des fonds : problème, app, institutions, FAQ sur fond de surface. « Voir le calcul » et la fiche de la console inchangés |
+| 3 | Téléphone du héros en sombre | Non reproduit en local (capture correcte en sombre système, choix explicite, mouvement réduit). Cause probable : l'écran sombre du héros était chargé à la demande, donc absent tant qu'il n'était pas arrivé ; il est maintenant chargé d'emblée pour le téléphone prioritaire |
+| — | Vérification | build OK, `npx playwright test` **119/119** ; captures admin et accueil (par section), 360/768/1440/1920, clair et sombre, dans `apps/web/.captures/revue-ajustements/` (suite lancée depuis `apps/web`) ; téléphones de l'accueil vérifiés en sombre |

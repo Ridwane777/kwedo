@@ -63,6 +63,48 @@ function Repartition({ institutions }: { institutions: Ligne[] }) {
   );
 }
 
+const TYPES: Record<string, string> = { decision: "Décisions", acces: "Accès aux dossiers", intervention: "Interventions sur échéances", parametres: "Réglages publiés", consentement: "Consentements" };
+
+/** Activité par type et par institution, comptée sur le journal déjà servi (aucune donnée ajoutée). */
+function ActiviteParType({ journal, noms }: { journal: Evenement[]; noms: Record<string, string> }) {
+  const compter = (cle: (e: Evenement) => string | null) => {
+    const m = new Map<string, number>();
+    for (const e of journal) { const c = cle(e); if (c) m.set(c, (m.get(c) ?? 0) + 1); }
+    return [...m].sort((x, y) => y[1] - x[1]);
+  };
+  const parType = compter((e) => e.type);
+  const parInst = compter((e) => e.institution_id);
+  const max = Math.max(1, ...parType.map(([, n]) => n));
+  return (
+    <div className="space-y-4 rounded-2xl border border-trait bg-surface p-4 xl:flex-1">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h3 className="font-semibold">Activité par type</h3>
+        <p className="text-xs text-encre-2">Sur les {journal.length} derniers événements du journal</p>
+      </div>
+      {!journal.length ? <p className="text-encre-2">Aucun événement pour l'instant.</p> : (
+        <div className="grid gap-6 md:grid-cols-2">
+          <ul className="space-y-3">
+            {parType.map(([t, n]) => (
+              <li key={t}>
+                <p className="mb-1 flex justify-between gap-3 text-sm"><span className="min-w-0 truncate">{TYPES[t] ?? t}</span><span className="chiffres shrink-0 text-encre-2">{n}</span></p>
+                <div aria-hidden="true" className="h-2 overflow-hidden rounded-full bg-surface-2"><span className="block h-full rounded-full bg-marque" style={{ width: `${(n / max) * 100}%` }} /></div>
+              </li>
+            ))}
+          </ul>
+          <div className="space-y-2 text-sm">
+            <p className="text-xs font-semibold text-encre-2">Événements par institution</p>
+            <ul className="space-y-2">
+              {parInst.map(([i, n]) => (
+                <li key={i} className="flex justify-between gap-3 rounded-xl bg-fond px-3 py-2"><span className="min-w-0 truncate">{noms[i] ?? i}</span><span className="chiffres shrink-0">{n}</span></li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Tableau({ u }: { u: Utilisateur }) {
   const { donnees: a, erreur, recharger } = useApi<Apercu>("/admin/apercu");
   const [occupe, setOccupe] = useState<string | null>(null);
@@ -103,9 +145,9 @@ function Tableau({ u }: { u: Utilisateur }) {
   }
 
   return (
-    <div className="min-h-dvh text-[14px]">
+    <div className="flex min-h-dvh flex-col text-[14px]">
       {entete}
-      <div className="gouttiere space-y-8 py-7">
+      <div className="gouttiere flex flex-1 flex-col gap-8 py-7">
         <section className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <h1 className="titre text-[2rem] leading-tight">Supervision de la plateforme</h1>
@@ -128,8 +170,8 @@ function Tableau({ u }: { u: Utilisateur }) {
         </dl>
 
         {/* Grand écran : institutions à gauche, activité et commandes à droite, sur toute la largeur. */}
-        <div className="grid grid-cols-[minmax(0,1fr)] gap-8 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] xl:items-start">
-        <section className="space-y-3">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-8 xl:flex-1 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] xl:items-stretch">
+        <section className="flex min-w-0 flex-col gap-3">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h2 className="titre text-xl">Institutions</h2>
             <p className="text-encre-2">{enAttente ? `${enAttente} dossier${enAttente > 1 ? "s" : ""} en attente de décision` : "Aucun dossier en attente"}</p>
@@ -154,15 +196,21 @@ function Tableau({ u }: { u: Utilisateur }) {
             </ul>
           )}
           {institutions.length > 0 && <Repartition institutions={institutions} />}
+          <ActiviteParType journal={a.journal} noms={noms} />
         </section>
 
-        <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px] xl:grid-cols-1">
-          <div className="min-w-0 space-y-3">
-            <h2 className="titre text-xl">Activité récente</h2>
+        <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px] xl:flex xl:min-w-0 xl:flex-col">
+          <div className="min-w-0 space-y-3 xl:flex xl:flex-1 xl:flex-col xl:gap-3 xl:space-y-0">
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <h2 className="titre text-xl">Activité récente</h2>
+              <p className="hidden text-encre-2 xl:block">{a.journal.length} événements, du plus récent au plus ancien</p>
+            </div>
             {!a.journal.length ? <Vide titre="Aucune activité">Les événements de la plateforme s'affichent ici au fil de l'eau.</Vide> : (
-              <ol className="divide-y divide-trait overflow-hidden rounded-2xl border border-trait bg-surface">
-                {(tout ? groupes : groupes.slice(0, 8)).map((e, k) => (
-                  <li key={k} className="grid gap-1 px-4 py-3 sm:grid-cols-[9.5rem_1fr]">
+              <div className="xl:relative xl:min-h-[24rem] xl:flex-1">
+              {/* Grand écran : tout le journal, défilement interne, à la hauteur de la colonne de gauche. */}
+              <ol tabIndex={0} aria-label="Journal d'activité" className="divide-y divide-trait overflow-hidden rounded-2xl border border-trait bg-surface xl:absolute xl:inset-0 xl:overflow-y-auto">
+                {groupes.map((e, k) => (
+                  <li key={k} className={`gap-1 px-4 py-3 sm:grid-cols-[9.5rem_1fr] ${k < 8 || tout ? "grid" : "hidden xl:grid"}`}>
                     <span className="chiffres text-encre-2">{date(e.horodatage, true)}</span>
                     <span className="min-w-0">
                       <span className="flex flex-wrap items-center gap-2">
@@ -176,10 +224,11 @@ function Tableau({ u }: { u: Utilisateur }) {
                   </li>
                 ))}
               </ol>
+              </div>
             )}
             {groupes.length > 8 && (
-              <BoutonIcone icone={tout ? ChevronUp : ChevronDown} aria-expanded={tout} onClick={() => setTout(!tout)}
-                label={tout ? "Replier l'activité" : `Afficher toute l'activité (${a.journal.length} événements)`} className="border border-trait" infobulle="haut" ancre="gauche" />
+              <div className="xl:hidden"><BoutonIcone icone={tout ? ChevronUp : ChevronDown} aria-expanded={tout} onClick={() => setTout(!tout)}
+                label={tout ? "Replier l'activité" : `Afficher toute l'activité (${a.journal.length} événements)`} className="border border-trait" infobulle="haut" ancre="gauche" /></div>
             )}
           </div>
           <aside className="h-fit space-y-3 rounded-2xl border border-trait bg-surface p-4">
