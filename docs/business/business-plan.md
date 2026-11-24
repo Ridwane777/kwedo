@@ -23,22 +23,6 @@ La valeur à défendre en premier est donc le **temps** et la **traçabilité**,
 1. Hackathon : démontrer le parcours. 2. Pilote : une IMF, quelques dizaines de commerçants, mesure des gains.
 3. Extension : 3 à 5 institutions, accord opérateur. 4. Régional : UEMOA.
 
-## Stratégie de données : démarrer prudent, apprendre du terrain
-Le moteur n'a jamais vu de vrai remboursement ; le diagnostic montre qu'il extrapole mal vers des activités qu'il
-ne connaît pas. On ne le corrige pas en inventant des données : on les collecte.
-1. **Crédit progressif (ADR 0018)** : petit premier crédit (palier fixé par l'institution), puis palier relevé à
-   chaque crédit remboursé à l'heure. L'exposition reste bornée là où l'incertitude est la plus forte, et chaque
-   crédit devient une donnée réelle (échéances, dates de solde, retards). Pratique déjà connue des IMF béninoises
-   (Microcrédit Alafia, FNM : phase III réservée aux bénéficiaires ayant remboursé la phase II).
-2. **Pilote avec une institution** : quelques dizaines de commerçants, mêmes paliers que l'institution pratique déjà ;
-   mesure du remboursement par cycle et comparaison avec la décision qu'aurait prise le moteur seul. L'efficacité du
-   palier n'est **pas** mesurée par le prototype (non démontrable en simulation sans inventer le comportement des
-   commerçants) : c'est le premier chiffre que le pilote doit produire.
-3. **Partenariats de données** : historiques anonymisés de remboursement (FNM, IMF partenaires du PNIF), flux des
-   opérateurs mobile money sous accord, dans le cadre de l'APDP (autorisation préalable, finalité, minimisation,
-   durée de conservation). Ces données servent à recalibrer le risque par activité, puis à relâcher les paliers là où
-   le risque mesuré le permet.
-
 ## Hypothèses à valider
 Les institutions paient pour gagner du temps ; l'opérateur accorde l'accès autorisé aux flux ; les commerçants
 adoptent un compte marchand séparé ; les frais de suivi et relances automatisées sont permis ; une décision humaine

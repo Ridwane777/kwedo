@@ -1,7 +1,15 @@
 # ADR 0018 : crédit progressif (palier par institution)
 
-- Statut : accepté
+- Statut : retiré le 2026-11-24 (code annulé par la PR « Retrait du crédit progressif »)
 - Date : 2026-11-24
+
+> **Retrait.** Le propriétaire a retiré cette décision le jour même. Le principe du prêt progressif est une pratique
+> documentée en microfinance (et Alafia réserve sa phase III aux bénéficiaires ayant remboursé la phase II), mais les
+> valeurs mises en œuvre (palier initial 150 000 FCFA, multiplicateur ×1,5, retard grave à 7 jours) étaient des
+> exemples non validés par une institution, présentés à l'écran comme une règle. Les institutions ont déjà leurs
+> propres politiques de progression. Pistes gardées pour plus tard, à valider avec une institution pilote : appliquer
+> la politique de l'institution (désactivée par défaut) plutôt qu'en définir une ; ou le plancher de risque pour une
+> activité inconnue (diagnostic : ECE jamais vus 0,182 → 0,120). Le texte ci-dessous est conservé pour l'historique.
 
 ## Contexte
 

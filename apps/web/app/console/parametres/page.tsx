@@ -2,7 +2,6 @@
 
 import { Save } from "lucide-react";
 import { useEffect, useState } from "react";
-import { PolitiquePalierSection } from "@/components/politique-palier";
 import { Bouton, Chargement, Erreur } from "@/components/ui";
 import { api, useApi } from "@/lib/api";
 import { date, fcfa, FREQ, pct, type Frequence } from "@/lib/format";
@@ -165,7 +164,6 @@ export default function Parametres() {
         </table>
         </div>
       </div>
-      {inst && <PolitiquePalierSection inst={inst} modifiable={modifiable} />}
     </section>
   );
 }

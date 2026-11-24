@@ -52,9 +52,7 @@ export type Estimation = Omit<Analyse, "graine" | "parametres" | "echeance_suppo
   /** Faux si la fréquence n'a pas passé le run final d'évaluation (ADR 0016) : mention « moins éprouvée ». */
   estimation_eprouvee: boolean;
   souhait?: { montant: number; echeance: number; atteignable: boolean; manque: string[]; au_dessus_du_seuil: boolean;
-    cout_total: number; nb_echeances: number; part_mauvaise_periode: number | null; raisons: { code: string; texte: string }[];
-    au_dessus_du_palier?: boolean };
-  palier: PalierCredit;
+    cout_total: number; nb_echeances: number; part_mauvaise_periode: number | null; raisons: { code: string; texte: string }[] };
 };
 
 export type Commercant = {
@@ -70,8 +68,6 @@ export type Credit = {
   duree_semaines: number; taux_periode: number; decaisse_le: string; echeances: Echeance[]; frequence: Frequence;
   paiements: { id: number; montant: number; horodatage: string; recu: string }[]; relances: Relance[];
   total_du: number; total_recu: number; restant: number; cout_total: number; prochaine: Echeance | null;
-  /** Crédit remboursé entièrement et à l'heure : montant du palier débloqué (ADR 0018). */
-  palier_debloque: number | null; palier_etat: CyclePasse["etat"] | null;
 };
 
 export type LigneDossier = {
@@ -92,7 +88,6 @@ export type Evaluation = {
 export type Decision = {
   id: number; type: string; montant_propose: number; montant_decide: number | null; duree_semaines: number | null;
   auteur: string; motif: string; version_moteur: string; montant_demande: number | null; risque: number | null; parametres_json: string; graine: number; horodatage: string;
-  palier: number | null; motif_depassement: string | null;
 };
 
 export type Dossier = {
@@ -102,7 +97,6 @@ export type Dossier = {
   decisions: Decision[]; credit: { id: string } | null; acces: { acteur: string; action: string; horodatage: string }[];
   frequence: Frequence; duree_mois: number | null; frequence_demandee: Frequence; duree_mois_demandee: number | null; modalites: Modalites;
   montant_demande: number | null; objet_categorie: string | null; objet_texte: string | null; objet_libelle: string | null; demande: Evaluation;
-  palier: PalierCredit;
 };
 
 export type InstitutionPublique = { id: string; nom: string };
@@ -116,20 +110,6 @@ export type TableauDeBord = {
   dossiers: { id: string; institution_id: string; institution: string; statut: string; montant_offre: number | null; duree_offre: number | null; cree_le: string; frequence: Frequence; duree_mois: number | null; montant_demande: number | null; objet_categorie: string | null }[];
 };
 
-/** Crédit progressif (ADR 0018) : un crédit passé chez CETTE institution, tel que lu dans ses échéances. */
-export type CyclePasse = {
-  credit_id: string; montant: number; decaisse_le: string; frequence: Frequence; solde: boolean; solde_le: string | null;
-  retard_max_jours: number; etat: "rembourse_a_l_heure" | "en_cours" | "retard_grave";
-};
-export type PolitiquePalier = { palier_initial: number; multiplicateur: number; retard_grave_jours: number; apres_defaut: "redescendre" | "bloquer" };
-export type PalierCredit = {
-  institution_id: string; institution: string; niveau: number; bloque: boolean; cycle: number; premier_credit: boolean;
-  credit_en_cours: boolean; montant_palier: number; palier_suivant: number | null; historique: CyclePasse[]; redescendu: boolean;
-  politique: PolitiquePalier; condition: string; paliers: { niveau: number; montant: number; au_dessus_du_plafond?: boolean }[];
-  plafond_moteur?: number; montant_accordable?: number; limite_par?: "palier" | "plafond"; suivant_accordable?: number | null;
-  demande_au_dessus?: boolean;
-};
-
 export type Palier = { semaines: number; mois: number; atteint: boolean; reste: number };
 export type Levier = {
   code: string; titre: string; bon: boolean | null; constat: string; repere: string; pourquoi: string;
@@ -139,5 +119,4 @@ export type Conseils = {
   plafond_actuel: number; semaines: number; paliers: Palier[]; gain_possible: number | null;
   meilleur_levier: { code: string; titre: string } | null; leviers: Levier[]; deja_bien: Levier[]; institution_id: string; simule: true;
   institution: string; frequence: Frequence; duree_mois: number | null; duree_semaines: number; modalites: Modalites;
-  palier: PalierCredit;
 };
