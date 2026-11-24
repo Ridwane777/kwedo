@@ -170,15 +170,15 @@ body { font-family: var(--font-sans); font-variant-numeric: tabular-nums; -webki
 }
 
 /* Écrans du téléphone qui se succèdent (fondu). Sans animation, le premier écran reste affiché. */
-@keyframes ecran-suivant { 0%, 22% { opacity: 1; } 25%, 97% { opacity: 0; } 100% { opacity: 1; } }
+/* Trois écrans, 4 s chacun : visible de 0 à 30 % du cycle, fondu vers 33 %, retour à 100 %. */
+@keyframes ecran-suivant { 0%, 30% { opacity: 1; } 33.3%, 97% { opacity: 0; } 100% { opacity: 1; } }
 .defile > * { position: absolute; inset: 0; }
 .defile > *:not(:first-child) { opacity: 0; }
 @media (prefers-reduced-motion: no-preference) {
-  .defile > * { animation: ecran-suivant 16s infinite; }
+  .defile > * { animation: ecran-suivant 12s infinite; }
   .defile > *:nth-child(1) { animation-delay: 0s; }
   .defile > *:nth-child(2) { animation-delay: 4s; }
   .defile > *:nth-child(3) { animation-delay: 8s; }
-  .defile > *:nth-child(4) { animation-delay: 12s; }
   .defile > *:not(:first-child) { opacity: 0; }
   .defile > *:first-child { opacity: 1; }
 }

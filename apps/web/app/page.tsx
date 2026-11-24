@@ -53,7 +53,7 @@ export default function Accueil() {
   return (
     <div className="overflow-x-clip">
       <header className="gouttiere sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-transparent bg-fond/85 py-3 backdrop-blur">
-        <Link href="/" aria-label="Kwedo, accueil"><Marque /></Link>
+        <Link prefetch={false} href="/" aria-label="Kwedo, accueil"><Marque /></Link>
         <nav aria-label="Sections" className="hidden items-center gap-1 text-sm font-medium lg:flex">
           {[["#solution", "La solution"], ["#app", "L'app"], ["#simulateur", "Simulateur"], ["#institutions", "Institutions"], ["#faq", "Questions"]].map(([h, l]) => (
             <a key={h} href={h} className="rounded-lg px-3 py-2 text-encre-2 hover:bg-surface-2 hover:text-encre">{l}</a>
@@ -61,8 +61,8 @@ export default function Accueil() {
         </nav>
         <div className="flex items-center gap-1 text-sm sm:gap-2">
           <BoutonTheme />
-          <Link href="/connexion" className="hidden whitespace-nowrap rounded-lg px-3 py-2.5 font-medium hover:bg-surface-2 sm:inline-block">Se connecter</Link>
-          <Link href="/demo" className="whitespace-nowrap rounded-lg bg-encre px-3 py-2.5 font-semibold text-fond">Démo guidée</Link>
+          <Link prefetch={false} href="/connexion" className="hidden whitespace-nowrap rounded-lg px-3 py-2.5 font-medium hover:bg-surface-2 sm:inline-block">Se connecter</Link>
+          <Link prefetch={false} href="/demo" className="whitespace-nowrap rounded-lg bg-encre px-3 py-2.5 font-semibold text-fond">Démo guidée</Link>
         </div>
       </header>
 
@@ -77,12 +77,12 @@ export default function Accueil() {
               puis donne à l'institution de crédit un dossier prêt à décider.
             </p>
             <div className="mt-8 grid max-w-xl gap-3 sm:grid-cols-2">
-              <Link href="/connexion" className="group flex min-h-16 items-center gap-3 rounded-2xl bg-action px-5 font-semibold text-sur-action">
+              <Link prefetch={false} href="/connexion" className="group flex min-h-16 items-center gap-3 rounded-2xl bg-action px-5 font-semibold text-sur-action">
                 <Store aria-hidden="true" size={22} strokeWidth={1.75} />
                 <span className="flex-1">Je suis commerçant</span>
                 <ArrowRight aria-hidden="true" size={20} strokeWidth={1.75} className="transition-transform group-hover:translate-x-0.5" />
               </Link>
-              <Link href="/connexion" className="group flex min-h-16 items-center gap-3 rounded-2xl border border-trait bg-surface px-5 font-semibold">
+              <Link prefetch={false} href="/connexion" className="group flex min-h-16 items-center gap-3 rounded-2xl border border-trait bg-surface px-5 font-semibold">
                 <Building2 aria-hidden="true" size={22} strokeWidth={1.75} />
                 <span className="flex-1">Je représente une institution</span>
                 <ArrowRight aria-hidden="true" size={20} strokeWidth={1.75} className="transition-transform group-hover:translate-x-0.5" />
@@ -106,7 +106,7 @@ export default function Accueil() {
           <div className="relative mx-auto grid w-full max-w-[44rem] grid-cols-[minmax(0,1fr)] place-items-center sm:grid-cols-[auto_minmax(0,1fr)] sm:items-center sm:gap-6">
             <Telephone prioritaire largeur="clamp(15rem, 24vw, 20rem)" sizes="(min-width: 640px) 20rem, 15rem" ecrans={[
               { nom: "estimation", alt: "Écran Estimation de l'application : montant empruntable, échéance, coût total et bouton d'envoi du dossier" },
-              { nom: "simulateur", alt: "" }, { nom: "offre", alt: "" }, { nom: "echeancier", alt: "" },
+              { nom: "simulateur", alt: "" }, { nom: "offre", alt: "" },
             ]} />
             <div className="mt-6 grid w-full gap-4 sm:mt-0">
               <div className="rounded-3xl border border-trait bg-surface p-5">
@@ -196,7 +196,7 @@ export default function Accueil() {
         {/* 4. L'app mobile : vrais écrans */}
         <Section id="app" fond titre="Une app pensée pour le téléphone."
           intro={<p>Combien, à quel prix, que faire maintenant : chaque écran répond à une question. C'est une application web : elle s'ouvre dans le navigateur, sans magasin d'applications.</p>}>
-          <ul className="-mx-[clamp(1.25rem,4.5vw,5rem)] flex snap-x snap-mandatory gap-[clamp(1rem,2vw,2rem)] overflow-x-auto px-[clamp(1.25rem,4.5vw,5rem)] pb-4 xl:mx-0 xl:grid xl:grid-cols-5 xl:overflow-visible xl:px-0">
+          <ul tabIndex={0} aria-label="Écrans de l'application, à faire défiler" className="-mx-[clamp(1.25rem,4.5vw,5rem)] flex snap-x snap-mandatory gap-[clamp(1rem,2vw,2rem)] overflow-x-auto px-[clamp(1.25rem,4.5vw,5rem)] pb-4 xl:mx-0 xl:grid xl:grid-cols-5 xl:overflow-visible xl:px-0">
             {[
               ["estimation", "Estimation", "Le plafond, l'échéance et le coût total, d'un coup d'œil."],
               ["simulateur", "Simulateur", "« Et si mes ventes baissaient ? » Le plafond réagit en direct."],
@@ -354,8 +354,8 @@ export default function Accueil() {
               <p className="mt-3 max-w-[56ch] text-lg text-encre-2">La démo guidée joue les deux côtés : le téléphone du commerçant et la console de l'institution.</p>
             </div>
             <div className="flex flex-wrap gap-3">
-              <Link href="/demo" className="inline-flex min-h-14 items-center gap-2 rounded-2xl bg-action px-6 font-semibold text-sur-action">Lancer la démo guidée<ArrowRight aria-hidden="true" size={20} strokeWidth={1.75} /></Link>
-              <Link href="/connexion" className="inline-flex min-h-14 items-center rounded-2xl border border-trait px-6 font-semibold">Ouvrir l'application</Link>
+              <Link prefetch={false} href="/demo" className="inline-flex min-h-14 items-center gap-2 rounded-2xl bg-action px-6 font-semibold text-sur-action">Lancer la démo guidée<ArrowRight aria-hidden="true" size={20} strokeWidth={1.75} /></Link>
+              <Link prefetch={false} href="/connexion" className="inline-flex min-h-14 items-center rounded-2xl border border-trait px-6 font-semibold">Ouvrir l'application</Link>
             </div>
           </div>
         </section>
@@ -376,7 +376,7 @@ export default function Accueil() {
             <nav key={titre as string} aria-label={titre as string}>
               <p className="font-semibold">{titre as string}</p>
               <ul className="mt-3 space-y-1">
-                {(liens as string[][]).map(([h, l]) => <li key={h}><Link href={h!} className="inline-flex min-h-9 items-center text-encre-2 hover:text-encre">{l}</Link></li>)}
+                {(liens as string[][]).map(([h, l]) => <li key={h}><Link prefetch={false} href={h!} className="inline-flex min-h-9 items-center text-encre-2 hover:text-encre">{l}</Link></li>)}
               </ul>
             </nav>
           ))}

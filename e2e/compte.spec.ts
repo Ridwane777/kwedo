@@ -99,7 +99,7 @@ for (const largeur of [360, 1440]) {
     await page.reload();
     await expect(html).toHaveAttribute("data-theme", "dark");
     const fond = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
-    expect(fond).toBe("rgb(12, 22, 19)");
+    expect(fond).toBe("rgb(20, 19, 18)"); // fond sombre graphite (ADR 0012)
 
     // Dans le menu de compte : choix « Clair », persistant.
     await connecter(page.request, "commercant");
@@ -114,7 +114,7 @@ for (const largeur of [360, 1440]) {
     await page.getByRole("button", { name: /^Compte/ }).click();
     await page.getByRole("menuitemradio", { name: "Thème système" }).click();
     await page.emulateMedia({ colorScheme: "dark" });
-    await expect.poll(() => page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe("rgb(12, 22, 19)");
+    await expect.poll(() => page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe("rgb(20, 19, 18)");
     await page.emulateMedia({ colorScheme: "light" });
     await expect.poll(() => page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe("rgb(242, 244, 243)");
   });
