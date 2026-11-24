@@ -23,7 +23,7 @@ test("parcours complet : estimation → décision → offre → remboursement �
   await expect(page.getByText(/\d[\d\s]*\sFCFA/).first()).toBeVisible();
   await expect(page.getByText("Démo simulée")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Pourquoi ce montant" })).toBeVisible();
-  await expect(page.locator("ol li")).toHaveCount(3);
+  await expect(page.locator("ol:not([aria-label='Paliers de crédit']) li")).toHaveCount(3); // raisons (hors frise des paliers)
   await expect(page.getByTestId("phrase-echeance")).toContainText("chaque semaine pendant 26 semaines");
   await expect(page.getByText(/moins éprouvée/)).toHaveCount(0);
   await capture(page, "1-estimation");
@@ -108,15 +108,25 @@ test("parcours complet : estimation → décision → offre → remboursement �
   await expect(agent.getByText("« Acheter des pagnes avant les fêtes. »")).toBeVisible();
   await expect(agent.getByTestId("risque-demande")).toContainText(/tolérance/);
   await expect(agent.getByTestId("modalites-demandees")).toContainText("chaque semaine, 26 semaines");
+  // Crédit progressif : premier crédit chez Lagune, palier 150 000 ; la contre-proposition part de min(palier, plafond).
+  const palier = agent.getByTestId("fiche-palier");
+  await expect(palier).toContainText("Palier 1 · crédit n° 1");
+  await expect(palier).toContainText("Demande au-dessus du palier");
+  await expect(palier).toContainText("premier crédit");
   await agent.keyboard.press("a");
   await expect(agent.getByLabel("Fréquence")).toHaveValue("hebdomadaire");
   await expect(agent.getByLabel("Durée").locator("option")).toHaveCount(10); // limites Lagune : 3 à 12 mois
   const champ = agent.getByLabel("Montant décidé (FCFA)");
+  expect((await champ.inputValue()).replace(/\D/g, "")).toBe("150000");
   await champ.fill("400000");
   await expect(agent.getByTestId("risque-contre")).toContainText("Risque recalculé");
-  await agent.getByRole("button", { name: "Enregistrer la décision" }).isDisabled();
   await agent.getByLabel(/Justificatif/).fill("Saison creuse en janvier : prudence sur le montant.");
+  // Au-dessus du palier : motif de dépassement obligatoire.
+  await expect(agent.getByTestId("depassement-palier")).toBeVisible();
+  await expect(agent.getByRole("button", { name: "Enregistrer la décision" })).toBeDisabled();
+  await agent.getByLabel(/motif du dépassement/).fill("Cliente connue de l'agence, stock déjà commandé.");
   await agent.getByRole("button", { name: "Enregistrer la décision" }).click();
+  await expect(agent.getByText(/Dépassement du palier .* « Cliente connue de l'agence, stock déjà commandé. »/)).toBeVisible();
   await expect(agent.getByText("« Saison creuse en janvier : prudence sur le montant. »")).toBeVisible();
   await expect(agent.getByText("Décision enregistrée au journal.")).toBeVisible();
   await capture(agent, "4-decision");
@@ -165,8 +175,10 @@ test("cloisonnement : une institution ne voit ni ne modifie celle d'à côté", 
   await connecter(baobab.request, "responsable-baobab");
   await baobab.goto("/console/parametres");
   await expect(baobab.getByText(/Réglages de/)).toContainText("Banque Baobab");
-  await expect(baobab.getByRole("combobox")).toHaveCount(0);
+  await expect(baobab.getByRole("combobox", { name: /institution/i })).toHaveCount(0); // pas de choix d'institution
   expect((await baobab.request.get("/api/institutions/inst-lagune/parametres")).status()).toBe(403);
+  expect((await baobab.request.get("/api/institutions/inst-lagune/palier")).status()).toBe(403);
+  expect((await baobab.request.post("/api/institutions/inst-lagune/palier", { data: { palier_initial: 900000 } })).status()).toBe(403);
   expect((await baobab.request.post("/api/institutions/inst-lagune/parametres", { data: { m: 0.1 } })).status()).toBe(403);
   await baobab.goto("/console");
   await expect(baobab.getByRole("link", { name: "Séna Kpadonou" })).toHaveCount(0);

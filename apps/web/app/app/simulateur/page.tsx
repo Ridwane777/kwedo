@@ -4,6 +4,7 @@ import { Lightbulb } from "lucide-react";
 import { useEffect, useState } from "react";
 import { CourbeFlux } from "@/components/courbe-flux";
 import { ChoixInstitution, ChoixModalites, MentionPrudente, prudentHebdo, requeteModalites } from "@/components/estimation";
+import { DeuxChiffres, nomCourt } from "@/components/palier";
 import { Erreur, LienBouton, Simule } from "@/components/ui";
 import { api, useApi } from "@/lib/api";
 import { useCommercant } from "@/lib/commercant";
@@ -83,8 +84,15 @@ export default function Simulateur() {
               </ul>
             </>
           )}
+          {s.au_dessus_du_palier && a?.palier && (
+            <p className="mt-3 border-t border-trait pt-3 text-[15px]" data-testid="avertissement-palier">
+              Ce montant dépasse votre palier chez {nomCourt(a.palier.institution)} ({fcfa(a.palier.montant_palier)}). Vous pouvez quand même le demander : l'institution décide.
+            </p>
+          )}
         </div>
       )}
+
+      {base?.palier && base.institution_id === inst && <DeuxChiffres p={base.palier} />}
 
       <div className="space-y-3 border-t border-trait pt-5">
         <h2 className="titre text-xl">Test de résistance</h2>

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { ChoixModalites, DefinitionPlafond, MentionPrudente, requeteModalites } from "@/components/estimation";
+import { DeuxChiffres, nomCourt } from "@/components/palier";
 import { Bouton, Chargement, Erreur, Pastille, Simule, Vide } from "@/components/ui";
 import { api, useApi } from "@/lib/api";
 import { useCommercant } from "@/lib/commercant";
@@ -105,10 +106,16 @@ function Depot({ institutions, dejaEnvoye, initial, onEnvoye, onFermer }: {
                       Ce montant dépasse ce qui reste prudent pour vos ventes ({fcfa(a.plafond)}). Vous pouvez l'envoyer : l'institution décidera, elle peut accepter, proposer moins ou refuser.
                     </p>
                   )}
+                  {s.au_dessus_du_palier && (
+                    <p role="note" className="rounded-xl border-l-4 border-ambre bg-ambre-doux px-3 py-2 text-ambre-encre" data-testid="avertissement-palier">
+                      Ce montant dépasse votre palier chez {nomCourt(a.palier.institution)} ({fcfa(a.palier.montant_palier)}). Vous pouvez quand même le demander : l'institution décide.
+                    </p>
+                  )}
                 </>
               )}
               <MentionPrudente a={a} />
             </div>
+            <DeuxChiffres p={a.palier} titre="Votre palier chez cette institution" />
             <fieldset className="space-y-2">
               <legend className="font-medium">Objet du crédit</legend>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
@@ -147,6 +154,7 @@ function Depot({ institutions, dejaEnvoye, initial, onEnvoye, onFermer }: {
             <div className="flex justify-between gap-3 py-2.5"><dt className="text-encre-2">Versement annoncé</dt><dd>{delai(a.modalites.delai_versement_h)} après accord</dd></div>
           </dl>
           {s.montant > a.plafond && <p className="text-sm text-ambre-encre">Au-dessus de ce qui reste prudent pour vos ventes ({fcfa(a.plafond)}) : l'institution décidera.</p>}
+          {s.au_dessus_du_palier && <p className="text-sm text-ambre-encre">Au-dessus de votre palier ({fcfa(a.palier.montant_palier)}) : l'institution décidera.</p>}
           <MentionPrudente a={a} />
           <p className="text-xs text-encre-2">L'institution décide de son côté et peut ajuster le montant, la fréquence ou la durée dans ses limites.</p>
 

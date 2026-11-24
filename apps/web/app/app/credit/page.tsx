@@ -45,7 +45,16 @@ function CarteCredit({ c, canal, onChange }: { c: Credit; canal: string; onChang
           <Bouton grand icone={Wallet} className="w-full" disabled={envoi || du <= 0} onClick={payer}>{envoi ? "Paiement…" : `Payer ${fcfa(du)} par mobile money`}</Bouton>
           <Simule quoi="Paiement simulé : aucun argent ne circule" />
         </div>
-      ) : <p className="rounded-2xl bg-bon-doux p-5 text-bon">Crédit entièrement remboursé. Bravo.</p>}
+      ) : (
+        <div className="space-y-1 rounded-2xl bg-bon-doux p-5 text-bon">
+          <p>Crédit entièrement remboursé. Bravo.</p>
+          {c.palier_debloque ? (
+            <p className="text-lg font-semibold" data-testid="palier-debloque">Palier suivant débloqué : jusqu'à {fcfa(c.palier_debloque)} chez {c.institution.replace(/\s*\(fictive\)\s*$/, "")}.</p>
+          ) : c.palier_etat === "retard_grave" ? (
+            <p className="text-sm text-encre">Une échéance a été réglée en retard grave : le palier ne monte pas pour ce crédit.</p>
+          ) : null}
+        </div>
+      )}
 
       <details>
         <summary className="cursor-pointer font-medium text-marque">Échéancier ({c.echeances.filter((e) => e.statut === "payee").length}/{c.echeances.length} payées)</summary>

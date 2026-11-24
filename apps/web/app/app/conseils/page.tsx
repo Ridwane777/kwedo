@@ -1,6 +1,6 @@
 "use client";
 
-import { CircleCheck, Send, TrendingUp } from "lucide-react";
+import { CircleCheck, Send, TrendingUp, Wallet } from "lucide-react";
 import { Chargement, Erreur, LienBouton, Pastille, Simule } from "@/components/ui";
 import { useApi } from "@/lib/api";
 import { useCommercant } from "@/lib/commercant";
@@ -116,6 +116,21 @@ export default function PageConseils() {
           )}
         </p>
       </div>
+
+      {c.palier && !c.palier.bloque && c.palier.palier_suivant && (
+        <div className="flex gap-3 rounded-2xl border border-trait bg-surface p-4" data-testid="levier-palier">
+          <Wallet aria-hidden="true" size={24} className="mt-0.5 shrink-0 text-marque" />
+          <div className="space-y-1">
+            <h2 className="font-semibold">Rembourser à l'heure</h2>
+            <p className="text-[15px]">
+              Chez {c.institution.replace(/\s*\(fictive\)\s*$/, "")}, votre palier est de <strong className="chiffres">{fcfa(c.palier.montant_palier)}</strong>
+              {c.palier.credit_en_cours ? " (crédit en cours)" : ""}. Un crédit remboursé à l'heure le fait passer à <strong className="chiffres">{fcfa(c.palier.palier_suivant)}</strong>
+              {c.palier.suivant_accordable != null && c.palier.suivant_accordable < c.palier.palier_suivant ? `, dans la limite de ce que vos ventes permettent (${fcfa(c.palier.suivant_accordable)})` : ""}.
+            </p>
+            <p className="text-xs text-encre-2">{c.palier.condition}. Un retard grave fait {c.palier.politique.apres_defaut === "bloquer" ? "suspendre le palier" : "redescendre d'un palier"}.</p>
+          </div>
+        </div>
+      )}
 
       {c.leviers.length > 0 && (
         <div className="space-y-3">
