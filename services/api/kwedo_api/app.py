@@ -21,7 +21,7 @@ from fastapi.responses import Response
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from . import auth
-from .service import CHAMPS_PARAMETRES, ErreurMetier, Service
+from .service import CHAMPS_PALIER, CHAMPS_PARAMETRES, ErreurMetier, Service
 
 ROUTES = []
 
@@ -278,7 +278,8 @@ def rejouer(s, q, b, h, did):
 @route("POST", r"/dossiers/(?P<did>[\w-]+)/decisions", equipe_dossier)
 def decider(s, q, b, h, did):
     return s.decider(did, b.get("type", ""), h["X-Acteur"], b.get("motif", ""),
-                     _int(b.get("montant_decide")), _int(b.get("duree_semaines")), b.get("frequence") or None, _int(b.get("duree_mois")))
+                     _int(b.get("montant_decide")), _int(b.get("duree_semaines")), b.get("frequence") or None, _int(b.get("duree_mois")),
+                     b.get("motif_depassement") or None)
 
 
 @route("POST", r"/dossiers/(?P<did>[\w-]+)/offre", commercant_du_dossier)
@@ -326,6 +327,29 @@ def nv_params(s, q, b, h, inst):
 @route("POST", r"/institutions/(?P<inst>[\w-]+)/parametres/apercu", responsable_institution)
 def apercu_params(s, q, b, h, inst):
     return s.apercu_parametres(inst, **{k: b[k] for k in s.BORNES_APERCU if k in b})
+
+
+@route("GET", r"/institutions/(?P<inst>[\w-]+)/palier", equipe_institution)
+def palier_politique(s, q, b, h, inst):
+    return {"actifs": s.politique(inst), "historique": s.historique_politique(inst)}
+
+
+@route("POST", r"/institutions/(?P<inst>[\w-]+)/palier", responsable_institution)
+def nv_palier(s, q, b, h, inst):
+    return s.nouvelle_politique(inst, h["X-Acteur"], **{k: b[k] for k in CHAMPS_PALIER if k in b})
+
+
+@route("POST", r"/institutions/(?P<inst>[\w-]+)/palier/apercu", responsable_institution)
+def apercu_palier(s, q, b, h, inst):
+    return s.apercu_politique(inst, **{k: b[k] for k in CHAMPS_PALIER if k in b})
+
+
+@route("GET", r"/commercants/(?P<cid>[\w-]+)/palier", commercant_du_chemin)
+def palier_commercant(s, q, b, h, cid):
+    """Palier du commerçant chez une institution : n° de cycle, frise, historique de ses crédits chez elle."""
+    inst = q.get("institution_id", "inst-lagune")
+    s.commercant(cid)
+    return s.palier(cid, inst, s.estimation(cid, inst)["plafond"])
 
 
 @route("GET", r"/journal", connecte_pro)

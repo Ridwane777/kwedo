@@ -52,7 +52,7 @@ class TestParcours(unittest.TestCase):
             s.decider(did, "ajuste", "agent.test", "court", 100_000)
         with self.assertRaises(ErreurMetier):
             s.decider(did, "ajuste", "agent.test", "montant au-dessus de la formule", 10**9)
-        montant = min(fiche["analyse"]["plafond"], DEMANDE["montant"]) - 100_000
+        montant = min(fiche["palier"]["montant_accordable"], DEMANDE["montant"]) - 20_000  # sous le palier : sans motif
         s.decider(did, "ajuste", "agent.test", "Saison creuse en janvier, prudence sur le montant.", montant)
         cr = s.repondre_offre(did, "accepte")
         self.assertEqual(cr["montant"], montant)
@@ -68,7 +68,7 @@ class TestParcours(unittest.TestCase):
             self.assertNotIn("famille", rel["message"].lower())
         self.assertLessEqual(max(sum(1 for x in c["relances"] if x["echeance_id"] == e["id"]) for e in c["echeances"]), 3)
         p = s.portefeuille("inst-lagune")
-        self.assertEqual(len(p["credits"]), 1)
+        self.assertEqual(len([l for l in p["credits"] if l["credit_id"] == cr["id"]]), 1)
         self.assertTrue(s.rejouer(did)["identique"])
 
     def test_2_journal_ajout_seul(self):
@@ -237,7 +237,8 @@ class TestCloisonnement(unittest.TestCase):
     def test_credits_echeances_et_offres_cloisonnes(self):
         s = self.s
         did = [r for r in s.file("inst-lagune") if r["commercant_id"] == "com-rachidi"][0]["id"]
-        s.decider(did, "valide", "agent.lagune", "Dossier régulier, accord au plafond.")
+        s.decider(did, "valide", "agent.lagune", "Dossier régulier, accord au plafond.",
+                  motif_depassement="Commerçant connu de l'agence depuis longtemps.")
         cr = s.repondre_offre(did, "accepte")
         eid = cr["echeances"][0]["id"]
         # Offre : vue commerçant sans réglages, et inaccessible à un autre commerçant.
@@ -279,7 +280,7 @@ class TestPaletteDemo(unittest.TestCase):
         cls.s.reinitialiser()
 
     def test_dossiers_au_dessus_et_en_dessous_de_la_tolerance(self):
-        f = self.s.file("inst-lagune", tri="risque")
+        f = [d for d in self.s.file("inst-lagune", tri="risque") if d["statut"] in ("recu", "en_analyse")]  # hors crédits passés
         self.assertEqual(len(f), 8)  # tous les commerçants de démo sauf la persona
         self.assertGreaterEqual(sum(not d["dans_tolerance"] for d in f), 1)
         self.assertGreaterEqual(sum(d["dans_tolerance"] for d in f), 1)
@@ -290,7 +291,7 @@ class TestPaletteDemo(unittest.TestCase):
         self.assertFalse(baobab[0]["dans_tolerance"])
 
     def test_raisons_nomment_la_cause(self):
-        f = {d["commercant_id"]: d for d in self.s.file("inst-lagune")}
+        f = {d["commercant_id"]: d for d in self.s.file("inst-lagune") if d["statut"] in ("recu", "en_analyse")}
         baisse = self.s.dossier(f["com-hounkpe"]["id"], acteur=None)
         self.assertLess(baisse["analyse"]["indicateurs"]["tendance_hebdo"], -0.03)
         self.assertIn("tendance", [r["code"] for r in baisse["analyse"]["raisons"] if r["effet"] > 0])
@@ -393,7 +394,8 @@ class TestEcheances(unittest.TestCase):
         ko = agent.post(f"/dossiers/{did}/decisions", json={"type": "ajuste", "motif": "Passage en hebdomadaire.", "montant_decide": 100_000, "frequence": "hebdomadaire"})
         self.assertEqual(ko.status_code, 422)
         ok = agent.post(f"/dossiers/{did}/decisions", json={"type": "ajuste", "motif": "Durée allongée pour alléger les mensualités.",
-                                                             "montant_decide": 250_000, "duree_mois": 12})
+                                                             "montant_decide": 250_000, "duree_mois": 12,
+                                                             "motif_depassement": "Garantie du groupement de commerçants."})
         self.assertEqual(ok.status_code, 201, ok.text)
         o = c.get(f"/commercants/com-afiavi/dossiers/{did}").json()
         self.assertEqual((o["frequence"], o["duree_mois"], o["nb_echeances"], o["delai_versement_h"]), ("mensuelle", 12, 12, 72))
@@ -478,7 +480,8 @@ class TestDemande(unittest.TestCase):
         # Pas plus que demandé.
         ko = agent.post(f"/dossiers/{did}/decisions", json={"type": "ajuste", "motif": "Plus que demandé, pour voir.", "montant_decide": demande + 5_000})
         self.assertEqual(ko.status_code, 422)
-        ok = agent.post(f"/dossiers/{did}/decisions", json={"type": "valide", "motif": "Risque acceptable pour cet équipement."})
+        ok = agent.post(f"/dossiers/{did}/decisions", json={"type": "valide", "motif": "Risque acceptable pour cet équipement.",
+                                                             "motif_depassement": "Équipement déjà commandé, facture fournie."})
         self.assertEqual(ok.status_code, 201, ok.text)
         o = c.get(f"/commercants/com-afiavi/dossiers/{did}").json()
         self.assertEqual((o["montant_offre"], o["nature"], o["ecart_montant"]), (demande, "demande_acceptee", 0))
@@ -521,6 +524,148 @@ class TestDemande(unittest.TestCase):
         self.assertEqual((a["frequence"], a["duree_mois"]), ("mensuelle", 9))
         e = c.get("/commercants/com-afiavi/estimation?institution_id=inst-lagune&frequence=mensuelle&duree_mois=9").json()
         self.assertEqual(a["plafond_actuel"], e["plafond"])
+
+
+class TestPalier(unittest.TestCase):
+    """ADR 0018 : crédit progressif. Le palier limite le montant accordable par-dessus le moteur, sans le modifier."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.s = Service(str(Path(self.tmp.name) / "palier.sqlite"))
+        self.s.reinitialiser()
+
+    def tearDown(self):
+        self.s.db.close()
+        self.tmp.cleanup()
+
+    def _credit(self, cid, montant, inst="inst-lagune"):
+        s = self.s
+        d = [r for r in s.file(inst, statut="recu") if r["commercant_id"] == cid]
+        if not d:
+            s.consentir(cid, inst, "accorde")
+            d = [s.envoyer_dossier(cid, inst, montant=montant, categorie="stock", objet="Du stock pour la saison.")]
+        s.decider(d[0]["id"], "ajuste", "agent.lagune", "Montant ramené au palier du commerçant.", montant)
+        return s.repondre_offre(d[0]["id"], "accepte")
+
+    def test_palier_initial(self):
+        s = self.s
+        p = s.estimation("com-afiavi")["palier"]
+        self.assertEqual((p["niveau"], p["cycle"], p["premier_credit"], p["montant_palier"]), (1, 1, True, 150_000))
+        self.assertEqual((p["montant_accordable"], p["limite_par"], p["suivant_accordable"]), (150_000, "palier", 225_000))
+        self.assertGreater(p["plafond_moteur"], p["montant_palier"])
+        self.assertEqual([x["montant"] for x in p["paliers"]][:3], [150_000, 225_000, 335_000])
+        self.assertEqual(s.estimation("com-afiavi", "inst-baobab")["palier"]["montant_palier"], 200_000)  # par institution
+
+    def test_demo_paliers_generes(self):
+        s = self.s
+        gildas, edwige, hounkpe = (s.estimation(c)["palier"] for c in ("com-gildas", "com-edwige", "com-hounkpe"))
+        self.assertEqual((gildas["niveau"], gildas["montant_palier"]), (2, 225_000))
+        self.assertEqual(edwige["niveau"], 3)
+        self.assertEqual((hounkpe["niveau"], hounkpe["redescendu"], hounkpe["cycle"]), (1, True, 3))
+        self.assertEqual([h["etat"] for h in hounkpe["historique"]], ["rembourse_a_l_heure", "retard_grave"])
+
+    def test_montee_apres_remboursement_a_l_heure(self):
+        s = self.s
+        cr = self._credit("com-afiavi", 150_000)
+        self.assertIsNone(s.credit(cr["id"])["palier_debloque"])
+        self.assertEqual(s.estimation("com-afiavi")["palier"]["cycle"], 1)  # crédit en cours : même cycle
+        s.payer(cr["id"], s.credit(cr["id"])["restant"])
+        c = s.credit(cr["id"])
+        self.assertEqual((c["palier_etat"], c["palier_debloque"]), ("rembourse_a_l_heure", 225_000))
+        p = s.estimation("com-afiavi")["palier"]
+        self.assertEqual((p["niveau"], p["cycle"], p["montant_palier"]), (2, 2, 225_000))
+
+    def test_descente_apres_retard_grave(self):
+        s = self.s
+        cr = self._credit("com-gildas", 200_000)  # palier 2 (225 000)
+        s.avancer(16)  # première échéance (J+7) impayée 9 jours > 7 : retard grave, même avant le solde
+        self.assertEqual(s.estimation("com-gildas")["palier"]["montant_palier"], 150_000)
+        s.payer(cr["id"], s.credit(cr["id"])["restant"])
+        c = s.credit(cr["id"])
+        self.assertEqual((c["palier_etat"], c["palier_debloque"]), ("retard_grave", None))
+        p = s.estimation("com-gildas")["palier"]
+        self.assertEqual((p["niveau"], p["montant_palier"], p["redescendu"]), (1, 150_000, True))
+        # Comportement « bloquer » : versionné, et plus aucun montant accordable sans dépassement motivé.
+        r = client(s, "responsable-lagune").post("/institutions/inst-lagune/palier", json={"apres_defaut": "bloquer"})
+        self.assertEqual(r.status_code, 200, r.text)
+        p = s.estimation("com-gildas")["palier"]
+        self.assertEqual((p["bloque"], p["montant_palier"], p["montant_accordable"]), (True, 0, 0))
+
+    def test_jamais_au_dessus_du_plafond_moteur(self):
+        s = self.s
+        for cid in ("com-afiavi", "com-gildas", "com-edwige", "com-hounkpe", "com-yaba", "com-nafissatou"):
+            for inst in ("inst-lagune", "inst-baobab"):
+                p = s.estimation(cid, inst)["palier"]
+                self.assertLessEqual(p["montant_accordable"], p["plafond_moteur"], (cid, inst))
+                self.assertEqual(p["montant_accordable"], min(p["plafond_moteur"], p["montant_palier"]))
+        e = s.estimation("com-edwige")["palier"]
+        self.assertEqual((e["limite_par"], e["montant_accordable"]), ("plafond", e["plafond_moteur"]))
+        # Même avec un motif de dépassement, la borne du moteur tient.
+        did = [r for r in s.file("inst-lagune", statut="recu") if r["commercant_id"] == "com-edwige"][0]["id"]
+        with self.assertRaises(ErreurMetier) as x:
+            s.decider(did, "ajuste", "agent.lagune", "Tentative au-dessus du moteur.", 10**8, motif_depassement="Client très fidèle.")
+        self.assertEqual(x.exception.statut, 422)
+
+    def test_depassement_par_l_agent_avec_motif(self):
+        s = self.s
+        did = [r for r in s.file("inst-lagune", statut="recu") if r["commercant_id"] == "com-gildas"][0]["id"]
+        agent = client(s, "agent-lagune")
+        fiche = agent.get(f"/dossiers/{did}").json()
+        self.assertEqual((fiche["palier"]["montant_accordable"], fiche["palier"]["demande_au_dessus"]), (225_000, True))
+        self.assertEqual([h["etat"] for h in fiche["palier"]["historique"]], ["rembourse_a_l_heure"])
+        ko = agent.post(f"/dossiers/{did}/decisions", json={"type": "valide", "motif": "Demande raisonnable pour la saison."})
+        self.assertEqual(ko.status_code, 422)
+        self.assertIn("palier", ko.json()["erreur"])
+        ko = agent.post(f"/dossiers/{did}/decisions", json={"type": "valide", "motif": "Demande raisonnable pour la saison.",
+                                                           "motif_depassement": "court"})
+        self.assertEqual(ko.status_code, 422)
+        ok = agent.post(f"/dossiers/{did}/decisions", json={"type": "valide", "motif": "Demande raisonnable pour la saison.",
+                                                           "motif_depassement": "Commande ferme d'un chantier, bon de commande vu."})
+        self.assertEqual(ok.status_code, 201, ok.text)
+        dec = ok.json()["decisions"][-1]
+        self.assertEqual((dec["palier"], dec["montant_decide"]), (225_000, 290_000))
+        self.assertEqual(dec["motif_depassement"], "Commande ferme d'un chantier, bon de commande vu.")
+        self.assertIn("dépassement du palier", s.journal(inst="inst-lagune")[0]["detail"])
+        with self.assertRaises(sqlite3.DatabaseError):
+            s.db.execute("UPDATE decisions SET motif_depassement = NULL")
+
+    def test_cloisonnement_des_cycles(self):
+        s = self.s
+        # Gildas a remboursé un crédit chez Lagune : chez Baobab, il reste au premier crédit, sans historique visible.
+        b = s.estimation("com-gildas", "inst-baobab")["palier"]
+        self.assertEqual((b["niveau"], b["historique"], b["premier_credit"]), (1, [], True))
+        did = [r for r in s.file("inst-baobab") if r["commercant_id"] == "com-yaba"][0]["id"]
+        fiche = client(s, "agent-baobab").get(f"/dossiers/{did}").json()
+        self.assertEqual(fiche["palier"]["institution_id"], "inst-baobab")
+        lagune = {c["id"] for c in s.q("SELECT id FROM credits WHERE institution_id = 'inst-lagune'")}
+        self.assertFalse(any(cr in json.dumps(fiche) for cr in lagune))
+        # Politique : lecture par l'équipe de l'institution, écriture et aperçu par son responsable seul.
+        self.assertEqual(client(s, "agent-baobab").get("/institutions/inst-lagune/palier").status_code, 403)
+        self.assertEqual(client(s, "agent-lagune").get("/institutions/inst-lagune/palier").status_code, 200)
+        for p in ("agent-lagune", "responsable-baobab", "admin"):
+            self.assertIn(client(s, p).post("/institutions/inst-lagune/palier", json={"palier_initial": 10**6}).status_code, (401, 403), p)
+            self.assertIn(client(s, p).post("/institutions/inst-lagune/palier/apercu", json={}).status_code, (401, 403), p)
+        self.assertEqual(client(s, commercant="com-sena").get("/commercants/com-gildas/palier").status_code, 403)
+        g = client(s, commercant="com-gildas").get("/commercants/com-gildas/palier?institution_id=inst-lagune").json()
+        self.assertEqual(g["niveau"], 2)
+
+    def test_politique_versionnee_et_apercu_sans_ecriture(self):
+        s = self.s
+        r = client(s, "responsable-lagune")
+        avant = len(s.historique_politique("inst-lagune"))
+        a = r.post("/institutions/inst-lagune/palier/apercu", json={"palier_initial": 400_000, "multiplicateur": 1.2})
+        self.assertEqual(a.status_code, 200, a.text)
+        a = a.json()
+        self.assertEqual(a["nb_dossiers"], 8)
+        self.assertLess(a["au_dessus_du_palier"]["apres"], a["au_dessus_du_palier"]["avant"])
+        self.assertGreater(a["accordable_moyen"]["apres"], a["accordable_moyen"]["avant"])
+        self.assertEqual(len(s.historique_politique("inst-lagune")), avant)  # rien n'est écrit
+        for corps in ({"multiplicateur": 5}, {"palier_initial": 10}, {"apres_defaut": "effacer"}, {"retard_grave_jours": 0}):
+            self.assertEqual(r.post("/institutions/inst-lagune/palier", json=corps).status_code, 422, corps)
+        ok = r.post("/institutions/inst-lagune/palier", json={"palier_initial": 100_000})
+        self.assertEqual((ok.status_code, ok.json()["palier_initial"], ok.json()["auteur"]), (200, 100_000, "responsable.lagune"))
+        self.assertEqual(len(s.historique_politique("inst-lagune")), avant + 1)
+        self.assertEqual(s.estimation("com-afiavi")["palier"]["montant_palier"], 100_000)
 
 
 if __name__ == "__main__":

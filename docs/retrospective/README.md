@@ -102,3 +102,25 @@ modèle reconnaît l'activité à son profil (99 %) et extrapole « ticket élev
 étendue. Une recalibration apprise sur le test corrige l'ECE (0,079 → 0,012), mais dégrade le réglage
 (0,007 → 0,084) : c'est se régler sur le test. Le correctif le moins risqué est un plancher « risque simulé » pour
 les activités inconnues (ECE jamais vus 0,18 → 0,12). Rien n'est appliqué ; coût ≈ 75 min de calcul sur 4 cœurs.
+
+## Crédit progressif (ADR 0018)
+
+**Fait** : seulement le palier, décidé par le propriétaire après le diagnostic. Couche service/API, moteur intact :
+montant accordable = min(plafond prudent, palier) ; palier relevé (× multiplicateur) après un crédit remboursé à
+l'heure, un palier de moins après un retard grave (ou blocage, au choix de l'institution) ; historique dérivé des
+échéances stockées, cloisonné par institution ; dépassement par l'agent avec motif tracé, jamais au-delà de la borne
+du moteur.
+
+**Ce qu'on ne sait pas** : si le palier réduit les impayés. Le simuler demanderait d'inventer la réaction des
+commerçants à un petit premier crédit ; l'efficacité n'est donc pas mesurée, elle se mesurera en pilote. Les
+historiques de démo sont générés par le simulateur de remboursement existant, sans retard forcé (le seul retard,
+Hounkpè, est la seule fenêtre où le simulateur manque une échéance).
+
+**Prochaines étapes** :
+1. **Plancher de risque pour activité inconnue** : gain mesuré au diagnostic, ECE des activités jamais vues
+   0,182 → 0,120, sans réglage sur le test. Modifie le moteur : à faire avec un ADR.
+2. **Nouveau run au protocole figé** (graines neuves, réglage puis test une seule fois) pour mesurer le plancher et
+   v3 ensemble, sans retoucher `docs/evaluation/runs` existants.
+3. **Restreindre l'extrapolation** : signaler (et borner) les profils hors de l'étendue d'entraînement plutôt que
+   d'extrapoler « ticket élevé → sûr ».
+4. Pilote : mesurer le remboursement par cycle de palier, puis relâcher les paliers là où le risque réel le permet.

@@ -256,3 +256,35 @@ téléphonie graine 40004 (plafond nul, mais raisons « réguliers » et « prog
 - Tests adaptés : `demo.spec.ts`, `ecrans.spec.ts` (10 temps), `parcours.spec.ts` (« seule option ») ; test API :
   au moins un dossier au-dessus et un en dessous de la tolérance. Empreinte `data/demo/demo.json` : `f9d7c042…`
   (les 7 commerçants existants sont inchangés, mêmes graines).
+
+## Mission crédit progressif (`docs/MISSION-PROGRESSIF.md`, branche `progressif`)
+
+| # | Demande | Preuve |
+|---|---|---|
+| 1 | Règle (service/API, moteur intact) | `Service.palier()` : montant accordable = min(plafond prudent, palier) ; palier 1 = `palier_initial`, × `multiplicateur` après un crédit remboursé à l'heure (aucune échéance soldée plus de `retard_grave_jours` après sa date), un palier de moins après un retard grave (ou blocage, `apres_defaut`). Politique par institution versionnée (`politique_palier`, ajout seul, migration `0006_palier.sql`) ; démo Lagune 150 000 × 1,5, Baobab 200 000 × 1,4, Solidaire 100 000 × 1,3 (bloquer). Cycles dérivés des crédits et échéances (nouvelle colonne `echeances.soldee_le`), chez l'institution seulement. ADR 0018 |
+| 2 | Commerçant | Accueil, simulateur, dépôt : deux chiffres et lequel limite (« Vos ventes permettent jusqu'à 865 000 FCFA. Pour un premier crédit chez Caisse Lagune Microfinance, le montant est limité à 150 000 FCFA. Remboursez-le à l'heure et votre limite passe à 225 000 FCFA. »), frise de 4 paliers et condition ; avertissement non bloquant au-dessus du palier ; Conseils : levier « Rembourser à l'heure » chiffré ; Crédit : « Palier suivant débloqué : jusqu'à X » |
+| 3 | Console | Fiche : palier, n° de cycle, historique des crédits chez cette institution (remboursé à l'heure / retard grave, retard max), accordable, demande au-dessus ou non, « redescendu ». Contre-proposition pré-remplie à min(palier, plafond prudent, demandé). Au-dessus du palier : motif de dépassement obligatoire (`decisions.motif_depassement`, `decisions.palier`, journal) ; la borne du moteur tient même avec motif. Paramètres : politique de palier éditable par le responsable, aperçu sans écriture, historique des versions |
+| 4 | Démo | Historique généré par le parcours normal à des dates passées, remboursé par `kwedo_gen.remboursement.rembourser` sur les encaissements cachés (`futur_hebdo`) ; échéance manquée régularisée 14 j plus tard. Hounkpè : fenêtre semaine 20, la seule où le simulateur manque une échéance à 225 000 (`scripts/chercher_retard.py`). Démo guidée : 11 temps, temps 9 « Le plafond grandit avec les remboursements » (payer à l'heure + avancer de 7 jours jusqu'à la fin : palier 225 000 débloqué) |
+| 5 | Documentation | ADR 0018 (options, décision, gagné/perdu, **efficacité non mesurée**) ; business plan « démarrer prudent, apprendre du terrain » ; rétrospective (plancher de risque 0,182 → 0,120, nouveau run au protocole figé, restriction de l'extrapolation) ; CGU § 3 bis ; contrat `openapi.yaml` |
+| — | Vérification | `test:api` 41/41 (8 nouveaux, `TestPalier` : palier initial, paliers de démo générés, montée après remboursement, descente après retard grave + blocage, jamais au-dessus du plafond moteur, dépassement agent avec motif, cloisonnement, politique versionnée et aperçu sans écriture), `test:engine` 25/25, build OK. E2E ciblés 23/23 : `palier.spec.ts` 3/3 (nouveau), `parcours` 3/3, `demo` 1/1 (11 temps), `echeances` 5/5, `conseils` 8/8, `demande` 3/3. `ecrans.spec.ts` adapté (11 temps) mais non relancé |
+
+Paliers de démo (`scripts/mesure_palier.py`, chez Caisse Lagune) :
+
+| Commerçant | Palier | Crédit n° | Palier (FCFA) | Plafond prudent | Accordable | Limite | Crédits précédents |
+|---|---:|---:|---:|---:|---:|---|---|
+| Afiavi | 1 | 1 | 150 000 | 865 000 | 150 000 | palier | aucun |
+| Gildas | 2 | 2 | 225 000 | 480 000 | 225 000 | palier | 150 000 à l'heure |
+| Edwige | 3 | 3 | 335 000 | 320 000 | 320 000 | plafond | 150 000 et 225 000 à l'heure |
+| Hounkpè | 1 (redescendu) | 3 | 150 000 | 920 000 | 150 000 | palier | 150 000 à l'heure, 225 000 retard grave (14 j) |
+| Yaba | 1 | 1 | 150 000 | 355 000 | 150 000 | palier | aucun |
+
+Effets de bord : la file Lagune contient aussi les 5 dossiers passés (statut « offre acceptée ») ; le filtre « À
+décider » de la console les masque. Les 8 dossiers en attente sont inchangés.
+
+**Routes à ajouter à `attaque.py`** :
+- `GET /institutions/{id}/palier` (nouvelle ; équipe de cette institution ; 403 autre institution ou admin).
+- `POST /institutions/{id}/palier` (nouvelle ; corps : `palier_initial`, `multiplicateur`, `retard_grave_jours`, `apres_defaut` ; responsable de cette institution, 403 agent / autre institution / admin ; 422 hors bornes).
+- `POST /institutions/{id}/palier/apercu` (nouvelle ; même corps et même règle ; n'écrit rien).
+- `GET /commercants/{id}/palier?institution_id=` (nouvelle ; le commerçant lui-même, 403 sinon).
+- `POST /dossiers/{id}/decisions` (modifiée) : champ `motif_depassement` (≥ 10 caractères) obligatoire si le montant accordé dépasse le palier, sinon 422.
+- Réponses enrichies d'un objet `palier` : `GET /commercants/{id}/estimation`, `GET /commercants/{id}/conseils`, `GET /commercants/{id}/dossiers/{did}`, `GET /dossiers/{id}` ; `GET /credits/{id}` : `palier_debloque`, `palier_etat`.

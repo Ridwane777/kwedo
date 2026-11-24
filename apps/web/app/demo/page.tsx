@@ -89,11 +89,11 @@ const TEMPS: Temps[] = [
       }
     } } },
   { titre: "Côté prêteur", duree: 60, ecran: (ids) => ({ console: ids.dossier ? `/console/dossiers/${ids.dossier}` : "/console" }),
-    dire: "L'agent ouvre le dossier : en tête, le montant demandé, son objet et le risque de défaut pour CETTE demande, dans ou au-dessus de la tolérance de l'institution ; le plafond prudent sert de repère. La file se trie par risque. Ici, l'agent contre-propose un montant plus bas, risque recalculé, justificatif enregistré au journal.",
+    dire: "L'agent ouvre le dossier : en tête, le montant demandé, son objet et le risque de défaut pour CETTE demande, dans ou au-dessus de la tolérance de l'institution ; le plafond prudent sert de repère. Premier crédit chez Caisse Lagune : le palier limite le montant accordable. La contre-proposition part par défaut du plus petit des deux, palier ou plafond prudent ; risque recalculé, justificatif enregistré au journal.",
     action: { label: "Contre-proposer avec justificatif", faire: async (ids) => {
       if (!ids.dossier) throw new Error("Envoyez d'abord le dossier (temps 4).");
-      const d = await api<{ analyse: { plafond: number }; montant_demande: number }>(`/dossiers/${ids.dossier}`);
-      await api(`/dossiers/${ids.dossier}/decisions`, { body: { type: "ajuste", montant_decide: Math.floor((Math.min(d.analyse.plafond, d.montant_demande) * 0.8) / 5000) * 5000, motif: MOTIF } });
+      const d = await api<{ analyse: { plafond: number }; montant_demande: number; palier: { montant_accordable: number } }>(`/dossiers/${ids.dossier}`);
+      await api(`/dossiers/${ids.dossier}/decisions`, { body: { type: "ajuste", montant_decide: Math.min(d.palier.montant_accordable, d.montant_demande), motif: MOTIF } });
     } } },
   { titre: "Sain ou à risque", duree: 30, ecran: () => ({ comparer: true }),
     dire: "Deux dossiers de la même file, côte à côte. À gauche, des ventes stables : la demande reste dans la tolérance, l'agent peut accorder. À droite, des ventes en baisse : la demande dépasse le plafond prudent et le risque calculé par le moteur passe au-dessus de la tolérance ; les raisons nomment la cause, l'agent contre-propose ou refuse." },
@@ -108,6 +108,21 @@ const TEMPS: Temps[] = [
       const cr = await api<{ prochaine: { montant_attendu: number } }>(`/credits/${c.credit.id}`);
       await api(`/credits/${c.credit.id}/paiements`, { body: { montant: cr.prochaine.montant_attendu } });
       await enAdmin(() => api("/demo/avancer", { body: { jours: 15 } }));
+    } } },
+  { titre: "Le plafond grandit avec les remboursements", duree: 30, ecran: () => ({ telephone: "/app/credit", console: "/console/portefeuille" }),
+    dire: "Afiavi rembourse chaque échéance à l'heure, semaine après semaine. À la dernière, le palier suivant se débloque : chez Caisse Lagune, sa limite passe de 150 000 à 225 000 FCFA. Chaque crédit bien remboursé devient une vraie donnée ; un retard grave ferait redescendre d'un palier.",
+    action: { label: "Payer à l'heure et avancer de 7 jours, jusqu'à la fin du crédit", faire: async (ids) => {
+      const c = await api<{ credit: { id: string } | null }>(`/dossiers/${ids.dossier}`);
+      if (!c.credit) throw new Error("Acceptez d'abord l'offre (temps 7).");
+      for (let k = 0; k < 60; k++) {
+        const cr = await api<{ restant: number; echeances: { statut: string; date_due: string; montant_attendu: number; montant_recu: number }[]; prochaine: { date_due: string } | null }>(`/credits/${c.credit.id}`);
+        if (!cr.restant || !cr.prochaine) break;
+        // Ce qui est échu, plus la prochaine échéance : payé à l'heure.
+        const du = cr.echeances.filter((e) => e.statut !== "payee" && e.date_due <= cr.prochaine!.date_due).reduce((s, e) => s + e.montant_attendu - e.montant_recu, 0);
+        await api(`/credits/${c.credit.id}/paiements`, { body: { montant: Math.min(du, cr.restant) } });
+        if (du >= cr.restant) break;
+        await enAdmin(() => api("/demo/avancer", { body: { jours: 7 } }));
+      }
     } } },
   { titre: "Test de résistance", duree: 20, ecran: () => ({ telephone: "/app/simulateur" }),
     dire: "Le curseur baisse les ventes de 30 % : la courbe descend et le plafond (même fréquence, même durée) diminue, en direct." },
