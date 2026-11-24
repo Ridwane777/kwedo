@@ -189,3 +189,13 @@ leur état initial hors de la vue) ; les animations elles-mêmes se vérifient d
 - `GET /commercants/{id}/plafonds?institution_id=&frequence=` (nouvelle ; règle : le commerçant lui-même).
 - `POST /dossiers` : **champs obligatoires** `montant_demande`, `objet_categorie`, `objet` (422 sinon) ; règle d'accès inchangée.
 - `GET /dossiers?tri=risque` (nouvelle valeur) ; `GET /commercants/{id}/conseils` (`frequence`, `duree_mois`) ; `POST /dossiers/{id}/decisions` : `valide` accorde désormais le montant demandé, `ajuste` borné au montant demandé.
+
+## Mission diagnostic du risque (`docs/MISSION-DIAGNOSTIC.md`, branche `diagnostic`)
+
+| # | Demande | Preuve |
+|---|---|---|
+| 1 | Inventaire des écarts | 7 écarts de `Config` + caractéristiques des archétypes nouveaux (marge, crédit, saisonnalité), observabilité de chacun : `docs/evaluation/diagnostic/README.md` §1 ; assertion réglage + écarts = `TEST` |
+| 2 | Ablation | `ml/diagnostic_ablation.py` : 15 variantes (réglage, 7 seuls, 7 cumuls), 2 000 + 1 000 commerçants jamais vus chacune, graines neuves (`diagnostic/graines.json`), v3 inchangé, IC bootstrap. Le cumul reproduit le run publié (ECE hebdo 0,099 contre 0,089) |
+| 3 | Cause | Activités jamais vues : 50 / 64 / 75 % de (A), 100 % de (B). Profil → activité à 99 % ; extrapolation ticket élevé → sûr (quincaillerie 4,8 % annoncé, 30,8 % observé). Reste : dépenses personnelles et semaines vides, non observables. Pente b ≈ 0,61 |
+| 4 | Pistes | Plancher « risque simulé » pour activité inconnue (ECE 0,18 → 0,12, sans réglage sur le test) ; recalibration (0,079 → 0,012, mais réglage 0,007 → 0,084 : rejetée sans données réelles). Rien appliqué, pas d'ADR |
+| — | Règles | `docs/evaluation/runs` et `ml/artifacts` intacts ; intermédiaires supprimés ; `test:engine` vert |

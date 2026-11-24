@@ -84,3 +84,21 @@ moteur, un champ `risque_eprouve`. Un seul run final, aucun relancé.
   et mensuel font au moins aussi bien, pas parce que le risque est une probabilité fiable.
 - Défaut mesuré à la semaine (retard toléré X = 0 jour) ; mois de 52/12 semaines, pas de dates calendaires.
 - Tout reste simulé : la validation qui compte se fera sur les remboursements d'une institution pilote.
+
+## Diagnostic du risque (`docs/evaluation/diagnostic/`)
+
+**Cause trouvée** : l'ablation du générateur (réglage → test, un écart à la fois puis en cumul, graines neuves, v3
+inchangé) attribue l'essentiel du problème aux **activités jamais vues**. Cet écart explique 50 / 64 / 75 % de la
+sous-estimation (hebdo / quinzaine / mensuel) et la totalité de l'absence de gain contre les règles naïves. Le
+modèle reconnaît l'activité à son profil (99 %) et extrapole « ticket élevé → sûr » : quincaillerie annoncée
+4,8 %, observée 30,8 %. La phrase « une dérive que les flux ne laissent pas voir » écrite plus haut était donc
+**fausse pour la cause principale** : les entrées changent nettement (KS 0,2–0,3), mais le modèle les lit hors de son
+étendue d'entraînement. Elle reste juste pour le second bloc : les dépenses personnelles et les semaines vides
+(≈ 40 % de l'écart hebdo) ne touchent que le futur caché.
+
+**Forme** : une pente (b ≈ 0,61) plutôt qu'un décalage ; les petits risques sont les plus sous-estimés.
+
+**Leçon** : la calibration isotonique sur le réglage ne protège pas d'une extrapolation sur des profils hors
+étendue. Une recalibration apprise sur le test corrige l'ECE (0,079 → 0,012), mais dégrade le réglage
+(0,007 → 0,084) : c'est se régler sur le test. Le correctif le moins risqué est un plancher « risque simulé » pour
+les activités inconnues (ECE jamais vus 0,18 → 0,12). Rien n'est appliqué ; coût ≈ 75 min de calcul sur 4 cœurs.
