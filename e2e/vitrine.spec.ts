@@ -24,7 +24,8 @@ async function capturer(page: Page, url: string, nom: string) {
   const erreurs: string[] = [];
   page.on("pageerror", (e) => erreurs.push(String(e)));
   await page.goto(url);
-  await page.waitForLoadState("networkidle");
+  // Attente réseau bornée : la démo garde des iframes actives ; ce qui est vérifié ensuite, c'est l'absence de chargement.
+  await page.waitForLoadState("networkidle", { timeout: 20_000 }).catch(() => {});
   await expect(page.locator('[role="status"][aria-label^="Chargement"]')).toHaveCount(0, { timeout: 20_000 });
   // Les images chargées à la demande et les révélations au défilement : on parcourt la page avant la capture.
   await page.evaluate(async () => { for (let y = 0; y < document.body.scrollHeight; y += 600) { window.scrollTo(0, y); await new Promise((r) => setTimeout(r, 60)); } window.scrollTo(0, 0); });

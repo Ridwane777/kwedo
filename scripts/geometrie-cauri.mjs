@@ -16,20 +16,28 @@ const pt = ([x, y]) => `${f(x)} ${f(y)}`;
 const [g, d] = [p(-A, 0), p(A, 0)];
 const coquille = `M${pt(g)}A${A} ${B} ${ANGLE} 1 1 ${pt(d)}A${A} ${B} ${ANGLE} 1 1 ${pt(g)}z`;
 
-// Fente : lentille de -0,82 A à +0,82 A, demi-largeur maximale W.
-const L = 0.8 * A, W = 0.95;
-const fente = `M${pt(p(-L, 0))}Q${pt(p(0, 2 * W))} ${pt(p(L, 0))}Q${pt(p(0, -2 * W))} ${pt(p(-L, 0))}z`;
-const fenteSimple = `M${pt(p(-L, 0))}L${pt(p(L, 0))}`;
+// Fente : lentille de -0,8 A à +0,8 A, demi-largeur maximale W, légèrement courbe (axe bombé de COURBE),
+// comme l'ouverture d'un vrai cauri (une couture de ballon est droite).
+const L = 0.8 * A, W = 0.85, COURBE = 1.4;
+const S = p(-L, 0), E = p(L, 0), Q = p(0, COURBE);
+const fente = `M${pt(S)}Q${pt(p(0, COURBE + 2 * W))} ${pt(E)}Q${pt(p(0, COURBE - 2 * W))} ${pt(S)}z`;
+const fenteSimple = `M${pt(S)}Q${pt(Q)} ${pt(E)}`;
+const bez = (t) => [0, 1].map((i) => (1 - t) ** 2 * S[i] + 2 * t * (1 - t) * Q[i] + t ** 2 * E[i]);
 
 // Dents : petites rainures régulières sur la coquille, de part et d'autre de la fente, symétriques ;
 // chacune part de la lèvre vers l'extérieur (elles ne traversent jamais la fente, contrairement à des lacets).
 const dents = [];
-const N = 13; // dents fines et serrées, comme un peigne (des rainures longues et espacées évoquent des lacets)
+const N = 12; // dents courtes et serrées, comme un peigne (des rainures longues et espacées évoquent des lacets)
 for (let k = 0; k < N; k++) {
-  const t = -L * 0.8 + (k * (2 * L * 0.8)) / (N - 1);
-  const dl = W * (1 - (t / L) ** 2); // largeur locale de la lentille (parabole)
-  const long = 0.7;
-  for (const cote of [1, -1]) dents.push(`M${pt(p(t, cote * dl))}L${pt(p(t, cote * (dl + long)))}`);
+  const t = 0.12 + (k * 0.76) / (N - 1);         // position le long de l'ouverture (0 à 1)
+  const c = bez(t);
+  const dl = 4 * t * (1 - t) * W;                  // demi-largeur locale de la lentille
+  const long = 0.55;
+  for (const cote of [1, -1]) {
+    const a = [c[0] + n[0] * cote * dl, c[1] + n[1] * cote * dl];
+    const b = [c[0] + n[0] * cote * (dl + long), c[1] + n[1] * cote * (dl + long)];
+    dents.push(`M${pt(a)}L${pt(b)}`);
+  }
 }
 // Canaux : petites encoches aux deux extrémités de la coquille, dans l'axe de la fente.
 const canaux = [p(-A, 0), p(A, 0)].map(([x, y]) => ({ cx: f(x), cy: f(y), r: 1.05 }));

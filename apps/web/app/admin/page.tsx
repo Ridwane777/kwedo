@@ -28,8 +28,8 @@ function Repartition({ institutions }: { institutions: Ligne[] }) {
   const max = Math.max(1, ...lignes.map((i) => i.dossiers));
   const SEG = [
     { cle: "a_traiter", label: "À traiter", classe: "bg-ambre", total: tot.t },
-    { cle: "sansCredit", label: "Décidés, sans crédit ouvert", classe: "bg-encre-3", total: tot.d },
-    { cle: "credits", label: "Décidés, crédit ouvert", classe: "bg-bon", total: tot.c },
+    { cle: "sansCredit", label: "Décidés sans crédit", classe: "bg-encre-3", total: tot.d },
+    { cle: "credits", label: "Crédit ouvert", classe: "bg-bon", total: tot.c },
   ] as const;
   return (
     <div className="space-y-4 rounded-2xl border border-trait bg-surface p-4">
@@ -40,7 +40,7 @@ function Repartition({ institutions }: { institutions: Ligne[] }) {
       <dl className="grid grid-cols-3 gap-2">
         {SEG.map((s) => (
           <div key={s.cle} className="rounded-xl bg-fond p-3">
-            <dt className="flex items-center gap-1.5 text-xs text-encre-2"><span aria-hidden="true" className={`h-2 w-2 rounded-full ${s.classe}`} />{s.label}</dt>
+            <dt className="flex items-start gap-1.5 text-xs text-encre-2"><span aria-hidden="true" className={`mt-1 h-2 w-2 shrink-0 rounded-full ${s.classe}`} />{s.label}</dt>
             <dd className="montant mt-1 text-2xl leading-none">{s.total}</dd>
           </div>
         ))}
@@ -48,7 +48,7 @@ function Repartition({ institutions }: { institutions: Ligne[] }) {
       <ul className="space-y-3">
         {lignes.map((i) => (
           <li key={i.id}>
-            <p className="mb-1 flex justify-between gap-3 text-sm"><span className="truncate">{i.nom}</span><span className="chiffres text-encre-2">{i.dossiers} dossier{i.dossiers > 1 ? "s" : ""}</span></p>
+            <p className="mb-1 flex justify-between gap-3 text-sm"><span className="min-w-0 truncate">{i.nom}</span><span className="chiffres shrink-0 whitespace-nowrap text-encre-2">{i.dossiers} dossier{i.dossiers > 1 ? "s" : ""}</span></p>
             <div className="flex h-3 overflow-hidden rounded-full bg-surface-2" role="img"
               aria-label={`${i.nom} : ${i.a_traiter} à traiter, ${i.sansCredit} décidés sans crédit ouvert, ${i.credits} avec crédit ouvert`}>
               {SEG.map((s) => {
@@ -128,7 +128,7 @@ function Tableau({ u }: { u: Utilisateur }) {
         </dl>
 
         {/* Grand écran : institutions à gauche, activité et commandes à droite, sur toute la largeur. */}
-        <div className="grid gap-8 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] xl:items-start">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-8 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] xl:items-start">
         <section className="space-y-3">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h2 className="titre text-xl">Institutions</h2>

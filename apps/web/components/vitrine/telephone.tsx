@@ -19,9 +19,10 @@ export function Telephone({ ecrans, className = "", prioritaire = false, largeur
 }) {
   return (
     <figure className={`shrink-0 ${className}`} style={{ width: largeur, maxWidth: "100%" }}>
-      {/* Le rapport 360/760 s'applique à l'écran seul (bordure exclue) : la capture n'est jamais rognée sur les côtés. */}
-      <div className="overflow-hidden rounded-[2.4rem] border-[9px] border-cadre bg-fond">
-        <div className="relative aspect-[360/760]">
+      {/* Le rapport 360/760 s'applique à l'écran seul (cadre exclu) ; le cadre a un « menton » et l'écran des coins
+          bas presque droits : la barre de navigation de la capture n'est jamais mangée par l'arrondi. */}
+      <div className="rounded-[2.2rem] bg-cadre px-[7px] pb-[16px] pt-[12px]">
+        <div className="relative aspect-[360/760] overflow-hidden rounded-b-[0.5rem] rounded-t-[1.6rem] bg-fond">
         <div className={ecrans.length > 1 ? "defile absolute inset-0" : "absolute inset-0"}>
           {ecrans.map((e, k) => (
             <div key={e.nom} className={ecrans.length > 1 ? "" : "h-full"} aria-hidden={k > 0 ? true : undefined}>
