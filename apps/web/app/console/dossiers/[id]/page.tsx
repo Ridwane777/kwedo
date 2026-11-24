@@ -1,6 +1,8 @@
 "use client";
 
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft, ArrowRight, Save } from "lucide-react";
+import Link from "next/link";
+import { Ariane, TON_STATUT } from "../../commun";
 import { LienIcone } from "@/components/bouton-icone";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
@@ -70,6 +72,38 @@ function Onglets({ panneaux }: { panneaux: React.ReactNode[] }) {
   );
 }
 
+const REPONSE: Record<string, { l: string; ton: "bon" | "neutre" | "attention" }> = {
+  accorde: { l: "En attente de la réponse du commerçant", ton: "attention" },
+  offre_acceptee: { l: "Offre acceptée par le commerçant", ton: "bon" },
+  offre_refusee: { l: "Offre déclinée par le commerçant", ton: "neutre" },
+};
+
+/** Après décision : ce qui a été décidé, par qui, pourquoi, et ce que le commerçant a répondu. */
+function BandeauDecision({ d }: { d: Dossier }) {
+  const x = d.decisions[d.decisions.length - 1];
+  if (!x) return null;
+  const rep = REPONSE[d.statut];
+  const accord = x.type === "valide" || x.type === "ajuste";
+  return (
+    <section aria-label="Décision" data-testid="bandeau-decision" className={`rounded-2xl border-l-4 bg-surface p-4 ${x.type === "refuse" ? "border-alerte" : accord ? "border-bon" : "border-ambre"}`}>
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <p className="titre text-lg">{LIBELLES[x.type as TypeDecision] ?? x.type}</p>
+        {accord && d.montant_offre != null && (
+          <p className="chiffres font-semibold">{fcfa(d.montant_offre)} · {FREQ[d.frequence].chaque}, {duree({ duree_mois: d.duree_mois, duree_semaines: d.duree_offre })}</p>
+        )}
+        {rep && <Pastille ton={rep.ton}>{rep.l}</Pastille>}
+        {d.credit && (
+          <Link href={`/console/credits/${d.credit.id}`} className="ml-auto inline-flex min-h-11 items-center gap-1 font-medium text-marque hover:underline">
+            Voir le crédit <ArrowRight aria-hidden="true" size={18} />
+          </Link>
+        )}
+      </div>
+      <p className="mt-1 italic">« {x.motif} »</p>
+      <p className="text-xs text-encre-2">{x.auteur}, le {date(x.horodatage, true)}</p>
+    </section>
+  );
+}
+
 export default function Fiche() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
@@ -94,7 +128,7 @@ export default function Fiche() {
   const choisir = (t: TypeDecision) => { setType(t); setTimeout(() => motifRef.current?.focus(), 0); };
   const raccourcis = useMemo(() => ({
     v: () => choisir("valide"), a: () => choisir("ajuste"), r: () => choisir("refuse"), c: () => choisir("complement"),
-    Escape: () => router.push("/console"),
+    Escape: () => router.push("/console/demandes"),
   }), [router]);
   const ouvert = d ? ["recu", "en_analyse", "complement"].includes(d.statut) : false;
   useRaccourcis(raccourcis, ouvert);
@@ -134,11 +168,12 @@ export default function Fiche() {
 
   return (
     <article className="space-y-4">
+      <Ariane etapes={[{ label: "Demandes", href: "/console/demandes" }, { label: d.commercant.nom, href: `/console/commercants/${d.commercant_id}` }, { label: `Dossier du ${date(d.cree_le)}` }]} />
       <header className="space-y-1">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-          <LienIcone href="/console" icone={ArrowLeft} label="Retour à la file (Échap)" ancre="gauche" className="border border-trait" />
-          <h1 className="titre text-[1.75rem] leading-tight">{d.commercant.nom}</h1>
-          <Pastille ton="info">{STATUTS[d.statut]}</Pastille>
+          <LienIcone href="/console/demandes" icone={ArrowLeft} label="Retour aux demandes (Échap)" ancre="gauche" className="border border-trait" />
+          <h1 className="titre text-[1.75rem] leading-tight"><Link href={`/console/commercants/${d.commercant_id}`} className="hover:underline">{d.commercant.nom}</Link></h1>
+          <Pastille ton={TON_STATUT[d.statut]}>{STATUTS[d.statut]}</Pastille>
           {!d.consentement_actif && <Pastille ton="alerte">Accord du commerçant retiré : données figées</Pastille>}
         </div>
         <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-encre-2">
@@ -148,6 +183,8 @@ export default function Fiche() {
           <Simule quoi="vérification simulée" />
         </p>
       </header>
+
+      {d.decisions.length > 0 && <BandeauDecision d={d} />}
 
       <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="order-1 min-w-0 space-y-4 xl:order-none xl:col-start-1 xl:row-start-1">

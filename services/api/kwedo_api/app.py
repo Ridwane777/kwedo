@@ -20,7 +20,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import Response
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from . import auth
+from . import auth, console
 from .service import CHAMPS_PARAMETRES, ErreurMetier, Service
 
 ROUTES = []
@@ -305,6 +305,47 @@ def intervenir(s, q, b, h, eid):
 @route("GET", r"/portefeuille", equipe)
 def portefeuille(s, q, b, h):
     return s.portefeuille(h["institution"])
+
+
+# ---------- console par objet (ADR 0019) : listes paginées, toutes limitées à l'institution de la session ----------
+@route("GET", r"/console/aujourdhui", equipe)
+def c_aujourdhui(s, q, b, h):
+    return console.aujourdhui(s, h["institution"])
+
+
+@route("GET", r"/console/demandes", equipe)
+def c_demandes(s, q, b, h):
+    return console.demandes(s, h["institution"], q)
+
+
+@route("GET", r"/console/credits", equipe)
+def c_credits(s, q, b, h):
+    return console.credits(s, h["institution"], q)
+
+
+@route("GET", r"/console/credits/(?P<cr>[\w-]+)", equipe)
+def c_credit(s, q, b, h, cr):
+    return console.credit(s, h["institution"], cr)
+
+
+@route("GET", r"/console/retards", equipe)
+def c_retards(s, q, b, h):
+    return console.retards(s, h["institution"], q)
+
+
+@route("GET", r"/console/relances", equipe)
+def c_relances(s, q, b, h):
+    return console.relances(s, h["institution"], q)
+
+
+@route("GET", r"/console/commercants", equipe)
+def c_commercants(s, q, b, h):
+    return console.commercants(s, h["institution"], q)
+
+
+@route("GET", r"/console/commercants/(?P<cid>[\w-]+)", equipe)
+def c_commercant(s, q, b, h, cid):
+    return console.commercant(s, h["institution"], cid)
 
 
 @route("POST", r"/relances/executer", admin)

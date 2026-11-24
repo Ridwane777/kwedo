@@ -10,11 +10,12 @@ const THEMES = [["clair", "light"], ["sombre", "dark"]] as const;
 const GROUPES: { nom: string; profil?: string; pages: string[] }[] = [
   { nom: "public", pages: ["/", "/connexion", "/app/inscription", "/demo"] },
   { nom: "commercant", profil: "commercant", pages: ["/app", "/app/simulateur", "/app/dossier", "/app/credit", "/app/activite", "/app/conseils"] },
-  { nom: "console", profil: "agent-lagune", pages: ["/console", "FICHE", "/console/portefeuille", "/console/parametres", "/console/journal"] },
+  { nom: "console", profil: "agent-lagune", pages: ["/console", "FICHE", "/console/credits", "/console/parametres", "/console/journal"] },
   { nom: "admin", profil: "admin", pages: ["/admin"] },
 ];
 
 test.beforeAll(async ({ browser }) => {
+  test.setTimeout(120_000); // réinitialisation avec historique de démo (ADR 0019)
   const p = await browser.newPage();
   await reinitialiser(p.request);
   await p.close();

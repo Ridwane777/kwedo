@@ -165,12 +165,33 @@ Les deux thèmes sont aussi contrôlés par axe (WCAG 2.1 AA) sur les écrans pr
   (Où vous en êtes / Pourquoi ça compte / Quoi faire / Effet estimé), triées par effet ; effet chiffré sur fond
   `bon-doux`, « effet non chiffré » sur `surface-2`. Grille 1 → 2 (lg) → 3 (2xl) colonnes. Les leviers déjà bons
   sont repliés en lignes courtes « Ce qui va déjà bien » ; les paliers 3/6/12 mois restent dans le levier historique.
-- **Console** : barre latérale claire (institution et rôle visibles), raccourcis 1–4 ; file avec compteurs
-  d'exception, segmenté « À traiter / Tous », lignes à alertes marquées d'un liseré ambre sur téléphone.
+- **Console** : barre latérale claire (institution et rôle visibles), organisée par objet (ADR 0019), raccourcis
+  1–7 sur toutes les pages. Voir « Architecture de la console » ci-dessous.
 - **Admin** : en-tête propre au rôle, chiffres de volume, institutions triées par dossiers en attente,
   activité récente sans données nominatives, commandes de démo avec confirmation avant réinitialisation.
 - **Connexion** : panneau de marque à gauche sur grand écran, profils groupés par institution ; « Profils fictifs »
   et l'absence de mot de passe sont dits clairement.
+
+## Architecture de la console (ADR 0019)
+
+| Section | URL | Contenu |
+|---|---|---|
+| Aujourd'hui (1) | `/console` | 4 indicateurs (encours, part en retard, PAR 30, recouvrement) cliquables ; 3 cartes « à faire » : dossiers à décider (bandeau ambre des alertes), échéances en retard (nouvelles depuis hier), offres sans réponse depuis 3 jours ; chaque carte finit par un lien vers la liste filtrée |
+| Demandes (2) | `/console/demandes` | onglets À décider · Complément demandé · En attente du commerçant · Traitées (compteurs) ; recherche par nom, statut, décision (Traitées), tranche de risque, alertes, période, tri |
+| Crédits (3) | `/console/credits` | indicateurs, puis onglets En cours · En retard · Remboursés · En défaut ; recherche, période, tri |
+| Recouvrement (4) | `/console/recouvrement` | échéances en retard (reprogrammer avec motif) ; historique des relances filtrable par commerçant et période |
+| Commerçants (5) | `/console/commercants` | commerçants ayant au moins un dossier dans l'institution ; recherche, tri |
+| Paramètres (6), Journal (7) | inchangés | |
+
+Détails : dossier (bandeau de décision liseré vert / rouge / ambre, réponse du commerçant, « Voir le crédit »),
+crédit (échéancier, paiements, relances, reprogrammations), commerçant (historique de cette institution seulement).
+Fil d'Ariane en tête de chaque détail ; noms et rangs d'échéance sont des liens croisés.
+
+Règles communes (`app/console/commun.tsx`) : l'état d'une liste (onglet, filtres, tri, page) vit **dans l'URL**,
+partageable et conservé au retour arrière ; la pagination est servie par l'API (20 par page, 50 au plus). Grand
+écran : tableau dont la première cellule est un lien (clavier) et la ligne entière cliquable ; téléphone (< 768 px) :
+**cartes**, onglets **défilants** horizontalement, recherche sur sa propre ligne. Vides distincts : « rien dans cet
+onglet » ou « aucun résultat pour ces filtres » (avec bouton d'effacement).
 
 ## Ce qui est affiché du calcul (formule hors des écrans)
 

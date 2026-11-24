@@ -5,18 +5,19 @@ import { connecter, reinitialiser } from "./session";
 const CAP = process.env.KWEDO_CAPTURES ?? ".captures";
 
 const COMMERCANT = ["/", "/connexion", "/app", "/app/simulateur", "/app/conseils", "/app/dossier", "/app/credit", "/app/activite", "/app/inscription", "/app/flux", "/app/compte"];
-const CONSOLE = ["/console", "/console/portefeuille", "/console/parametres", "/console/journal", "/demo", "/admin"];
+const CONSOLE = ["/console", "/console/demandes", "/console/credits", "/console/recouvrement", "/console/commercants", "/console/parametres", "/console/journal", "/demo", "/admin"];
 
 test.describe.configure({ mode: "serial" });
 
 test.beforeAll(async ({ browser }) => {
+  test.setTimeout(120_000); // réinitialisation avec historique de démo (ADR 0019)
   const page = await browser.newPage();
   await reinitialiser(page.request);
   await page.close();
 });
 
 for (const theme of ["light", "dark"] as const)
-for (const [largeur, pages] of [[360, COMMERCANT], [1440, [...COMMERCANT.slice(0, 1), ...CONSOLE, "FICHE"]]] as const) {
+for (const [largeur, pages] of [[360, COMMERCANT], [1440, [...COMMERCANT.slice(0, 1), ...CONSOLE, "FICHE", "CREDIT", "COMMERCANT"]]] as const) {
   for (const chemin of pages) {
     test(`a11y + capture ${chemin} @${largeur} ${theme}`, async ({ page }) => {
       // Thème choisi avant le premier rendu, comme le ferait le script de la page après un choix mémorisé.
@@ -27,6 +28,8 @@ for (const [largeur, pages] of [[360, COMMERCANT], [1440, [...COMMERCANT.slice(0
         const f = await (await page.request.get("/api/dossiers")).json();
         url = `/console/dossiers/${f.find((d: { alertes: string[] }) => d.alertes.length).id}`;
       }
+      if (chemin === "CREDIT") url = `/console/credits/${(await (await page.request.get("/api/console/credits?onglet=en_retard")).json()).elements[0].id}`;
+      if (chemin === "COMMERCANT") url = "/console/commercants/com-hounkpe";
       await page.setViewportSize({ width: largeur, height: largeur < 500 ? 780 : 900 });
       const erreurs: string[] = [];
       page.on("pageerror", (e) => erreurs.push(String(e)));

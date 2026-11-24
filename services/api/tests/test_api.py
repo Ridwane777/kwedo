@@ -68,7 +68,7 @@ class TestParcours(unittest.TestCase):
             self.assertNotIn("famille", rel["message"].lower())
         self.assertLessEqual(max(sum(1 for x in c["relances"] if x["echeance_id"] == e["id"]) for e in c["echeances"]), 3)
         p = s.portefeuille("inst-lagune")
-        self.assertEqual(len(p["credits"]), 1)
+        self.assertIn(cr["id"], [l["credit_id"] for l in p["credits"]])
         self.assertTrue(s.rejouer(did)["identique"])
 
     def test_2_journal_ajout_seul(self):
@@ -279,13 +279,13 @@ class TestPaletteDemo(unittest.TestCase):
         cls.s.reinitialiser()
 
     def test_dossiers_au_dessus_et_en_dessous_de_la_tolerance(self):
-        f = self.s.file("inst-lagune", tri="risque")
-        self.assertEqual(len(f), 8)  # tous les commerçants de démo sauf la persona
+        f = [d for d in self.s.file("inst-lagune", tri="risque") if d["statut"] in ("recu", "en_analyse", "complement", "accorde")]
+        self.assertEqual(len(f), 8)  # un dossier ouvert par commerçant de démo sauf la persona
         self.assertGreaterEqual(sum(not d["dans_tolerance"] for d in f), 1)
         self.assertGreaterEqual(sum(d["dans_tolerance"] for d in f), 1)
         self.assertEqual([d["risque_demande"] for d in f], sorted((d["risque_demande"] for d in f), reverse=True))
         self.assertGreaterEqual(sum(d["montant_demande"] > d["plafond"] for d in f), 1)  # au moins une demande au-dessus du plafond
-        baobab = self.s.file("inst-baobab")
+        baobab = self.s.file("inst-baobab", "recu")
         self.assertEqual(len(baobab), 1)
         self.assertFalse(baobab[0]["dans_tolerance"])
 
@@ -521,6 +521,116 @@ class TestDemande(unittest.TestCase):
         self.assertEqual((a["frequence"], a["duree_mois"]), ("mensuelle", 9))
         e = c.get("/commercants/com-afiavi/estimation?institution_id=inst-lagune&frequence=mensuelle&duree_mois=9").json()
         self.assertEqual(a["plafond_actuel"], e["plafond"])
+
+
+class TestConsoleParObjet(unittest.TestCase):
+    """Console organisée par objet (ADR 0019) : listes paginées et filtrées, détails, cloisonnement."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.s = Service(str(Path(cls.tmp.name) / "c.sqlite"))
+        cls.s.reinitialiser()
+        cls.lagune = client(cls.s, "agent-lagune")
+        cls.baobab = client(cls.s, "agent-baobab")
+
+    def get(self, c, chemin, code=200):
+        r = c.get(chemin)
+        self.assertEqual(r.status_code, code, (chemin, r.text))
+        return r.json()
+
+    def test_demo_remplit_chaque_onglet(self):
+        d = self.get(self.lagune, "/console/demandes")
+        for onglet in ("a_decider", "complement", "attente", "traitees"):
+            self.assertGreater(d["compteurs"][onglet], 0, onglet)
+        c = self.get(self.lagune, "/console/credits")
+        for onglet in ("en_cours", "en_retard", "rembourses", "en_defaut"):
+            self.assertGreater(c["compteurs"][onglet], 0, onglet)
+        self.assertGreater(self.get(self.lagune, "/console/relances")["total"], 0)
+        self.assertGreater(self.get(self.lagune, "/console/retards")["total"], 0)
+
+    def test_pagination_et_validation(self):
+        tout = self.get(self.lagune, "/console/demandes?onglet=toutes&taille=50")
+        p1 = self.get(self.lagune, "/console/demandes?onglet=toutes&taille=5&page=1")
+        p2 = self.get(self.lagune, "/console/demandes?onglet=toutes&taille=5&page=2")
+        self.assertEqual(p1["total"], tout["total"])
+        self.assertEqual(len(p1["elements"]), 5)
+        self.assertEqual(p1["pages"], -(-tout["total"] // 5))
+        self.assertFalse({x["id"] for x in p1["elements"]} & {x["id"] for x in p2["elements"]})
+        for mauvais in ("taille=51", "taille=0", "page=0", "page=x", "onglet=inconnu", "tri=nom", "ordre=haut",
+                        "du=2026-13-01", "du=hier", "statut=perdu", "alertes=peut-etre", "tranche=x"):
+            self.get(self.lagune, f"/console/demandes?{mauvais}", 422)
+        for chemin in ("/console/credits?onglet=x", "/console/credits?taille=500", "/console/relances?au=x", "/console/commercants?tri=risque"):
+            self.get(self.lagune, chemin, 422)
+
+    def test_filtres_et_tris(self):
+        traitees = self.get(self.lagune, "/console/demandes?onglet=traitees&taille=50")["elements"]
+        self.assertTrue(all(x["statut"] in ("refuse", "offre_acceptee", "offre_refusee") for x in traitees))
+        self.assertTrue(all(x["decision"] for x in traitees))
+        refus = self.get(self.lagune, "/console/demandes?onglet=traitees&statut=refuse")["elements"]
+        self.assertTrue(refus and all(x["statut"] == "refuse" for x in refus))
+        contre = self.get(self.lagune, "/console/demandes?onglet=traitees&decision=ajuste")["elements"]
+        self.assertTrue(contre and all(x["decision"] == "ajuste" for x in contre))
+        hors = self.get(self.lagune, "/console/demandes?hors_tolerance=1")["elements"]
+        self.assertTrue(hors and not any(x["dans_tolerance"] for x in hors))
+        al = self.get(self.lagune, "/console/demandes?alertes=1")["elements"]
+        self.assertTrue(all(x["alertes"] for x in al))
+        r = [x["risque_demande"] for x in self.get(self.lagune, "/console/demandes?tri=risque&ordre=desc")["elements"]]
+        self.assertEqual(r, sorted(r, reverse=True))
+        m = [x["montant_demande"] for x in self.get(self.lagune, "/console/demandes?onglet=toutes&tri=montant&ordre=asc&taille=50")["elements"]]
+        self.assertEqual(m, sorted(m))
+        nom = self.get(self.lagune, "/console/demandes?onglet=toutes&q=hounkpe")["elements"]  # sans accent ni majuscule
+        self.assertTrue(nom and all(x["commercant_id"] == "com-hounkpe" for x in nom))
+        self.assertEqual(self.get(self.lagune, "/console/demandes?onglet=toutes&au=2026-01-01")["total"], 0)
+        retard = self.get(self.lagune, "/console/credits?onglet=en_retard")["elements"]
+        self.assertTrue(all(x["statut"] == "en_retard" and 0 < x["jours_retard"] <= 90 for x in retard))
+        defaut = self.get(self.lagune, "/console/credits?onglet=en_defaut")["elements"]
+        self.assertTrue(all(x["jours_retard"] > 90 for x in defaut))
+        rem = self.get(self.lagune, "/console/credits?onglet=rembourses")["elements"]
+        self.assertTrue(all(x["restant"] == 0 for x in rem))
+        rel = self.get(self.lagune, "/console/relances?commercant=com-hounkpe")["elements"]
+        self.assertTrue(rel and all(x["commercant_id"] == "com-hounkpe" for x in rel))
+        self.assertEqual(self.get(self.lagune, "/console/relances?du=2030-01-01")["total"], 0)
+
+    def test_cloisonnement(self):
+        """Rien d'une autre institution : ni dans les listes, ni en détail (404), ni sans session (401), ni commerçant (401)."""
+        lag = {x["id"] for x in self.get(self.lagune, "/console/credits?onglet=tous&taille=50")["elements"]}
+        bao = {x["id"] for x in self.get(self.baobab, "/console/credits?onglet=tous&taille=50")["elements"]}
+        self.assertTrue(lag and bao and not lag & bao)
+        self.assertTrue(all(self.s.un("SELECT institution_id FROM credits WHERE id = ?", k)["institution_id"] == "inst-lagune" for k in lag))
+        for cr in bao:
+            self.get(self.lagune, f"/console/credits/{cr}", 404)
+        cr = next(iter(lag))
+        self.get(self.baobab, f"/console/credits/{cr}", 404)
+        det = self.get(self.lagune, f"/console/credits/{cr}")
+        self.assertEqual(det["institution_id"], "inst-lagune")
+        self.assertIn("interventions", det)
+        self.assertEqual(det["dossier"]["id"], det["dossier_id"])
+        dem = {x["id"] for x in self.get(self.baobab, "/console/demandes?onglet=toutes&taille=50")["elements"]}
+        self.assertFalse(dem & {x["id"] for x in self.get(self.lagune, "/console/demandes?onglet=toutes&taille=50")["elements"]})
+        for chemin in ("/console/relances", "/console/retards", "/console/commercants"):
+            ids = {x.get("commercant_id", x.get("id")) for x in self.get(self.baobab, chemin + "?taille=50")["elements"]}
+            self.assertNotIn("com-hounkpe", ids, chemin)  # Hounkpè n'a jamais déposé chez Baobab
+        self.get(self.baobab, "/console/commercants/com-hounkpe", 404)
+        self.get(self.lagune, "/console/commercants/com-afiavi", 404)  # aucun dossier chez Lagune
+        # Séna a un crédit chez Baobab : la fiche Lagune n'en montre rien.
+        fiche = self.get(self.lagune, "/console/commercants/com-sena")
+        self.assertTrue(all(c["id"] in lag for c in fiche["credits"]))
+        self.assertTrue(all(d["institution_id"] == "inst-lagune" for d in fiche["demandes"]))
+        self.assertNotIn("inst-baobab", json.dumps(fiche))
+        anonyme, com = TestClient(fabriquer(self.s)), client(self.s, commercant="com-sena")
+        for chemin in ("/console/aujourdhui", "/console/demandes", "/console/credits", f"/console/credits/{cr}", "/console/retards",
+                       "/console/relances", "/console/commercants", "/console/commercants/com-sena"):
+            self.get(anonyme, chemin, 401)
+            self.get(com, chemin, 401)
+        self.get(client(self.s, "admin"), "/console/demandes", 403)
+
+    def test_aujourdhui(self):
+        a = self.get(self.lagune, "/console/aujourdhui")
+        self.assertEqual(a["nb_a_decider"], self.get(self.lagune, "/console/demandes")["total"])
+        self.assertGreater(a["nb_offres_sans_reponse"], 0)
+        self.assertTrue(all(o["jours_sans_reponse"] >= a["delai_sans_reponse_jours"] for o in a["offres_sans_reponse"]))
+        self.assertEqual(set(a["indicateurs"]), {"encours", "part_en_retard", "par30", "taux_recouvrement"})
 
 
 if __name__ == "__main__":

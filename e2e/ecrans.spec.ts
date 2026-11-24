@@ -6,13 +6,14 @@ import { connecter, reinitialiser } from "./session";
 const CAP = `${process.env.KWEDO_CAPTURES ?? ".captures"}/revue-finale`;
 const LARGEURS = [360, 1440] as const;
 const EQUIPE = ["agent-lagune", "responsable-lagune", "agent-baobab", "responsable-baobab"];
-const CONSOLE = ["/console", "/console/portefeuille", "/console/parametres", "/console/journal", "FICHE"];
+const CONSOLE = ["/console", "/console/demandes", "/console/credits", "/console/recouvrement", "/console/commercants", "/console/parametres", "/console/journal", "FICHE"];
 const COMMERCANT = ["/app", "/app/simulateur", "/app/dossier", "/app/credit", "/app/activite", "/app/conseils", "/app/flux", "/app/compte"];
 const THEMES = [["clair", "light"], ["sombre", "dark"]] as const;
 
 test.describe.configure({ mode: "default" });
 
 test.beforeAll(async ({ browser }) => {
+  test.setTimeout(120_000); // réinitialisation avec historique de démo (ADR 0019)
   const page = await browser.newPage();
   await reinitialiser(page.request);
   await page.close();
