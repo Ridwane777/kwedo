@@ -10,7 +10,7 @@ test("mode démo : 9 temps, actions en un clic, réinitialisation", async ({ pag
   await expect(page.getByText("Démo réinitialisée")).toBeVisible({ timeout: 30_000 });
 
   const suivant = page.getByRole("button", { name: "Suivant", exact: true });
-  const etapes: [number, string | null][] = [[1, null], [2, null], [3, null], [4, "Signer par code SMS et envoyer"], [5, "Ajuster avec justificatif"],
+  const etapes: [number, string | null][] = [[1, null], [2, null], [3, null], [4, "Signer par code SMS et envoyer"], [5, "Contre-proposer avec justificatif"],
     [6, "Accepter l'offre"], [7, "Payer, puis avancer de 15 jours"], [8, null], [9, null]];
   for (const [n, action] of etapes) {
     await expect(page.getByText(`Temps ${n} sur 9`)).toBeVisible();

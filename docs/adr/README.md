@@ -18,3 +18,4 @@
 | [0014](0014-conseils-chiffres.md) | Conseils chiffrés par le moteur sur scénarios, route `GET /commercants/{id}/conseils` | accepté |
 | [0015](0015-frequence-duree-au-choix.md) | Fréquence (semaine, quinzaine, mois) et durée (3 à 12 mois) au choix ; risque non validé hors hebdomadaire | accepté (limite levée par 0016) |
 | [0016](0016-risque-toutes-frequences.md) | Risque appris, calibré et évalué pour chaque fréquence et durée (modèle v3) | accepté |
+| [0017](0017-demande-libre-decision-par-le-risque.md) | Montant demandé librement avec son objet ; décision de l'institution sur le risque de la demande ; plafond toujours conditionné | accepté |

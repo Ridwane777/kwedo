@@ -33,27 +33,28 @@ const TEMPS: Temps[] = [
   { titre: "Le problème", duree: 20, ecran: () => ({ telephone: "/app/activite" }),
     dire: "Afiavi Houngbo vend des tissus à Cotonou. Personnage fictif, flux simulés. Elle n'a pas de relevé bancaire, mais elle encaisse chaque jour par mobile money sur un compte marchand séparé." },
   { titre: "Estimation", duree: 30, ecran: () => ({ telephone: "/app" }),
-    dire: "Ses encaissements sont connectés. L'application affiche un montant, une durée, une échéance et trois raisons. La courbe montre la bande prudente : ce sur quoi elle peut compter même une mauvaise semaine." },
+    dire: "Ses encaissements sont connectés. L'application affiche un plafond avec ses conditions (chaque semaine pendant 6 mois, aux conditions de Caisse Lagune), son tableau selon la durée, une échéance et trois raisons. La courbe montre la bande prudente : ce sur quoi elle peut compter même une mauvaise semaine." },
   { titre: "Simulateur", duree: 20, ecran: () => ({ telephone: "/app/simulateur" }),
     dire: "Elle demande plus. L'application lui dit exactement ce qui manque, en chiffre d'affaires vérifié et en régularité, puis propose des conseils." },
   { titre: "Envoi", duree: 20, ecran: () => ({ telephone: "/app/dossier" }),
-    dire: "Elle dépose son dossier : elle choisit l'institution, rembourse chaque semaine ou chaque mois selon ce que l'institution propose, voit l'échéance exacte, et signe son accord avec un code reçu par SMS. Elle peut le retirer à tout moment.",
+    dire: "Elle dépose son dossier : elle saisit le montant qu'elle veut, pas celui du moteur, et son objet (achat de stock avant les fêtes). Au-dessus du plafond, un avertissement non bloquant. Elle choisit l'institution, rembourse chaque semaine ou chaque mois selon ce que l'institution propose, voit l'échéance exacte, et signe son accord avec un code reçu par SMS. Elle peut le retirer à tout moment.",
     action: { label: "Signer par code SMS et envoyer", faire: async () => {
-      for (const [i, termes] of [["inst-lagune", {}], ["inst-baobab", { frequence: "mensuelle", duree_mois: 6 }]] as const) {
+      const demande = { objet_categorie: "stock", objet: "Acheter des pagnes wax avant les fêtes de fin d'année." };
+      for (const [i, termes] of [["inst-lagune", { montant_demande: 600_000 }], ["inst-baobab", { frequence: "mensuelle", duree_mois: 6, montant_demande: 400_000 }]] as const) {
         const { code } = await api<{ code: string }>(`/commercants/${COMMERCANT_DEMO}/code-sms`, { body: { institution_id: i } });
         await api(`/commercants/${COMMERCANT_DEMO}/consentements`, { body: { institution_id: i, action: "accorde", code } });
-        await api("/dossiers", { body: { commercant_id: COMMERCANT_DEMO, institution_id: i, ...termes } });
+        await api("/dossiers", { body: { commercant_id: COMMERCANT_DEMO, institution_id: i, ...demande, ...termes } });
       }
     } } },
   { titre: "Côté prêteur", duree: 60, ecran: (ids) => ({ console: ids.dossier ? `/console/dossiers/${ids.dossier}` : "/console" }),
-    dire: "L'agent ouvre le dossier : courbe, indicateurs, montant proposé et raisons. Un autre dossier porte une alerte de manipulation : l'agent tranche, le commerçant n'est pas accusé. Ici, l'agent ajuste le montant avec un justificatif, enregistré au journal.",
-    action: { label: "Ajuster avec justificatif", faire: async (ids) => {
+    dire: "L'agent ouvre le dossier : en tête, le montant demandé, son objet et le risque de défaut pour CETTE demande, dans ou au-dessus de la tolérance de l'institution ; le plafond prudent sert de repère. La file se trie par risque. Ici, l'agent contre-propose un montant plus bas, risque recalculé, justificatif enregistré au journal.",
+    action: { label: "Contre-proposer avec justificatif", faire: async (ids) => {
       if (!ids.dossier) throw new Error("Envoyez d'abord le dossier (temps 4).");
-      const d = await api<{ analyse: { plafond: number } }>(`/dossiers/${ids.dossier}`);
-      await api(`/dossiers/${ids.dossier}/decisions`, { body: { type: "ajuste", montant_decide: Math.floor((d.analyse.plafond * 0.8) / 5000) * 5000, motif: MOTIF } });
+      const d = await api<{ analyse: { plafond: number }; montant_demande: number }>(`/dossiers/${ids.dossier}`);
+      await api(`/dossiers/${ids.dossier}/decisions`, { body: { type: "ajuste", montant_decide: Math.floor((Math.min(d.analyse.plafond, d.montant_demande) * 0.8) / 5000) * 5000, motif: MOTIF } });
     } } },
   { titre: "Offre et accord", duree: 20, ecran: (ids) => ({ telephone: ids.dossier ? `/app/offre/${ids.dossier}` : "/app/dossier" }),
-    dire: "Afiavi lit l'offre : montant, durée, échéance, coût total, zéro frais Kwedo. Elle accepte ; l'échéancier se crée et le décaissement simulé part.",
+    dire: "Afiavi lit l'offre, marquée « contre-proposition » avec l'écart à sa demande : montant, durée, échéance, coût total, zéro frais Kwedo. Elle accepte ; l'échéancier se crée et le décaissement simulé part.",
     action: { label: "Accepter l'offre", faire: async (ids) => { await api(`/dossiers/${ids.dossier}/offre`, { body: { reponse: "accepte" } }); } } },
   { titre: "Remboursement", duree: 30, ecran: () => ({ telephone: "/app/credit", console: "/console/portefeuille" }),
     dire: "Un paiement arrive. Puis on avance l'horloge simulée : une échéance n'est pas payée, un rappel respectueux part sur le canal choisi, le portefeuille se met à jour.",
@@ -65,7 +66,7 @@ const TEMPS: Temps[] = [
       await enAdmin(() => api("/demo/avancer", { body: { jours: 15 } }));
     } } },
   { titre: "Test de résistance", duree: 20, ecran: () => ({ telephone: "/app/simulateur" }),
-    dire: "Le curseur baisse les ventes de 30 % : la courbe descend et le plafond diminue, en direct." },
+    dire: "Le curseur baisse les ventes de 30 % : la courbe descend et le plafond (même fréquence, même durée) diminue, en direct." },
   { titre: "Clôture", duree: 15, ecran: () => ({ telephone: "/app", console: "/console/journal" }),
     dire: "Tout ce que vous avez vu est simulé et étiqueté comme tel. Sur ces données, le moteur est stable, explicable et détecte les manipulations injectées ; il ne classe pas encore mieux qu'une règle simple. La suite : un pilote avec une institution de microfinance, sur de vrais remboursements." },
 ];

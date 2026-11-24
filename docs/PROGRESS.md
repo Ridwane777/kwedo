@@ -173,3 +173,19 @@ leur état initial hors de la vue) ; les animations elles-mêmes se vérifient d
 | — | Vérification | `test:engine` OK, `test:api` 23/23, `test:gen` OK, build OK, E2E `parcours.spec.ts` 3/3 (seul écran dont l'attendu change) |
 
 **Contrat** : champ `risque_eprouve` ajouté à l'analyse (console) ; `estimation_eprouvee` (commerçant) en dérive. Aucune route nouvelle.
+
+## Mission demande libre et décision par le risque (`docs/MISSION-DEMANDE.md`, branche `demande`)
+
+| # | Demande | Preuve |
+|---|---|---|
+| 1 | Commerçant : dépôt | Montant souhaité saisi librement (aucun pré-remplissage), repère « jusqu'à X reste prudent pour vos ventes » avec ses conditions ; objet obligatoire (catégorie + phrase ≤ 200 car.) ; au-dessus du plafond : avertissement non bloquant, échéance et coût total recalculés sur le montant demandé ; récapitulatif avant code SMS : montant, objet, fréquence, durée, échéance, coût total |
+| 2 | API / moteur | Migration `0005_demande.sql` ; validation serveur (5 000 à 50 000 000 FCFA, catégorie connue, objet non vide ≤ 200) ; risque v3 du montant demandé via `analyser(montant_souhaite=)` (modèle inchangé), `raisons_demande` (« représente 70 % d'une mauvaise semaine », écart au plafond) ; `rejouer` reste identique |
+| 3 | Console | Fiche : montant demandé, objet, modalités, risque de la demande, pastille dans / au-dessus de la tolérance ; plafond prudent et son risque en repère ; Accorder / Contre-proposer (risque recalculé à chaque changement) / Refuser, motif obligatoire, risque tracé au journal ; file avec montant demandé et risque, tri par risque ; offre commerçant « demande acceptée » ou « contre-proposition » avec l'écart ; admin sans objet ni montant (testé) |
+| 4 | « Plafond » partout | Formulation « Jusqu'à X, remboursés … pendant …, aux conditions de … » + définition (toucher/survol) sur Estimation, Activité (lien « voir selon la durée »), Simuler, Dossier, Conseils (fréquence/durée modifiables en haut, effets calculés pour elles), accueil et démo ; tableau plafond selon la durée (3/6/9/12 mois dans les modalités) avec échéance et coût total |
+| 5 | Démo et docs | Dossiers de démo avec montants (0,5 à 1,8 × plafond) et objets variés ; démo guidée mise à jour ; ADR 0017 ; `docs/legal/confidentialite.md` (objet du crédit, minimisation) |
+
+**Routes à ajouter à `attaque.py`** :
+- `GET /dossiers/{id}/risque?montant=&frequence=&duree_mois=` (nouvelle ; règle : équipe de l'institution du dossier, 404 sinon).
+- `GET /commercants/{id}/plafonds?institution_id=&frequence=` (nouvelle ; règle : le commerçant lui-même).
+- `POST /dossiers` : **champs obligatoires** `montant_demande`, `objet_categorie`, `objet` (422 sinon) ; règle d'accès inchangée.
+- `GET /dossiers?tri=risque` (nouvelle valeur) ; `GET /commercants/{id}/conseils` (`frequence`, `duree_mois`) ; `POST /dossiers/{id}/decisions` : `valide` accorde désormais le montant demandé, `ajuste` borné au montant demandé.

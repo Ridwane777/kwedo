@@ -62,6 +62,21 @@ export function delai(h: number): string {
   return `sous ${h} h`;
 }
 
+/** Objet du crédit (ADR 0017). */
+export const CATEGORIES_OBJET: Record<string, string> = {
+  stock: "Achat de stock", equipement: "Équipement", fonds_roulement: "Fonds de roulement", ponctuel: "Besoin ponctuel", autre: "Autre",
+};
+export const OBJET_MAX = 200;
+
+/** Un plafond n'est jamais affiché sans ses conditions :
+ *  « Jusqu'à 865 000 FCFA, remboursés chaque semaine pendant 6 mois, aux conditions de Caisse Lagune ». */
+export function phrasePlafond(montant: number, f: Frequence, t: Duree, institution?: string | null): string {
+  return `Jusqu'à ${fcfa(montant)}, remboursés ${FREQ[f].chaque} pendant ${duree(t)}${institution ? `, aux conditions de ${institution}` : ""}`;
+}
+
+export const DEFINITION_PLAFOND =
+  "Le montant le plus élevé que vos ventes permettent de rembourser sans vous mettre en difficulté, même lors d'une mauvaise période, pour cette fréquence et cette durée. Ce n'est pas un crédit accordé : l'institution décide.";
+
 export const RECO: Record<string, string> = {
   accord: "Accord", examen_renforce: "Examen renforcé", refus_motive: "Refus motivé",
 };

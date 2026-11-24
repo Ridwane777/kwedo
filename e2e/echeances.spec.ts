@@ -21,7 +21,7 @@ test("préparation : crédit mensuel ouvert pour Afiavi", async ({ page, browser
   const r = page.request;
   const { code } = await (await r.post("/api/commercants/com-afiavi/code-sms", { data: { institution_id: "inst-lagune" } })).json();
   expect((await r.post("/api/commercants/com-afiavi/consentements", { data: { institution_id: "inst-lagune", action: "accorde", code } })).ok()).toBeTruthy();
-  const d = await (await r.post("/api/dossiers", { data: { commercant_id: "com-afiavi", institution_id: "inst-lagune", frequence: "mensuelle", duree_mois: 6 } })).json();
+  const d = await (await r.post("/api/dossiers", { data: { commercant_id: "com-afiavi", institution_id: "inst-lagune", frequence: "mensuelle", duree_mois: 6, montant_demande: 300_000, objet_categorie: "stock", objet: "Du stock avant les fêtes." } })).json();
   const agent = await browser.newPage();
   await connecter(agent.request, "agent-lagune");
   const fiche = await (await agent.request.get(`/api/dossiers/${d.id}`)).json();
@@ -53,6 +53,9 @@ for (const largeur of [360, 1440])
       await page.getByRole("button", { name: "Déposer mon dossier de crédit" }).click();
       await page.getByRole("radio", { name: /Banque Baobab/ }).check();
       await page.getByRole("button", { name: "Continuer" }).click();
+      await page.getByTestId("montant-souhaite").fill("300000");
+      await page.getByText("Équipement", { exact: true }).click();
+      await page.getByLabel("En une phrase, à quoi servira-t-il ?").fill("Un congélateur.");
       await expect(page.getByTestId("phrase-echeance")).toContainText("chaque mois");
       await capture(page, "3-dossier-modalites", theme);
       await page.getByRole("button", { name: "Continuer" }).click();

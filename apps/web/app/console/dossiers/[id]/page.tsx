@@ -8,12 +8,19 @@ import { CourbeFlux } from "@/components/courbe-flux";
 import { Bouton, Chargement, Erreur, Pastille, Simule } from "@/components/ui";
 import { api, useApi } from "@/lib/api";
 import { useRaccourcis } from "@/lib/clavier";
-import { ACTIVITES, date, duree, fcfa, FREQ, nombre, pct, RECO, STATUTS, type Frequence } from "@/lib/format";
-import type { Dossier } from "@/lib/types";
+import { ACTIVITES, CATEGORIES_OBJET, date, duree, fcfa, FREQ, nombre, pct, RECO, STATUTS, type Frequence } from "@/lib/format";
+import type { Dossier, Evaluation } from "@/lib/types";
+
+/** Risque d'une demande ou d'une contre-proposition, rapporté à la tolérance de l'institution. */
+function Tolerance({ e }: { e: Evaluation }) {
+  return e.dans_tolerance
+    ? <Pastille ton="bon">Dans la tolérance</Pastille>
+    : <Pastille ton="alerte">Au-dessus de la tolérance</Pastille>;
+}
 
 type TypeDecision = "valide" | "ajuste" | "refuse" | "complement";
-const LIBELLES: Record<TypeDecision, string> = { valide: "Valider le montant proposé", ajuste: "Ajuster le montant", refuse: "Refuser", complement: "Demander un complément" };
-const COURTS: Record<TypeDecision, string> = { valide: "Valider", ajuste: "Ajuster", refuse: "Refuser", complement: "Complément" };
+const LIBELLES: Record<TypeDecision, string> = { valide: "Accorder la demande", ajuste: "Contre-proposer", refuse: "Refuser", complement: "Demander un complément" };
+const COURTS: Record<TypeDecision, string> = { valide: "Accorder", ajuste: "Contre-proposer", refuse: "Refuser", complement: "Complément" };
 
 function Ligne({ l, v }: { l: string; v: string }) {
   return (
@@ -74,7 +81,7 @@ export default function Fiche() {
 
   const [freq, setFreq] = useState<Frequence>("hebdomadaire");
   const [mois, setMois] = useState(6);
-  useEffect(() => { if (d) setMontant((m) => m || d.analyse.plafond); }, [d]);
+  useEffect(() => { if (d) setMontant((m) => m || Math.min(d.montant_demande ?? d.analyse.plafond, d.analyse.plafond) || d.analyse.plafond); }, [d]);
   // Modalités demandées par le commerçant : point de départ de l'ajustement.
   useEffect(() => {
     if (!d) return;
@@ -90,13 +97,15 @@ export default function Fiche() {
   const ouvert = d ? ["recu", "en_analyse", "complement"].includes(d.statut) : false;
   useRaccourcis(raccourcis, ouvert);
 
+  // Contre-proposition : risque recalculé à chaque changement de montant, durée ou fréquence.
+  const contre = useApi<Evaluation>(d && type === "ajuste" && montant >= 5000 ? `/dossiers/${id}/risque?montant=${montant}&frequence=${freq}&duree_mois=${mois}` : null);
   if (erreur) return <Erreur message={erreur} reessayer={recharger} />;
   if (!d) return <Chargement lignes={8} label="Chargement du dossier" />;
+  const dem = d.demande;
   const a = d.analyse, ind = a.indicateurs;
   const plafondFormule = a.l_max;
   const alertes = a.alertes ?? [];
   const seuil = a.parametres.seuil_risque;
-  const partRisque = Math.min(1, a.risque / Math.max(seuil, 1e-9));
   const moisDemandes = d.duree_mois ?? Math.round((a.duree_semaines * 12) / 52);
   const modifie = freq !== d.frequence || mois !== moisDemandes;
 
@@ -117,7 +126,8 @@ export default function Fiche() {
   }
 
   const motifValide = motif.trim().length >= 10;
-  const montantValide = type !== "ajuste" || (montant > 0 && (modifie || montant <= plafondFormule));
+  const borne = Math.max(plafondFormule, d.montant_demande ?? 0);
+  const montantValide = type !== "ajuste" || (montant >= 5000 && montant <= (d.montant_demande ?? Infinity) && (modifie || montant <= borne));
 
   return (
     <article className="space-y-4">
@@ -138,34 +148,36 @@ export default function Fiche() {
 
       <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="order-1 min-w-0 space-y-4 xl:order-none xl:col-start-1 xl:row-start-1">
-          {/* Synthèse : montant, risque, recommandation */}
+          {/* Synthèse centrée sur le risque de la demande (ADR 0017) */}
           <section aria-labelledby="t-ana" className="grid gap-4 rounded-2xl border border-trait bg-surface p-4 sm:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
             <div>
-              <h2 id="t-ana" className="text-sm font-semibold text-encre-2">Montant proposé par le moteur</h2>
-              <p className="montant mt-1 text-[2.6rem] leading-none text-montant">{fcfa(a.plafond)}</p>
-              <p className="mt-2 text-encre-2">{a.nb_echeances ?? a.duree_semaines} échéances de {fcfa(a.echeance ?? a.echeance_hebdo)}. Plafond de la formule : {fcfa(plafondFormule)}.</p>
+              <h2 id="t-ana" className="text-sm font-semibold text-encre-2">Montant demandé</h2>
+              <p className="montant mt-1 text-[2.6rem] leading-none text-montant" data-testid="montant-demande">{fcfa(dem.montant)}</p>
+              {d.objet_texte && <p className="mt-2"><strong>{CATEGORIES_OBJET[d.objet_categorie ?? ""] ?? "Objet"}</strong> : « {d.objet_texte} »</p>}
               <p className="mt-1 text-sm" data-testid="modalites-demandees">
-                Demandé : <strong>{FREQ[d.frequence_demandee].chaque}</strong>, {duree({ duree_mois: d.duree_mois_demandee, duree_semaines: a.duree_semaines })}
+                {FREQ[d.frequence_demandee].chaque}, {duree({ duree_mois: d.duree_mois_demandee, duree_semaines: a.duree_semaines })} · {dem.nb_echeances} échéances de {fcfa(dem.echeance)} · coût total {fcfa(dem.cout_total)}
                 {(d.frequence !== d.frequence_demandee || d.duree_mois !== d.duree_mois_demandee) && <> · retenu : {FREQ[d.frequence].chaque}, {duree({ duree_mois: d.duree_mois, duree_semaines: d.duree_offre })}</>}
               </p>
               {(a.risque_valide === false || a.risque_eprouve === false) && <p className="mt-1 text-xs text-ambre-encre">Risque moins éprouvé pour cette fréquence au dernier run d'évaluation (ADR 0016).</p>}
             </div>
             <dl className="grid content-start gap-3">
               <div>
-                <dt className="text-sm font-semibold text-encre-2">Recommandation</dt>
-                <dd className="titre text-xl">{RECO[a.recommandation]}{a.provisoire ? ", provisoire" : ""}</dd>
-              </div>
-              <div>
-                <dt className="text-sm font-semibold text-encre-2">Risque d'impayé annoncé</dt>
-                <dd>
-                  <span className="chiffres text-lg font-semibold">{pct(a.risque, 1)}</span>
-                  <span className="text-encre-2"> pour un seuil de {pct(seuil)}</span>
-                  <span aria-hidden="true" className="mt-1.5 block h-1.5 w-full overflow-hidden rounded-full bg-surface-2">
-                    <span className={`block h-full rounded-full ${partRisque > 0.8 ? "bg-ambre" : "bg-marque"}`} style={{ width: `${partRisque * 100}%` }} />
-                  </span>
+                <dt className="text-sm font-semibold text-encre-2">Risque de défaut pour cette demande</dt>
+                <dd data-testid="risque-demande">
+                  <span className="chiffres text-lg font-semibold">{pct(dem.risque, 1)}</span>
+                  <span className="text-encre-2"> pour une tolérance de {pct(seuil)}</span>
+                  <span className="ml-2"><Tolerance e={dem} /></span>
                 </dd>
               </div>
+              <div>
+                <dt className="text-sm font-semibold text-encre-2">Repère : plafond prudent</dt>
+                <dd className="text-sm">{fcfa(a.plafond)} ({pct(dem.risque_plafond, 1)} de risque) · formule {fcfa(plafondFormule)}</dd>
+                <dd className="text-sm text-encre-2">Recommandation au plafond : {RECO[a.recommandation]}{a.provisoire ? ", provisoire" : ""}</dd>
+              </div>
             </dl>
+            <ul className="space-y-1 text-[15px] sm:col-span-2">
+              {dem.raisons.map((r) => <li key={r.code} className="border-l-2 border-marque pl-3">{pourAgent(r.texte)}</li>)}
+            </ul>
           </section>
 
           {/* Alertes avant le détail */}
@@ -187,7 +199,7 @@ export default function Fiche() {
 
           {/* Ce qui a pesé */}
           <section aria-labelledby="t-rai">
-            <h2 id="t-rai" className="mb-2 text-sm font-semibold">Ce qui a pesé sur le montant</h2>
+            <h2 id="t-rai" className="mb-2 text-sm font-semibold">Ce qui a pesé sur le plafond prudent</h2>
             <ol className="divide-y divide-trait rounded-2xl border border-trait bg-surface">
               {a.raisons.map((r) => (
                 <li key={r.code} className="grid grid-cols-[minmax(0,1fr)_auto] gap-4 px-4 py-2.5">
@@ -274,7 +286,7 @@ export default function Fiche() {
                     <input inputMode="numeric" value={nombre(montant)} onChange={(e) => setMontant(Number(e.target.value.replace(/\D/g, "")) || 0)}
                       className="chiffres mt-1 block min-h-11 w-full rounded-xl border border-trait bg-fond px-3" aria-invalid={!montantValide} />
                     <span className={`text-xs ${montantValide ? "text-encre-2" : "text-alerte"}`}>
-                      {modifie ? "Nouvelles modalités : le plafond de la formule est recontrôlé à l'enregistrement." : `Plafond de la formule : ${fcfa(plafondFormule)}. Il ne peut pas être dépassé.`}
+                      {d.montant_demande ? `Pas plus que demandé (${fcfa(d.montant_demande)}).` : `Plafond de la formule : ${fcfa(plafondFormule)}.`}
                     </span>
                   </label>
                 )}
@@ -296,6 +308,17 @@ export default function Fiche() {
                     <span className="col-span-2 text-xs text-encre-2">Limites de l'institution : {d.modalites.frequences.map((f) => FREQ[f].chaque).join(", ")} ; {d.modalites.duree_min_mois} à {d.modalites.duree_max_mois} mois.</span>
                   </div>
                 )}
+                {type === "ajuste" && (
+                  <div className="rounded-xl bg-fond p-3 text-sm" aria-live="polite" data-testid="risque-contre">
+                    {contre.erreur ? <span className="text-alerte">{contre.erreur}</span> : !contre.donnees ? "Calcul du risque…" : (
+                      <>
+                        <p>Risque recalculé : <strong className="chiffres">{pct(contre.donnees.risque, 1)}</strong> <Tolerance e={contre.donnees} /></p>
+                        <p className="text-encre-2">{contre.donnees.nb_echeances} échéances de {fcfa(contre.donnees.echeance)} · écart à la demande {fcfa(montant - dem.montant)}</p>
+                      </>
+                    )}
+                  </div>
+                )}
+                {type === "valide" && <p className="rounded-xl bg-fond p-3 text-sm">Accorder {fcfa(dem.montant)} aux modalités demandées : risque {pct(dem.risque, 1)} <Tolerance e={dem} /></p>}
                 <label className="block">
                   Justificatif {type === "refuse" ? "(motif du refus)" : ""} <span className="text-alerte">*</span>
                   <textarea ref={motifRef} value={motif} onChange={(e) => setMotif(e.target.value)} rows={3} required minLength={10}
@@ -313,7 +336,7 @@ export default function Fiche() {
                 {d.decisions.map((x) => (
                   <div key={x.id} className="apparait space-y-1">
                     <p className="font-semibold">{LIBELLES[x.type as TypeDecision]}</p>
-                    <p className="chiffres">Proposé {fcfa(x.montant_propose)}, décidé {fcfa(x.montant_decide)}</p>
+                    <p className="chiffres">{x.montant_demande ? `Demandé ${fcfa(x.montant_demande)}, ` : ""}plafond {fcfa(x.montant_propose)}, décidé {fcfa(x.montant_decide)}{x.risque != null ? `, risque ${pct(x.risque, 1)}` : ""}</p>
                     <p className="italic">« {x.motif} »</p>
                     <p className="text-xs text-encre-2">{x.auteur}, {date(x.horodatage, true)}, moteur {x.version_moteur}, graine {x.graine}</p>
                   </div>

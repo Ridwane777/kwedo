@@ -162,6 +162,9 @@ class Service:
             raise ErreurMetier(404, "institution inconnue")
         return p
 
+    def _nom_institution(self, inst: str) -> str:
+        return self.un("SELECT nom FROM institutions WHERE id = ?", inst)["nom"]
+
     def modalites(self, inst: str) -> dict:
         """Modalités commerciales proposées au commerçant (pas les réglages internes du moteur)."""
         p = self.parametres(inst)
@@ -286,6 +289,7 @@ class Service:
         p = self.termes(inst, frequence, duree_mois)
         res = analyser(self.transactions(cid), p, graine=_g(cid, inst), choc_ventes=choc, montant_souhaite=souhait)
         res["institution_id"] = inst
+        res["institution"] = self._nom_institution(inst)  # « aux conditions de … » : jamais un plafond sans ses conditions
         res["modalites"] = self.modalites(inst)
         # Le commerçant ne voit jamais les alertes de manipulation : elles vont à l'agent.
         res.pop("alertes"); res.pop("modeles")
@@ -323,7 +327,7 @@ class Service:
             lignes.append({"duree_mois": dm, "plafond": r["plafond"], "echeance": r["echeance"], "nb_echeances": r["nb_echeances"],
                            "cout_total": r["cout_total"]})
         return {"institution_id": inst, "frequence": p["frequence"], "modalites": mod, "lignes": lignes,
-                "institution": self.un("SELECT nom FROM institutions WHERE id = ?", inst)["nom"]}
+                "institution": self._nom_institution(inst)}
 
     def conseils(self, cid: str, inst: str = "inst-lagune", frequence: str | None = None, duree_mois: int | None = None) -> dict:
         """Leviers chiffrés par le moteur sur des scénarios modifiés (même graine que l'estimation), pour la
@@ -335,7 +339,7 @@ class Service:
                          "WHERE c.commercant_id = ? AND e.statut = 'en_retard'", cid)["n"]
         return {**calculer(self.transactions(cid), p, _g(cid, inst), retard), "institution_id": inst,
                 "frequence": p["frequence"], "duree_mois": p["duree_mois"], "duree_semaines": Parametres.depuis(p).horizon,
-                "modalites": self.modalites(inst)}
+                "modalites": self.modalites(inst), "institution": self._nom_institution(inst)}
 
     def tableau_de_bord(self, cid: str) -> dict:
         c = self.commercant(cid)

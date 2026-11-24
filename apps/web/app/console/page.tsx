@@ -14,9 +14,12 @@ const TON_STATUT: Record<string, "info" | "attention" | "bon" | "alerte" | "neut
   recu: "info", en_analyse: "attention", complement: "attention", accorde: "bon", offre_acceptee: "bon", refuse: "alerte", offre_refusee: "neutre",
 };
 
+const SUIVANT = { priorite: "risque", risque: "anciennete", anciennete: "priorite" } as const;
+const TRI = { priorite: "alertes d'abord", risque: "demandes les plus risquées d'abord", anciennete: "les plus anciens d'abord" } as const;
+
 export default function File() {
   const router = useRouter();
-  const [tri, setTri] = useState<"priorite" | "anciennete">("priorite");
+  const [tri, setTri] = useState<"priorite" | "anciennete" | "risque">("priorite");
   const [filtre, setFiltre] = useState<"a_traiter" | "tous">("a_traiter");
   const { donnees, erreur, charge, recharger } = useApi<LigneDossier[]>(`/dossiers?tri=${tri}`);
   const [sel, setSel] = useState(0);
@@ -28,7 +31,7 @@ export default function File() {
     j: () => setSel((s) => Math.min(s + 1, lignes.length - 1)),
     k: () => setSel((s) => Math.max(s - 1, 0)),
     Enter: () => lignes[sel] && router.push(`/console/dossiers/${lignes[sel]!.id}`),
-    t: () => setTri((t) => (t === "priorite" ? "anciennete" : "priorite")),
+    t: () => setTri((t) => SUIVANT[t]),
     f: () => setFiltre((f) => (f === "tous" ? "a_traiter" : "tous")),
     "2": () => router.push("/console/portefeuille"), "3": () => router.push("/console/parametres"), "4": () => router.push("/console/journal"),
   }), [lignes, sel, router]);
@@ -39,7 +42,7 @@ export default function File() {
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="titre text-[1.75rem] leading-tight">File de dossiers</h1>
-          <p className="text-encre-2">{lignes.length} dossier{lignes.length > 1 ? "s" : ""}, {tri === "priorite" ? "alertes d'abord" : "les plus anciens d'abord"}</p>
+          <p className="text-encre-2">{lignes.length} dossier{lignes.length > 1 ? "s" : ""}, {TRI[tri]}</p>
         </div>
         <div className="flex flex-wrap gap-2" role="group" aria-label="Filtres">
           <div className="inline-flex rounded-xl border border-trait bg-surface p-1">
@@ -51,8 +54,8 @@ export default function File() {
             ))}
             <kbd className="hidden self-center px-2 text-[11px] text-encre-2 md:inline" title="Raccourci clavier">f</kbd>
           </div>
-          <BoutonIcone icone={tri === "priorite" ? ArrowDownWideNarrow : CalendarArrowUp} onClick={() => setTri(tri === "priorite" ? "anciennete" : "priorite")}
-            label={`Trier par ${tri === "priorite" ? "ancienneté" : "priorité"} (t)`} className="border border-trait bg-surface" />
+          <BoutonIcone icone={tri === "anciennete" ? CalendarArrowUp : ArrowDownWideNarrow} onClick={() => setTri(SUIVANT[tri])}
+            label={`Trier : ${TRI[SUIVANT[tri]]} (t)`} className="border border-trait bg-surface" />
         </div>
       </header>
 
@@ -84,11 +87,11 @@ export default function File() {
               <a href={`/console/dossiers/${d.id}`} className="block min-h-12 space-y-1.5 px-4 py-3">
                 <span className="flex items-baseline justify-between gap-3">
                   <span className="font-semibold">{d.nom}</span>
-                  <span className="chiffres font-semibold">{fcfa(d.plafond)}</span>
+                  <span className="chiffres font-semibold">{fcfa(d.montant_demande ?? d.plafond)}</span>
                 </span>
                 <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-encre-2">
                   <Pastille ton={TON_STATUT[d.statut]}>{STATUTS[d.statut]}</Pastille>
-                  <span>{RECO[d.recommandation]} · risque {pct(d.risque, 1)}</span>
+                  <span className={d.dans_tolerance ? "" : "text-alerte"}>risque {pct(d.risque_demande, 1)}{d.dans_tolerance ? "" : " · au-dessus de la tolérance"}</span>
                   {d.alertes.length > 0 && <span className="inline-flex items-center gap-1 font-medium text-encre"><TriangleAlert aria-hidden="true" size={16} strokeWidth={1.75} className="text-ambre-encre" />{d.alertes.length} alerte{d.alertes.length > 1 ? "s" : ""}</span>}
                   {!d.consentement_actif && <span className="text-alerte">accord retiré</span>}
                 </span>
@@ -102,8 +105,11 @@ export default function File() {
             <tr>
               <th className="py-2 pr-3 font-medium">Commerçant</th>
               <th className="py-2 pr-3 font-medium">Activité</th>
-              <th className="py-2 pr-3 text-right font-medium">Plafond proposé</th>
-              <th className="py-2 pr-3 text-right font-medium">Risque</th>
+              <th className="py-2 pr-3 text-right font-medium">Montant demandé</th>
+              <th className="py-2 pr-3 text-right font-medium">
+                <button className="font-semibold underline-offset-4 hover:underline" onClick={() => setTri("risque")} aria-pressed={tri === "risque"}>Risque de la demande</button>
+              </th>
+              <th className="py-2 pr-3 text-right font-medium">Plafond prudent</th>
               <th className="py-2 pr-3 font-medium">Recommandation</th>
               <th className="py-2 pr-3 font-medium">Contrôles</th>
               <th className="py-2 pr-3 font-medium">Statut</th>
@@ -119,8 +125,9 @@ export default function File() {
                   {!d.consentement_actif && <span className="ml-2 text-xs text-alerte">accord retiré</span>}
                 </td>
                 <td className="py-2 pr-3 text-encre-2">{ACTIVITES[d.type_activite] ?? d.type_activite} · {d.semaines} sem.</td>
-                <td className="chiffres py-2 pr-3 text-right">{fcfa(d.plafond)}</td>
-                <td className="chiffres py-2 pr-3 text-right">{pct(d.risque, 1)}</td>
+                <td className="chiffres py-2 pr-3 text-right">{fcfa(d.montant_demande)}</td>
+                <td className={`chiffres py-2 pr-3 text-right ${d.dans_tolerance ? "" : "font-semibold text-alerte"}`}>{pct(d.risque_demande, 1)}{d.dans_tolerance ? "" : " ▲"}</td>
+                <td className="chiffres py-2 pr-3 text-right text-encre-2">{fcfa(d.plafond)}</td>
                 <td className="py-2 pr-3">{RECO[d.recommandation]}{d.provisoire && <span className="text-encre-2"> · provisoire</span>}</td>
                 <td className="py-2 pr-3">
                   {d.alertes.length ? (

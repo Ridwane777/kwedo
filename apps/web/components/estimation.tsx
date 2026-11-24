@@ -1,10 +1,11 @@
 "use client";
 
-import { Calculator, ChevronUp } from "lucide-react";
+import { Calculator, ChevronUp, Info } from "lucide-react";
 import { useState } from "react";
 import { Bouton } from "@/components/ui";
+import { useApi } from "@/lib/api";
 import type { Analyse, Estimation, InstitutionPublique } from "@/lib/types";
-import { duree, fcfa, FREQ, pct, type Frequence } from "@/lib/format";
+import { DEFINITION_PLAFOND, duree, fcfa, FREQ, pct, phrasePlafond, type Frequence } from "@/lib/format";
 
 export function ChoixInstitution({ institutions, valeur, onChange }: { institutions: InstitutionPublique[]; valeur: string; onChange: (v: string) => void }) {
   return (
@@ -58,6 +59,59 @@ export function ChoixModalites({ a, onChange, desactive }: {
         </select>
       </label>
     </fieldset>
+  );
+}
+
+/** Définition du plafond : au toucher (bouton) comme au survol (title). */
+export function DefinitionPlafond() {
+  const [ouvert, setOuvert] = useState(false);
+  return (
+    <span className="inline">
+      <button type="button" title={DEFINITION_PLAFOND} aria-expanded={ouvert} onClick={() => setOuvert(!ouvert)}
+        className="ml-1 inline-flex min-h-8 items-center gap-1 align-middle text-sm text-marque underline-offset-4 hover:underline">
+        <Info aria-hidden="true" size={16} /> C'est quoi, le plafond ?
+      </button>
+      {ouvert && <span role="note" className="mt-1 block rounded-xl bg-fond p-3 text-sm text-encre-2" data-testid="definition-plafond">{DEFINITION_PLAFOND}</span>}
+    </span>
+  );
+}
+
+/** Plafond avec ses conditions (fréquence, durée, institution) et sa définition. */
+export function PlafondConditions({ montant, frequence, duree: t, institution, className = "" }: {
+  montant: number; frequence: Frequence; duree: { duree_mois?: number | null; duree_semaines?: number | null }; institution?: string | null; className?: string;
+}) {
+  return (
+    <p className={`text-[15px] ${className}`} data-testid="plafond-conditions">
+      {phrasePlafond(montant, frequence, t, institution)}. <DefinitionPlafond />
+    </p>
+  );
+}
+
+type LignesPlafonds = { institution: string; frequence: Frequence; lignes: { duree_mois: number; plafond: number; echeance: number; nb_echeances: number; cout_total: number }[] };
+
+/** Plafond selon la durée, dans les modalités de l'institution, pour une fréquence. */
+export function PlafondSelonDuree({ cid, inst, frequence }: { cid: string; inst: string; frequence?: Frequence }) {
+  const { donnees: p, erreur } = useApi<LignesPlafonds>(`/commercants/${cid}/plafonds?institution_id=${inst}${frequence ? `&frequence=${frequence}` : ""}`);
+  if (erreur) return <p className="text-sm text-alerte">{erreur}</p>;
+  if (!p) return <div className="chargement h-24" />;
+  return (
+    <div className="space-y-2" id="selon-duree" data-testid="plafond-selon-duree">
+      <h3 className="font-semibold">Plafond selon la durée ({FREQ[p.frequence].chaque}, aux conditions de {p.institution})</h3>
+      <div className="overflow-x-auto">
+      <table className="w-full min-w-0 text-left text-xs sm:text-sm">
+        <thead className="text-encre-2"><tr><th className="py-1 font-medium">Durée</th><th className="py-1 text-right font-medium">Plafond</th><th className="py-1 text-right font-medium">{FREQ[p.frequence].echeance}</th><th className="py-1 text-right font-medium">Coût total</th></tr></thead>
+        <tbody className="chiffres">
+          {p.lignes.map((l) => (
+            <tr key={l.duree_mois} className="border-t border-trait">
+              <td className="py-1.5">{l.duree_mois} mois</td><td className="py-1.5 text-right font-semibold">{fcfa(l.plafond)}</td>
+              <td className="py-1.5 text-right">{fcfa(l.echeance)}</td><td className="py-1.5 text-right">{fcfa(l.cout_total)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      </div>
+      <p className="text-xs text-encre-2">Allonger la durée augmente le montant possible, mais aussi le coût total et la durée d'engagement ; l'institution peut refuser une durée longue.</p>
+    </div>
   );
 }
 

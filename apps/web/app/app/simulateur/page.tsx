@@ -7,7 +7,7 @@ import { ChoixInstitution, ChoixModalites, MentionPrudente, prudentHebdo, requet
 import { Erreur, LienBouton, Simule } from "@/components/ui";
 import { api, useApi } from "@/lib/api";
 import { useCommercant } from "@/lib/commercant";
-import { fcfa, FREQ, nombre, phraseEcheance, type Frequence } from "@/lib/format";
+import { duree, fcfa, FREQ, nombre, phraseEcheance, phrasePlafond, type Frequence } from "@/lib/format";
 import type { Estimation, InstitutionPublique } from "@/lib/types";
 
 export default function Simulateur() {
@@ -58,7 +58,7 @@ export default function Simulateur() {
             className="montant min-h-16 w-full bg-transparent px-4 text-3xl outline-none" aria-describedby="aide-montant" />
           <span className="pr-4 text-encre-2">FCFA</span>
         </span>
-        <span id="aide-montant" className="mt-1 block text-sm text-encre-2">Votre plafond actuel : {fcfa(base?.plafond)}</span>
+        <span id="aide-montant" className="mt-1 block text-sm text-encre-2" data-testid="plafond-conditions">{base ? `Votre plafond estimé : ${phrasePlafond(base.plafond, base.frequence, { duree_mois: base.parametres.duree_mois, duree_semaines: base.duree_semaines }, base.institution)}.` : "…"}</span>
       </label>
 
       <div className="grid gap-3 rounded-2xl bg-surface p-4 shadow-carte">
@@ -98,8 +98,9 @@ export default function Simulateur() {
             <CourbeFlux serie={a.serie_hebdo} prudent={prudentHebdo(base ?? a)} median={a.indicateurs.encaissement_median} choc={-baisse / 100} debut={a.indicateurs.debut} hauteur={180} />
             <dl className="grid grid-cols-2 gap-4 pt-1">
               <div>
-                <dt className="text-sm text-encre-2">Plafond</dt>
+                <dt className="text-sm text-encre-2">Plafond après la baisse</dt>
                 <dd className="montant text-2xl">{fcfa(a.plafond)}</dd>
+                <dd className="text-xs text-encre-2" data-testid="plafond-conditions">{per.chaque}, {duree({ duree_mois: a.parametres.duree_mois, duree_semaines: a.duree_semaines })}, aux conditions de {a.institution}</dd>
                 {base && baisse > 0 && <dd className="text-xs text-alerte">{fcfa(a.plafond - base.plafond)}</dd>}
               </div>
               <div>
