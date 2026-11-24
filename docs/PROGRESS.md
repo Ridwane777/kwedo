@@ -160,3 +160,16 @@ leur état initial hors de la vue) ; les animations elles-mêmes se vérifient d
 - Paramètres nouveaux (règles d'accès inchangées) : `GET /commercants/{id}/estimation` (`frequence`, `duree_mois`), `POST /dossiers` (`frequence`, `duree_mois`), `POST /dossiers/{id}/decisions` (`frequence`, `duree_mois`), `POST /institutions/{id}/parametres` (`frequences`, `duree_min_mois`, `duree_max_mois`, `delai_versement_h`).
 
 **Limite** : le risque n'est validé que pour l'hebdomadaire ; quinzaine et mensuel sont des estimations prudentes non évaluées (ADR 0015).
+
+## Mission risque toutes fréquences (`docs/MISSION-RISQUE-FREQUENCES.md`, branche `risque-frequences`)
+
+| # | Demande | Preuve |
+|---|---|---|
+| 1 | Données simulées | `kwedo_gen.rembourser` (échéancier quelconque, paiement après dépenses, défaut = échéance manquée de plus de 0 jour, identique partout ; hebdo 26 = étiquette d'origine, testé) ; réglage a/b/v et test × 3 fréquences × {3, 6, 9, 12} mois |
+| 2 | Modèle | v3 unique (échéancier en entrée) contre un modèle par fréquence, comparés sur v seulement : Brier 0,06776 contre 0,06729 (< 1 %) → unique ; isotonique lissée par fréquence sur b ; moteur v3 pour toutes les fréquences, `risque_valide` vrai partout, `risque_eprouve` ajouté |
+| 3 | Évaluation | `protocole-frequences.md` et graines committés avant le run (3d343f6) ; run unique `runs/2026-11-24-frequences/` ; tableau 12 cellules dans `docs/evaluation/README.md`. C1/C2 ✅ partout sur le test complet ; ❌ sur les activités jamais vues ; C3 ❌ (ECE 0,089 / 0,064 / 0,052). Les 3 fréquences « éprouvées » → mention retirée de l'interface |
+| — | Non-régression | Hebdo 26 sur le jeu du run 1 : 0,84 % contre 0,93 %, montant total −1,7 %, ECE 0,091 contre 0,089. Koffi 495 000 FCFA, risque 7,85 % (8,46 % avant) |
+| 4 | Documentation | ADR 0016 (statut de 0015 mis à jour), rétrospective, README, note de dépassement dans `perimetre-frequences.md` |
+| — | Vérification | `test:engine` OK, `test:api` 23/23, `test:gen` OK, build OK, E2E `parcours.spec.ts` 3/3 (seul écran dont l'attendu change) |
+
+**Contrat** : champ `risque_eprouve` ajouté à l'analyse (console) ; `estimation_eprouvee` (commerçant) en dérive. Aucune route nouvelle.

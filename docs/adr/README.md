@@ -16,4 +16,5 @@
 | [0012](0012-marque-cauri-vitrine.md) | Marque cauri, vitrine pleine largeur, mode sombre graphite | accepté (remplace la marque et le sombre de 0010) |
 | [0013](0013-double-mode-lancement.md) | Double mode de lancement : npm sur le VPS, Docker pour la démo et l'évaluation | accepté |
 | [0014](0014-conseils-chiffres.md) | Conseils chiffrés par le moteur sur scénarios, route `GET /commercants/{id}/conseils` | accepté |
-| [0015](0015-frequence-duree-au-choix.md) | Fréquence (semaine, quinzaine, mois) et durée (3 à 12 mois) au choix ; risque non validé hors hebdomadaire | accepté |
+| [0015](0015-frequence-duree-au-choix.md) | Fréquence (semaine, quinzaine, mois) et durée (3 à 12 mois) au choix ; risque non validé hors hebdomadaire | accepté (limite levée par 0016) |
+| [0016](0016-risque-toutes-frequences.md) | Risque appris, calibré et évalué pour chaque fréquence et durée (modèle v3) | accepté |

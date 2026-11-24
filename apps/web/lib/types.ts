@@ -31,6 +31,8 @@ export type Analyse = {
   echeance: number;
   taux_periode: number;
   risque_valide: boolean;
+  /** Fréquence ayant passé le run final d'évaluation (ADR 0016). */
+  risque_eprouve?: boolean;
   risque: number;
   recommandation: "accord" | "examen_renforce" | "refus_motive";
   raisons: Raison[];
@@ -43,10 +45,10 @@ export type Analyse = {
 };
 
 /** Vue commerçant de l'estimation : ni R, ni recommandation, ni réglages de l'institution (ADR 0009). */
-export type Estimation = Omit<Analyse, "graine" | "parametres" | "echeance_supportable" | "l_max" | "l_simulation" | "decote_anciennete" | "risque" | "recommandation" | "alertes" | "modeles" | "risque_valide"> & {
+export type Estimation = Omit<Analyse, "graine" | "parametres" | "echeance_supportable" | "l_max" | "l_simulation" | "decote_anciennete" | "risque" | "recommandation" | "alertes" | "modeles" | "risque_valide" | "risque_eprouve"> & {
   parametres: { n: number; i: number; frequence: Frequence; duree_mois: number | null };
   modalites: Modalites;
-  /** Faux hors hebdomadaire : estimation prudente, moins éprouvée (risque non validé). */
+  /** Faux si la fréquence n'a pas passé le run final d'évaluation (ADR 0016) : mention « moins éprouvée ». */
   estimation_eprouvee: boolean;
   souhait?: { montant: number; echeance: number; atteignable: boolean; manque: string[]; au_dessus_du_seuil: boolean };
 };

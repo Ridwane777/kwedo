@@ -34,7 +34,7 @@ MAUVAISE = {"hebdomadaire": "une mauvaise semaine", "quinzaine": "une mauvaise q
 DUREE_MOIS_MIN, DUREE_MOIS_MAX = 3, 12
 # Fréquences dont le risque a passé le run final (docs/evaluation/protocole-frequences.md, critère « éprouvée ») ;
 # hors de cette liste, l'interface garde la mention « estimation moins éprouvée ».
-FREQUENCES_EPROUVEES = frozenset({"hebdomadaire"})
+FREQUENCES_EPROUVEES = frozenset({"hebdomadaire", "quinzaine", "mensuelle"})  # run 2026-11-24-frequences
 
 
 @dataclass(frozen=True)

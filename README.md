@@ -84,6 +84,10 @@ manque **0,93 %** des échéances contre ≈ 1,24 % pour les règles « moyenne/
 l'ensemble du test (écart significatif), **mais pas mieux qu'elles sur les activités jamais vues**, et son risque
 annoncé reste sous-estimé hors du domaine de réglage. Critères de la passe de correction **non atteints**.
 
+Risque toutes fréquences (ADR 0016, run unique `docs/evaluation/runs/2026-11-24-frequences/`) : dans les 12 cellules
+fréquence × durée, le moteur manque moins d'échéances que les règles naïves à exposition égale (ex. mensuel 6 mois :
+1,89 % contre 2,35 %), toujours pas mieux sur les activités jamais vues, risque encore sous-estimé (ECE 0,05 à 0,09).
+
 ## Documentation
 
 `docs/PLAN.md`, `docs/PROGRESS.md`, `docs/DEFINITION-DE-TERMINE.md`, `docs/adr/`, `docs/contracts/`,

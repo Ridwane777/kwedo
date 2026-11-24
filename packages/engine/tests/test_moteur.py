@@ -117,7 +117,7 @@ class TestFrequences(unittest.TestCase):
 
     def test_non_regression_koffi(self):
         self.assertEqual(self.hebdo["plafond"], 495_000)
-        self.assertEqual(self.hebdo["risque"], 0.0846)
+        self.assertEqual(self.hebdo["risque"], 0.0785)  # 0,0846 avec le modèle v2 (ADR 0016)
         self.assertEqual(self.hebdo["echeance_hebdo"], 19_951)
         self.assertEqual(self.hebdo["duree_semaines"], 26)
         self.assertTrue(self.hebdo["risque_valide"])
@@ -147,7 +147,8 @@ class TestFrequences(unittest.TestCase):
                 r = self._f(f, mois)
                 self.assertGreater(r["plafond"], 0)
                 self.assertLessEqual(r["plafond"], r["l_max"], (f, mois))  # jamais au-dessus de L_max
-                self.assertFalse(r["risque_valide"])
+                self.assertTrue(r["risque_valide"])  # risque appris pour chaque fréquence (ADR 0016)
+                self.assertTrue(r["risque_eprouve"])
                 self.assertEqual(r["frequence"], f)
                 p = Parametres.depuis(r["parametres"])
                 self.assertAlmostEqual(r["l_max"], l_max(r["encaissement_prudent"], p), delta=1)

@@ -67,3 +67,20 @@ au run final).
 
 **Ensuite** : calibrer sur de vrais remboursements d'une institution pilote, par activité ; prévoir une marge de
 prudence explicite pour les activités sans historique de remboursement ; mesurer le temps humain selon `docs/evaluation/protocole-temps.md`, avec un chronomètre externe.
+
+## Mission risque toutes fréquences (ADR 0016)
+
+**Ce que ça a coûté** : environ 25 minutes de calcul sur 4 cœurs (jeux de réglage ≈ 6 min, entraînement des deux
+variantes ≈ 5 min, contrôle sur le réglage ≈ 3 min, jeux finaux 2 × 4 000 commerçants ≈ 8 min, run final ≈ 5 min),
+aucun GPU ; 12 cellules × 14 échéances par commerçant, soit ≈ 500 000 lignes d'entraînement. Côté code : un module de
+remboursement par échéancier dans le générateur, un modèle v3 et sa calibration par fréquence, un chemin v3 dans le
+moteur, un champ `risque_eprouve`. Un seul run final, aucun relancé.
+
+**Ce qui reste faible** :
+- Les activités jamais vues : le moteur n'y bat les règles naïves dans aucune cellule (hebdomadaire : légèrement
+  moins bon). La calibration ne corrige pas une dérive que les flux ne laissent pas voir.
+- La calibration sous le générateur de test : risque annoncé ≈ 11 %, observé 16 à 21 % ; ECE 0,05 à 0,09.
+- La règle « éprouvée » est relative à l'hebdomadaire, lui-même imparfait : la mention a disparu parce que quinzaine
+  et mensuel font au moins aussi bien, pas parce que le risque est une probabilité fiable.
+- Défaut mesuré à la semaine (retard toléré X = 0 jour) ; mois de 52/12 semaines, pas de dates calendaires.
+- Tout reste simulé : la validation qui compte se fera sur les remboursements d'une institution pilote.
