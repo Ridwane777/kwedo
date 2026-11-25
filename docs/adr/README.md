@@ -20,3 +20,4 @@
 | [0016](0016-risque-toutes-frequences.md) | Risque appris, calibré et évalué pour chaque fréquence et durée (modèle v3) | accepté |
 | [0017](0017-demande-libre-decision-par-le-risque.md) | Montant demandé librement avec son objet ; décision de l'institution sur le risque de la demande ; plafond toujours conditionné | accepté |
 | [0018](0018-credit-progressif.md) | Crédit progressif : palier par institution (versionné) au-dessus du plafond prudent, dérivé des crédits remboursés ; efficacité non mesurée | retiré (2026-11-24) |
+| [0019](0019-console-par-objet.md) | Console organisée par objet : Aujourd'hui, Demandes, Crédits, Recouvrement, Commerçants ; listes paginées côté serveur ; historique de démo par le simulateur | accepté |

@@ -7,6 +7,7 @@ const CAP = ".captures/revue-conseils";
 test.describe.configure({ mode: "serial" });
 
 test.beforeAll(async ({ browser }) => {
+  test.setTimeout(120_000); // réinitialisation avec historique de démo (ADR 0019)
   const page = await browser.newPage();
   await reinitialiser(page.request);
   await page.close();

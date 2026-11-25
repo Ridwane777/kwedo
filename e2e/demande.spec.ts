@@ -51,12 +51,12 @@ test("demande au-dessus du plafond : avertissement non bloquant et récapitulati
   await expect(page.getByText("Coût total du crédit")).toBeVisible();
 });
 
-test("console : file triable par risque, demande en tête de fiche", async ({ page }) => {
+test("console : demandes triables par risque, demande en tête de fiche", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await connecter(page.request, "agent-lagune");
-  await page.goto("/console");
-  await page.getByRole("button", { name: "Risque de la demande" }).click();
-  await expect(page.getByText("demandes les plus risquées d'abord")).toBeVisible();
+  await page.goto("/console/demandes");
+  await page.getByLabel("Tri").selectOption("risque:desc");
+  await expect(page).toHaveURL(/tri=risque/);
   await page.locator("tbody a").first().click();
   await expect(page.getByTestId("montant-demande")).toBeVisible();
   await expect(page.getByTestId("risque-demande")).toContainText(/tolérance/);

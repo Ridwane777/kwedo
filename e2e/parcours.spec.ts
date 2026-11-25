@@ -102,7 +102,7 @@ test("parcours complet : estimation → décision → offre → remboursement �
   // 4. Console : fiche analysée, ajustement avec justificatif
   const agent = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   await connecter(agent.request, "agent-lagune");
-  await agent.goto("/console");
+  await agent.goto("/console/demandes");
   await agent.getByRole("link", { name: "Afiavi Houngbo" }).click();
   expect((await agent.getByTestId("montant-demande").textContent())!.replace(/\D/g, "")).toBe("600000");
   await expect(agent.getByText("« Acheter des pagnes avant les fêtes. »")).toBeVisible();
@@ -117,12 +117,12 @@ test("parcours complet : estimation → décision → offre → remboursement �
   await agent.getByRole("button", { name: "Enregistrer la décision" }).isDisabled();
   await agent.getByLabel(/Justificatif/).fill("Saison creuse en janvier : prudence sur le montant.");
   await agent.getByRole("button", { name: "Enregistrer la décision" }).click();
-  await expect(agent.getByText("« Saison creuse en janvier : prudence sur le montant. »")).toBeVisible();
+  await expect(agent.getByTestId("bandeau-decision")).toContainText("« Saison creuse en janvier : prudence sur le montant. »");
   await expect(agent.getByText("Décision enregistrée au journal.")).toBeVisible();
   await capture(agent, "4-decision");
 
   // Le second dossier montre une alerte de manipulation
-  await agent.goto("/console");
+  await agent.goto("/console/demandes");
   await agent.getByRole("link", { name: "Séna Kpadonou" }).click();
   await expect(agent.getByText(/renvoi d'un montant proche/)).toBeVisible();
 
@@ -141,16 +141,16 @@ test("parcours complet : estimation → décision → offre → remboursement �
   await expect(page.getByText(/Paiement reçu\. Reçu n° SIM-PAY/)).toBeVisible();
   await capture(page, "6-credit");
 
-  // 7. Retard simulé → relance respectueuse → portefeuille
-  await agent.goto("/console/portefeuille");
+  // 7. Retard simulé → relance respectueuse → recouvrement
+  await agent.goto("/console/recouvrement");
   const admin = await browser.newPage();
   await connecter(admin.request, "admin");
   for (let k = 0; k < 3; k++) expect((await admin.request.post("/api/demo/avancer", { data: { jours: 7 } })).ok()).toBeTruthy();
   await admin.close();
   await agent.reload();
   await expect(agent.getByText(/n'est pas encore réglée/).first()).toBeVisible({ timeout: 15_000 });
-  await expect(agent.getByText("Échéances en retard")).toBeVisible();
-  await capture(agent, "7-portefeuille");
+  await expect(agent.getByRole("heading", { name: /Échéances en retard/ })).toBeVisible();
+  await capture(agent, "7-recouvrement");
 
   await page.reload();
   await expect(page.getByText("Messages reçus")).toBeVisible();

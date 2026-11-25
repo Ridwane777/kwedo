@@ -256,3 +256,40 @@ téléphonie graine 40004 (plafond nul, mais raisons « réguliers » et « prog
 - Tests adaptés : `demo.spec.ts`, `ecrans.spec.ts` (10 temps), `parcours.spec.ts` (« seule option ») ; test API :
   au moins un dossier au-dessus et un en dessous de la tolérance. Empreinte `data/demo/demo.json` : `f9d7c042…`
   (les 7 commerçants existants sont inchangés, mêmes graines).
+
+## Mission console par objet (`docs/MISSION-CONSOLE.md`, branche `console`)
+
+Retour du propriétaire : « trop de choses au même endroit », « les dossiers déjà traités, je vais les trouver où ? ».
+Décision : ADR 0019 (console organisée par objet). Crédit progressif : retiré (ADR 0018), aucun palier nulle part.
+
+- **Navigation** : Aujourd'hui (`/console`), Demandes (`/console/demandes`), Crédits (`/console/credits`),
+  Recouvrement (`/console/recouvrement`), Commerçants (`/console/commercants`), Paramètres, Journal ; raccourcis 1–7
+  sur toutes les pages ; `/console/portefeuille` redirige vers `/console/credits`.
+- **Détails** : dossier à tout statut (bandeau de décision, réponse du commerçant, « Voir le crédit »), crédit
+  (`/console/credits/[id]`, nouveau), commerçant (`/console/commercants/[id]`, nouveau, cette institution seulement) ;
+  fil d'Ariane et liens croisés.
+- **Routes nouvelles** (pour `attaque.py`), toutes filtrées par l'institution de la session, 404 hors périmètre,
+  401 sans session ou en session commerçant, 403 pour l'admin, 422 sur paramètre invalide, taille de page ≤ 50 :
+  - `GET /console/aujourdhui`
+  - `GET /console/demandes` (onglet, q, statut, decision, tranche, hors_tolerance, alertes, du, au, tri, ordre, page, taille)
+  - `GET /console/credits` (onglet, q, du, au, tri, ordre, page, taille)
+  - `GET /console/credits/{id}`
+  - `GET /console/retards` (q, page, taille)
+  - `GET /console/relances` (commercant, q, du, au, page, taille)
+  - `GET /console/commercants` (q, tri, ordre, page, taille)
+  - `GET /console/commercants/{id}`
+- **Démo** : 12 dossiers passés rejoués par le parcours normal (`HISTORIQUE_DEMO`), échéances payées selon le
+  simulateur de remboursement `kwedo_gen.remboursement.rembourser` ; relances rejouées sur 30 jours. Lagune à
+  l'ouverture : 6 à décider, 1 complément, 1 offre en attente (6 jours sans réponse), 9 traitées ; crédits 2 en
+  cours, 1 en retard (Hounkpè, 70 j), 3 remboursés, 1 en défaut (Gildas, 189 j) ; 6 relances. Baobab : un crédit
+  en cours (Séna), invisible de Lagune.
+- **Preuves** : `npm run test:api` **38/38** (nouvelle classe `TestConsoleParObjet` : onglets remplis, pagination,
+  validation 422, filtres et tris, cloisonnement de chaque nouvelle route, Aujourd'hui) ; `next build` OK ;
+  E2E ciblés console : `console.spec.ts` 7/7 (Aujourd'hui, onglets, recherche, pagination serveur, bandeau →
+  crédit → commerçant, redirection, cloisonnement, 360 px clair/sombre sans débordement, cartes), `demande`,
+  `parcours`, `formule`, `demo` verts ; `qualite.spec.ts` console + fiche à 1440 px clair/sombre : 16/16
+  (0 violation axe grave). Démo guidée : temps « Remboursement » pointe vers `/console/credits`.
+- **Écarts** : réinitialisation de démo plus longue de quelques secondes (≈ 40 analyses moteur de plus ; délai des
+  hooks E2E porté à 120 s). L'audit axe des deux nouvelles pages de détail a été ajouté à `qualite.spec.ts` mais
+  **n'a pas pu tourner** : disque de la machine plein (387 Go, cause extérieure au projet). Listes calculées en
+  Python avant pagination (suffisant au prototype, cf. ADR 0019).

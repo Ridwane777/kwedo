@@ -58,6 +58,30 @@ DEMANDES_RISQUE = {
     "com-hounkpe": (1.4, "stock", "Doubler le stock de wax pour rattraper la baisse des ventes.", ("inst-lagune",)),
     "com-yaba": (1.5, "equipement", "Une vitrine réfrigérée pour les crèmes et parfums.", ("inst-lagune", "inst-baobab")),
 }
+# Historique de démonstration de la console (ADR 0019) : dossiers passés déposés par le parcours normal.
+# (commerçant, institution, date de dépôt, semaine de départ des encaissements cachés, fréquence, durée en mois,
+#  multiple du plafond prudent demandé, issue). Issue « credit » ou « contre » : crédit décaissé, remboursé selon le
+# simulateur ; « refuse », « offre_refusee » ; « complement » et « attente » : dossiers encore ouverts à l'ouverture.
+# Le statut de chaque crédit (en cours, en retard, remboursé, en défaut) n'est pas choisi : il se lit dans les échéances.
+HISTORIQUE_DEMO = [
+    ("com-edwige", "inst-lagune", "2026-04-06", 0, "hebdomadaire", 3, 1.0, "credit"),
+    ("com-edwige", "inst-lagune", "2026-07-27", 16, "hebdomadaire", 3, 1.0, "credit"),
+    ("com-koffi", "inst-lagune", "2026-05-04", 4, "hebdomadaire", 3, 1.0, "credit"),
+    ("com-gildas", "inst-lagune", "2026-05-11", 0, "hebdomadaire", 3, 1.0, "credit"),
+    ("com-hounkpe", "inst-lagune", "2026-09-07", 0, "hebdomadaire", 6, 2.0, "credit"),
+    ("com-rachidi", "inst-lagune", "2026-10-05", 0, "hebdomadaire", 6, 1.0, "credit"),
+    ("com-sena", "inst-lagune", "2026-09-14", 0, "hebdomadaire", 6, 1.4, "contre"),
+    ("com-nafissatou", "inst-lagune", "2026-06-01", 0, "hebdomadaire", 3, 2.5, "refuse"),
+    ("com-koffi", "inst-lagune", "2026-10-12", 0, "hebdomadaire", 6, 1.2, "offre_refusee"),
+    ("com-nafissatou", "inst-lagune", "2026-11-20", 0, "hebdomadaire", 3, 0.5, "complement"),
+    ("com-koffi", "inst-lagune", "2026-11-17", 0, "hebdomadaire", 6, 1.0, "attente"),
+    ("com-sena", "inst-baobab", "2026-08-03", 0, "mensuelle", 6, 1.0, "credit"),
+]
+HISTORIQUE_OBJETS = [
+    ("stock", "Renouveler le stock avant la saison (historique de démonstration)."),
+    ("fonds_roulement", "Avancer les achats du mois (historique de démonstration)."),
+    ("equipement", "Remplacer un équipement de la boutique (historique de démonstration)."),
+]
 CHAMPS_PARAMETRES = ("m", "s", "n", "i", "percentile", "seuil_risque", "frequences", "duree_min_mois", "duree_max_mois", "delai_versement_h")
 
 
@@ -218,6 +242,14 @@ class Service:
                              "configuration-demo", DEBUT_DEMO, *mod))
         for c in d["commercants"]:
             self._inserer_commercant(c["id"], c["nom"], c["telephone"], c["type_activite"], c["compte_separe"], c["transactions"])
+        # Historique de la console (ADR 0019) : dossiers passés à tous les statuts, crédits remboursés selon le simulateur.
+        futurs = {c["id"]: c.get("futur_hebdo") or [] for c in d["commercants"]}
+        for h in HISTORIQUE_DEMO:
+            if futurs.get(h[0]):
+                self._dossier_passe(*h, futurs[h[0]])
+        self._relances_passees()
+        self._fixer_horloge(DEBUT_DEMO)
+        self.mettre_a_jour_statuts()
         # File de la console : tous les commerçants sauf la persona (elle enverra son dossier pendant la démo).
         for k, c in enumerate(d["commercants"][1:]):
             fois, cat, objet, insts = DEMANDES_RISQUE.get(c["id"], (*DEMANDES_DEMO[k % len(DEMANDES_DEMO)], ("inst-lagune",)))
@@ -227,6 +259,58 @@ class Service:
                 self.envoyer_dossier(c["id"], inst, montant=max(MONTANT_DEMANDE_MIN, round(plafond * fois / 5_000) * 5_000),
                                      categorie=cat, objet=objet)
         return {"ok": True, "maintenant": DEBUT_DEMO, "commercants": len(d["commercants"])}
+
+    def _dossier_passe(self, cid: str, inst: str, quand: str, semaine: int, frequence: str, duree_mois: int, fois: float,
+                       issue: str, futur: list) -> None:
+        """Un dossier passé de démonstration, par le parcours normal (consentement, demande, décision, réponse) à la date
+        `quand`. Montant demandé = multiple du plafond prudent du moment. Crédit : chaque échéance échue est payée à sa
+        date si le simulateur de remboursement (`rembourser`, encaissements cachés à partir de `semaine`) la couvre ;
+        sinon elle reste impayée (retard ou défaut selon son ancienneté, lus ensuite dans les échéances)."""
+        from kwedo_gen.remboursement import rembourser
+        self._fixer_horloge(f"{quand}T10:00:00")
+        if not self.consentement_actif(cid, inst):
+            self.consentir(cid, inst, "accorde")
+        plafond = self.estimation(cid, inst, frequence=frequence, duree_mois=duree_mois)["plafond"] or 100_000
+        montant = max(MONTANT_DEMANDE_MIN, round(plafond * fois / 5_000) * 5_000)
+        cat, objet = HISTORIQUE_OBJETS[_g(cid, quand) % len(HISTORIQUE_OBJETS)]
+        dos = self.envoyer_dossier(cid, inst, frequence, duree_mois, montant=montant, categorie=cat, objet=objet)
+        agent = f"agent.{inst.removeprefix('inst-')}"
+        if issue == "complement":
+            self.decider(dos["id"], "complement", agent, "Relevé du compte personnel demandé pour compléter l'historique.")
+            return
+        if issue == "refuse":
+            self.decider(dos["id"], "refuse", agent, "Demande au-dessus de ce que les ventes permettent de rembourser.")
+            return
+        if issue == "contre":
+            self.decider(dos["id"], "ajuste", agent, "Contre-proposition au plafond prudent : saison creuse à venir.",
+                         min(montant, dos["analyse"]["plafond"]))
+        else:
+            self.decider(dos["id"], "valide", agent, "Ventes régulières, demande dans la tolérance de l'institution.")
+        if issue == "attente":
+            return
+        self._fixer_horloge(f"{quand}T16:00:00")
+        if issue == "offre_refusee":
+            self.repondre_offre(dos["id"], "refuse")
+            return
+        cr = self.repondre_offre(dos["id"], "accepte")
+        ech, fin = cr["echeances"], datetime.fromisoformat(DEBUT_DEMO).date().isoformat()
+        e = ech[0]["montant_attendu"]
+        manquees = [round(float(rembourser(futur[semaine:], e, frequence, k)[1][0]) * k) for k in range(1, len(ech) + 1)]
+        for k, x in enumerate(ech):
+            if x["date_due"] >= fin or manquees[k] > (manquees[k - 1] if k else 0):
+                continue
+            ref = self.operateur.encaisser(cr["id"], x["montant_attendu"])["reference"]
+            self.db.execute("INSERT INTO paiements (credit_id, montant, horodatage, recu) VALUES (?,?,?,?)",
+                            (cr["id"], x["montant_attendu"], f"{x['date_due']}T09:00:00", ref))
+            self.db.execute("UPDATE echeances SET montant_recu = montant_attendu WHERE id = ?", (x["id"],))
+
+    def _relances_passees(self, jours: int = 30):
+        """Rejoue la tâche planifiée de relance sur les derniers jours avant la démo (historique des relances)."""
+        debut = datetime.fromisoformat(DEBUT_DEMO) - timedelta(days=jours)
+        for k in range(jours):
+            self._fixer_horloge((debut + timedelta(days=k)).replace(hour=10, minute=0))
+            self.mettre_a_jour_statuts()
+            self.executer_relances()
 
     def _inserer_commercant(self, cid, nom, tel, activite, separe, txs):
         self.db.execute("INSERT INTO commercants (id, nom, telephone, type_activite, compte_marchand_ouvert_le, compte_separe, "

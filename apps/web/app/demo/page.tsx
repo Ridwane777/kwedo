@@ -59,8 +59,10 @@ function Comparaison({ ids, cle }: { ids: Ids; cle: number }) {
 const MOTIF = "Saison creuse en janvier pour les tissus : prudence sur le montant.";
 
 async function idsDemo(): Promise<Ids> {
-  const f = await api<LigneDossier[]>("/dossiers");
-  return { dossier: f.find((d) => d.commercant_id === COMMERCANT_DEMO)?.id, alerte: f.find((d) => d.alertes.includes("circulaire"))?.id,
+  // Dossiers ouverts seulement : l'historique de démo (ADR 0019) contient aussi des dossiers passés des mêmes commerçants.
+  const tous = await api<LigneDossier[]>("/dossiers");
+  const f = tous.filter((d) => ["recu", "en_analyse", "complement"].includes(d.statut));
+  return { dossier: tous.find((d) => d.commercant_id === COMMERCANT_DEMO)?.id, alerte: f.find((d) => d.alertes.includes("circulaire"))?.id,
     sain: f.find((d) => d.commercant_id === DOSSIER_SAIN)?.id, risque: f.find((d) => d.commercant_id === DOSSIER_RISQUE)?.id };
 }
 
@@ -100,8 +102,8 @@ const TEMPS: Temps[] = [
   { titre: "Offre et accord", duree: 20, ecran: (ids) => ({ telephone: ids.dossier ? `/app/offre/${ids.dossier}` : "/app/dossier" }),
     dire: "Afiavi lit l'offre, marquée « contre-proposition » avec l'écart à sa demande : montant, durée, échéance, coût total, zéro frais Kwedo. Elle accepte ; l'échéancier se crée et le décaissement simulé part.",
     action: { label: "Accepter l'offre", faire: async (ids) => { await api(`/dossiers/${ids.dossier}/offre`, { body: { reponse: "accepte" } }); } } },
-  { titre: "Remboursement", duree: 30, ecran: () => ({ telephone: "/app/credit", console: "/console/portefeuille" }),
-    dire: "Un paiement arrive. Puis on avance l'horloge simulée : une échéance n'est pas payée, un rappel respectueux part sur le canal choisi, le portefeuille se met à jour.",
+  { titre: "Remboursement", duree: 30, ecran: () => ({ telephone: "/app/credit", console: "/console/credits" }),
+    dire: "Un paiement arrive. Puis on avance l'horloge simulée : une échéance n'est pas payée, un rappel respectueux part sur le canal choisi, la page Crédits se met à jour.",
     action: { label: "Payer, puis avancer de 15 jours", faire: async (ids) => {
       const c = await api<{ credit: { id: string } | null }>(`/dossiers/${ids.dossier}`);
       if (!c.credit) throw new Error("Acceptez d'abord l'offre (temps 7).");

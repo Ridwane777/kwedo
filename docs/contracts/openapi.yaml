@@ -201,6 +201,24 @@ paths:
   /institutions/{id}/parametres:
     get: {summary: Paramètres actifs et historique, x-acces: équipe de cette institution, security: [{pro: []}], responses: {'200': {description: ok}, '403': {description: autre institution ou admin}}}
     post: {summary: "Nouvelle version de paramètres (m, s, n, i, percentile, seuil_risque ; modalités ADR 0015 : frequences, duree_min_mois, duree_max_mois, delai_versement_h)", x-acces: responsable de cette institution, security: [{pro: []}], responses: {'200': {description: ok}, '403': {description: agent, autre institution ou admin}}}
+  # Console par objet (ADR 0019) : institution de la session uniquement ; listes paginées {elements, total, page, taille, pages}
+  # (page ≥ 1, taille 1..50, défaut 20) ; paramètre invalide → 422 ; sans session ou session commerçant → 401 ; admin → 403.
+  /console/aujourdhui:
+    get: {summary: "À faire maintenant : dossiers à décider (alertes), échéances en retard (nouvelles depuis hier), offres sans réponse depuis 3 jours, 4 indicateurs", x-acces: agent ou responsable, security: [{pro: []}], responses: {'200': {description: ok}}}
+  /console/demandes:
+    get: {summary: "Demandes : onglet (a_decider, complement, attente, traitees, toutes), q (nom), statut, decision (valide, ajuste, refuse, complement), tranche (faible, proche, au_dessus), hors_tolerance, alertes (1/0), du, au (AAAA-MM-JJ), tri (priorite, risque, date, montant), ordre (asc, desc), page, taille ; + compteurs par onglet", x-acces: agent ou responsable, security: [{pro: []}], responses: {'200': {description: ok}, '422': {description: paramètre invalide}}}
+  /console/credits:
+    get: {summary: "Crédits : onglet (en_cours, en_retard, rembourses, en_defaut, tous), q, du, au (décaissement), tri (date, montant, restant, retard), ordre, page, taille ; + compteurs et indicateurs (encours, part_en_retard, par30, taux_recouvrement). En défaut : échéance impayée depuis plus de 90 jours", x-acces: agent ou responsable, security: [{pro: []}], responses: {'200': {description: ok}, '422': {description: paramètre invalide}}}
+  /console/credits/{id}:
+    get: {summary: "Détail d'un crédit : échéancier, paiements, relances, reprogrammations (motif, auteur), statut, dossier d'origine, commerçant", x-acces: équipe de l'institution du crédit, security: [{pro: []}], responses: {'200': {description: ok}, '404': {description: inconnu ou autre institution}}}
+  /console/retards:
+    get: {summary: "Échéances en retard à traiter : q, page, taille", x-acces: agent ou responsable, security: [{pro: []}], responses: {'200': {description: ok}}}
+  /console/relances:
+    get: {summary: "Historique des relances : commercant (id), q, du, au, page, taille", x-acces: agent ou responsable, security: [{pro: []}], responses: {'200': {description: ok}, '422': {description: paramètre invalide}}}
+  /console/commercants:
+    get: {summary: "Commerçants ayant au moins un dossier dans l'institution : q, tri (nom, date, encours), ordre, page, taille", x-acces: agent ou responsable, security: [{pro: []}], responses: {'200': {description: ok}, '422': {description: paramètre invalide}}}
+  /console/commercants/{id}:
+    get: {summary: "Historique du commerçant dans cette institution seulement (demandes, crédits, retards) ; flux récents si l'accord à cette institution est actif", x-acces: agent ou responsable d'une institution où il a déposé, security: [{pro: []}], responses: {'200': {description: ok}, '404': {description: aucun dossier dans cette institution}}}
   /institutions/{id}/parametres/apercu:
     post: {summary: "Aperçu d'un réglage avant enregistrement (m, s, n, i, percentile, seuil_risque) : plafond prudent moyen et risque moyen de la demande des dossiers en attente, avant / après, recalculés par le moteur ; rien n'est écrit", x-acces: responsable de cette institution, security: [{pro: []}], responses: {'200': {description: ok}, '403': {description: agent, autre institution ou admin}, '422': {description: hors bornes}}}
   /journal:

@@ -37,7 +37,7 @@ test("aucune page de /app ni /console n'affiche L_max, C_p ni « formule »", as
       await expect(page.getByTestId("risque-demande")).toBeVisible({ timeout: 30_000 });
     });
   }
-  for (const chemin of ["/console/portefeuille", "/console/journal"]) await sansFormule(page, chemin);
+  for (const chemin of ["/console/demandes", "/console/credits", "/console/recouvrement", "/console/commercants", "/console/journal"]) await sansFormule(page, chemin);
   await sansFormule(page, "/console/parametres", async () => { await expect(page.getByText("Tolérance au risque").first()).toBeVisible({ timeout: 30_000 }); });
 });
 
@@ -45,7 +45,8 @@ test("fiche d'un dossier à risque : au-dessus de la tolérance, cause nommée",
   await reinitialiser(page.request);
   await connecter(page.request, "agent-lagune");
   const f = await (await page.request.get("/api/dossiers?tri=risque")).json() as { id: string; commercant_id: string }[];
-  const d = f.find((x) => x.commercant_id === "com-hounkpe")!;
+  // Dossier ouvert de Hounkpè (son historique de démo contient aussi un dossier passé).
+  const d = (f as { id: string; commercant_id: string; statut: string }[]).find((x) => x.commercant_id === "com-hounkpe" && x.statut === "recu")!;
   await page.goto(`/console/dossiers/${d.id}`);
   await expect(page.getByTestId("risque-demande")).toContainText("Au-dessus de la tolérance", { timeout: 30_000 });
   await expect(page.getByText("Son activité baisse ces dernières semaines")).toBeVisible();
