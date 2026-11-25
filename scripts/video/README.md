@@ -1,6 +1,6 @@
 # Vidéo de démonstration
 
-Vidéo finale : [`docs/presentation/kwedo-demo.mp4`](../../docs/presentation/kwedo-demo.mp4) (2 min 19, 1440 × 900,
+Vidéo finale : [`docs/presentation/kwedo-demo.mp4`](../../docs/presentation/kwedo-demo.mp4) (1 min 33, 1440 × 900,
 sous-titrée, sans son).
 
 `tourner.js` filme l'app réelle pilotée par Playwright (curseur visible, sous-titres injectés) ; `cartes.js` contient
@@ -16,4 +16,4 @@ ffmpeg -i brut/*.webm -r 30 -c:v libx264 -crf 20 -pix_fmt yuv420p -movflags +fas
 ```
 
 `KWEDO_CHROME` permet d'indiquer un Chromium précis. Le tournage dépose un vrai dossier de démo (Afiavi, Mutuelle
-Solidaire) et n'enregistre aucune décision : réinitialiser la démo ensuite (admin, « Réinitialiser »).
+Lagune), le fait accorder par l agent de Lagune, accepte l offre et paie deux échéances : réinitialiser la démo ensuite (admin, « Réinitialiser »).

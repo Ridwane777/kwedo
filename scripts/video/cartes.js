@@ -23,6 +23,11 @@ const STYLE = `
 const page = (corps) => `<!doctype html><html lang="fr"><head><meta charset="utf-8">${STYLE}</head><body>${corps}</body></html>`;
 
 module.exports = {
+  ouverture: page(`
+    <span class="tag">Démonstration du prototype · données simulées</span>
+    <h1>Kwedo</h1>
+    <p>Afiavi, vendeuse de pagnes, demande un crédit à partir de ses ventes mobile money.</p>`),
+
   titre: page(`
     <span class="tag">GPU Challenge · cas d'usage 3 · prototype</span>
     <h1>Kwedo<br><span class="k">Le crédit qui suit le rythme des ventes.</span></h1>
