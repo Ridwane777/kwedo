@@ -8,6 +8,7 @@ import json
 import sys
 
 from .core import REGLAGE, TEST, generer_commercant
+from .realisme import TAUX_SOURCE, demande_demo
 
 INSTITUTIONS = [
     {"id": "inst-lagune", "nom": "Caisse Lagune Microfinance (fictive)",
@@ -18,6 +19,11 @@ INSTITUTIONS = [
      "parametres": {"m": 0.30, "s": 0.45, "n": 30, "i": 0.0040, "percentile": 25, "seuil_risque": 0.12}},
 ]
 
+# Profil « réalisme » (docs/data/README.md) : demandes (montant, fréquence, durée) tirées des agrégats Kiva Bénin du
+# secteur. Les transactions et activités restent celles des générateurs existants : profils sains, limite et à risque
+# conservés (Koffi sert au test de non-régression du moteur, Gildas au crédit en défaut de la console). Parts
+# d'activités des 9 personnes : commerce 6/9, alimentation 2/9, services 1/9 (Kiva Bénin : 52 %, 34 %, 10 %) ; la
+# population `realisme.generer_population`, elle, suit les parts Kiva.
 # (id, nom fictif, téléphone fictif, archétype, graine, manipulation, compte séparé, semaines, générateur)
 PERSONNES = [
     ("com-afiavi", "Afiavi Houngbo", "+229 01 90 00 00 01", "tissus", 20261, None, True, 52, REGLAGE),
@@ -38,9 +44,11 @@ def construire() -> dict:
     commercants = []
     for cid, nom, tel, arch, graine, manip, sep, sem, cfg in PERSONNES:
         c = generer_commercant(cid, graine, cfg, semaines=sem, archetype=arch, manipulation=manip, compte_separe=sep)
-        c.update({"nom": nom, "telephone": tel, "identite_verifiee": True})
+        c.update({"nom": nom, "telephone": tel, "identite_verifiee": True, "profil_demo": "realisme",
+                  "demande_demo": demande_demo(graine, arch)})
         commercants.append(c)
     return {"avertissement": "Données 100 % synthétiques. Personnes et institutions fictives.",
+            "calage": {"source": "données issues de Kiva (agrégats Bénin), voir docs/data/README.md", "taux": TAUX_SOURCE},
             "institutions": INSTITUTIONS, "commercants": commercants}
 
 

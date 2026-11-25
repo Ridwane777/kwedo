@@ -1,0 +1,482 @@
+{
+ "source": "Kiva, export loans.csv (miroir Kaggle gaborfodor/additional-kiva-snapshot, 2018), prêts financés",
+ "licence": "Kiva Developer Terms : usage non commercial, attribution « données issues de Kiva », pas de redistribution des données brutes ; ici agrégats seulement",
+ "unite_montant": "USD (montant Kiva)",
+ "zones": {
+  "afrique_ouest": {
+   "prets": 122274,
+   "part_secteur": {
+    "Food": 0.3877,
+    "Retail": 0.2554,
+    "Agriculture": 0.1454,
+    "Clothing": 0.0766,
+    "Services": 0.0478,
+    "Personal Use": 0.025,
+    "Education": 0.0153,
+    "Health": 0.0103,
+    "Construction": 0.0101,
+    "Arts": 0.0073,
+    "Manufacturing": 0.007,
+    "Transportation": 0.0055,
+    "Housing": 0.0043,
+    "Wholesale": 0.0017,
+    "Entertainment": 0.0006
+   },
+   "top_activites": {
+    "Food Market": 0.1019,
+    "Retail": 0.1017,
+    "Farming": 0.0905,
+    "Food Production/Sales": 0.0879,
+    "Clothing Sales": 0.0384,
+    "Fish Selling": 0.0307,
+    "Grocery Store": 0.0304,
+    "General Store": 0.0245,
+    "Personal Expenses": 0.0237,
+    "Used Clothing": 0.0234,
+    "Food": 0.0229,
+    "Fruits & Vegetables": 0.0221,
+    "Cereals": 0.022,
+    "Charcoal Sales": 0.0217,
+    "Restaurant": 0.0206,
+    "Agriculture": 0.018,
+    "Cloth & Dressmaking Supplies": 0.017,
+    "Home Products Sales": 0.0152,
+    "Beverages": 0.0151,
+    "Cosmetics Sales": 0.0147,
+    "Food Stall": 0.0144,
+    "Beauty Salon": 0.0144,
+    "Clothing": 0.0136,
+    "Primary/secondary school costs": 0.0132,
+    "Shoe Sales": 0.0131
+   },
+   "part_frequence": {
+    "monthly": 0.5087,
+    "irregular": 0.3384,
+    "bullet": 0.1528
+   },
+   "part_duree_mois": {
+    "5": 0.0147,
+    "6": 0.0859,
+    "7": 0.0511,
+    "8": 0.1777,
+    "9": 0.0645,
+    "10": 0.1306,
+    "11": 0.108,
+    "12": 0.0813,
+    "13": 0.0197,
+    "14": 0.1342,
+    "15": 0.0494,
+    "17": 0.0183,
+    "18": 0.0055,
+    "19": 0.0162,
+    "20": 0.0126,
+    "21": 0.0068,
+    "26": 0.0052
+   },
+   "part_femme_seule": 0.522,
+   "montant_usd": {
+    "n": 122274,
+    "p10": 150.0,
+    "p25": 275.0,
+    "mediane": 500.0,
+    "p75": 900.0,
+    "p90": 1325.0
+   },
+   "montant_usd_par_secteur": {
+    "Clothing": {
+     "n": 9364,
+     "p10": 200.0,
+     "p25": 350.0,
+     "mediane": 600.0,
+     "p75": 950.0,
+     "p90": 1275.0
+    },
+    "Food": {
+     "n": 47405,
+     "p10": 175.0,
+     "p25": 275.0,
+     "mediane": 475.0,
+     "p75": 825.0,
+     "p90": 1225.0
+    },
+    "Retail": {
+     "n": 31229,
+     "p10": 175.0,
+     "p25": 300.0,
+     "mediane": 550.0,
+     "p75": 950.0,
+     "p90": 1275.0
+    },
+    "Personal Use": {
+     "n": 3062,
+     "p10": 50.0,
+     "p25": 100.0,
+     "mediane": 150.0,
+     "p75": 225.0,
+     "p90": 400.0
+    },
+    "Services": {
+     "n": 5846,
+     "p10": 225.0,
+     "p25": 350.0,
+     "mediane": 525.0,
+     "p75": 850.0,
+     "p90": 1125.0
+    },
+    "Agriculture": {
+     "n": 17775,
+     "p10": 75.0,
+     "p25": 150.0,
+     "mediane": 400.0,
+     "p75": 1000.0,
+     "p90": 1925.0
+    },
+    "Education": {
+     "n": 1876,
+     "p10": 100.0,
+     "p25": 175.0,
+     "mediane": 275.0,
+     "p75": 800.0,
+     "p90": 2050.0
+    },
+    "Construction": {
+     "n": 1238,
+     "p10": 325.0,
+     "p25": 500.0,
+     "mediane": 825.0,
+     "p75": 1125.0,
+     "p90": 1350.0
+    },
+    "Housing": {
+     "n": 520,
+     "p10": 125.0,
+     "p25": 250.0,
+     "mediane": 625.0,
+     "p75": 1400.0,
+     "p90": 2700.0
+    },
+    "Health": {
+     "n": 1257,
+     "p10": 275.0,
+     "p25": 425.0,
+     "mediane": 700.0,
+     "p75": 1000.0,
+     "p90": 1175.0
+    },
+    "Manufacturing": {
+     "n": 857,
+     "p10": 250.0,
+     "p25": 375.0,
+     "mediane": 625.0,
+     "p75": 975.0,
+     "p90": 1425.0
+    },
+    "Arts": {
+     "n": 894,
+     "p10": 200.0,
+     "p25": 400.0,
+     "mediane": 725.0,
+     "p75": 1050.0,
+     "p90": 1650.0
+    },
+    "Transportation": {
+     "n": 672,
+     "p10": 350.0,
+     "p25": 525.0,
+     "mediane": 800.0,
+     "p75": 1025.0,
+     "p90": 1200.0
+    },
+    "Entertainment": {
+     "n": 73,
+     "p10": 350.0,
+     "p25": 550.0,
+     "mediane": 725.0,
+     "p75": 975.0,
+     "p90": 1150.0
+    },
+    "Wholesale": {
+     "n": 206,
+     "p10": 250.0,
+     "p25": 425.0,
+     "mediane": 800.0,
+     "p75": 1100.0,
+     "p90": 1200.0
+    }
+   },
+   "duree_mois_par_secteur": {
+    "Clothing": {
+     "n": 9364,
+     "p10": 6,
+     "p25": 8,
+     "mediane": 10,
+     "p75": 11,
+     "p90": 14
+    },
+    "Food": {
+     "n": 47405,
+     "p10": 6,
+     "p25": 8,
+     "mediane": 10,
+     "p75": 11,
+     "p90": 14
+    },
+    "Retail": {
+     "n": 31229,
+     "p10": 7,
+     "p25": 8,
+     "mediane": 10,
+     "p75": 13,
+     "p90": 14
+    },
+    "Personal Use": {
+     "n": 3062,
+     "p10": 14,
+     "p25": 14,
+     "mediane": 14,
+     "p75": 14,
+     "p90": 15
+    },
+    "Services": {
+     "n": 5846,
+     "p10": 8,
+     "p25": 10,
+     "mediane": 12,
+     "p75": 14,
+     "p90": 15
+    },
+    "Agriculture": {
+     "n": 17775,
+     "p10": 8,
+     "p25": 9,
+     "mediane": 12,
+     "p75": 18,
+     "p90": 20
+    },
+    "Education": {
+     "n": 1876,
+     "p10": 12,
+     "p25": 14,
+     "mediane": 15,
+     "p75": 15,
+     "p90": 15
+    },
+    "Construction": {
+     "n": 1238,
+     "p10": 8,
+     "p25": 10,
+     "mediane": 11,
+     "p75": 14,
+     "p90": 15
+    },
+    "Housing": {
+     "n": 520,
+     "p10": 12,
+     "p25": 12,
+     "mediane": 14,
+     "p75": 15,
+     "p90": 15
+    },
+    "Health": {
+     "n": 1257,
+     "p10": 7,
+     "p25": 8,
+     "mediane": 10,
+     "p75": 13,
+     "p90": 14
+    },
+    "Manufacturing": {
+     "n": 857,
+     "p10": 7,
+     "p25": 8,
+     "mediane": 10,
+     "p75": 14,
+     "p90": 15
+    },
+    "Arts": {
+     "n": 894,
+     "p10": 6,
+     "p25": 8,
+     "mediane": 9,
+     "p75": 12,
+     "p90": 14
+    },
+    "Transportation": {
+     "n": 672,
+     "p10": 8,
+     "p25": 11,
+     "mediane": 14,
+     "p75": 17,
+     "p90": 25
+    },
+    "Entertainment": {
+     "n": 73,
+     "p10": 7,
+     "p25": 8,
+     "mediane": 11,
+     "p75": 14,
+     "p90": 14
+    },
+    "Wholesale": {
+     "n": 206,
+     "p10": 8,
+     "p25": 9,
+     "mediane": 12,
+     "p75": 14,
+     "p90": 15
+    }
+   }
+  },
+  "benin": {
+   "prets": 5858,
+   "part_secteur": {
+    "Retail": 0.4819,
+    "Food": 0.3412,
+    "Services": 0.097,
+    "Clothing": 0.0374,
+    "Agriculture": 0.0234,
+    "Manufacturing": 0.0075,
+    "Construction": 0.0036,
+    "Health": 0.0031,
+    "Wholesale": 0.0027,
+    "Arts": 0.002,
+    "Entertainment": 0.0002
+   },
+   "top_activites": {
+    "Retail": 0.29,
+    "Food Production/Sales": 0.0855,
+    "Food": 0.0845,
+    "Cloth & Dressmaking Supplies": 0.0447,
+    "Beauty Salon": 0.0345,
+    "Cereals": 0.0329,
+    "Cosmetics Sales": 0.0283,
+    "Food Market": 0.027,
+    "Charcoal Sales": 0.023,
+    "Sewing": 0.0217,
+    "Grocery Store": 0.0205,
+    "Home Products Sales": 0.02,
+    "Services": 0.0186,
+    "Clothing Sales": 0.0181,
+    "Fish Selling": 0.0167,
+    "Fruits & Vegetables": 0.0157,
+    "Used Clothing": 0.0155,
+    "Restaurant": 0.0147,
+    "Shoe Sales": 0.0147,
+    "Food Stall": 0.0142,
+    "Fuel/Firewood": 0.0135,
+    "Agriculture": 0.0135,
+    "General Store": 0.0118,
+    "Beverages": 0.0092,
+    "Tailoring": 0.0085
+   },
+   "part_frequence": {
+    "monthly": 0.9401,
+    "irregular": 0.0596,
+    "bullet": 0.0003
+   },
+   "part_duree_mois": {
+    "8": 0.0201,
+    "9": 0.1598,
+    "10": 0.1314,
+    "11": 0.0215,
+    "12": 0.3373,
+    "13": 0.0527,
+    "14": 0.2346,
+    "15": 0.0377
+   },
+   "part_femme_seule": 0.4869,
+   "montant_usd": {
+    "n": 5858,
+    "p10": 225.0,
+    "p25": 300.0,
+    "mediane": 450.0,
+    "p75": 800.0,
+    "p90": 1125.0
+   },
+   "montant_usd_par_secteur": {
+    "Services": {
+     "n": 568,
+     "p10": 225.0,
+     "p25": 300.0,
+     "mediane": 475.0,
+     "p75": 775.0,
+     "p90": 1025.0
+    },
+    "Retail": {
+     "n": 2823,
+     "p10": 225.0,
+     "p25": 325.0,
+     "mediane": 475.0,
+     "p75": 825.0,
+     "p90": 1100.0
+    },
+    "Food": {
+     "n": 1999,
+     "p10": 225.0,
+     "p25": 275.0,
+     "mediane": 425.0,
+     "p75": 750.0,
+     "p90": 1125.0
+    },
+    "Clothing": {
+     "n": 219,
+     "p10": 250.0,
+     "p25": 300.0,
+     "mediane": 450.0,
+     "p75": 650.0,
+     "p90": 925.0
+    },
+    "Agriculture": {
+     "n": 137,
+     "p10": 200.0,
+     "p25": 275.0,
+     "mediane": 400.0,
+     "p75": 825.0,
+     "p90": 1375.0
+    }
+   },
+   "duree_mois_par_secteur": {
+    "Services": {
+     "n": 568,
+     "p10": 10,
+     "p25": 12,
+     "mediane": 14,
+     "p75": 14,
+     "p90": 15
+    },
+    "Retail": {
+     "n": 2823,
+     "p10": 9,
+     "p25": 10,
+     "mediane": 12,
+     "p75": 13,
+     "p90": 14
+    },
+    "Food": {
+     "n": 1999,
+     "p10": 9,
+     "p25": 10,
+     "mediane": 12,
+     "p75": 12,
+     "p90": 14
+    },
+    "Clothing": {
+     "n": 219,
+     "p10": 9,
+     "p25": 10,
+     "mediane": 12,
+     "p75": 13,
+     "p90": 14
+    },
+    "Agriculture": {
+     "n": 137,
+     "p10": 10,
+     "p25": 10,
+     "mediane": 10,
+     "p75": 10,
+     "p90": 14
+    }
+   }
+  }
+ }
+}

@@ -102,3 +102,17 @@ modèle reconnaît l'activité à son profil (99 %) et extrapole « ticket élev
 étendue. Une recalibration apprise sur le test corrige l'ECE (0,079 → 0,012), mais dégrade le réglage
 (0,007 → 0,084) : c'est se régler sur le test. Le correctif le moins risqué est un plancher « risque simulé » pour
 les activités inconnues (ECE jamais vus 0,18 → 0,12). Rien n'est appliqué ; coût ≈ 75 min de calcul sur 4 cœurs.
+
+## Recherche de données réelles (`docs/MISSION-DONNEES.md`, branche `donnees`)
+
+- **Aucune source publique ne relie ventes et remboursements d'un même commerçant** : c'est la donnée dont le
+  risque a besoin. Kiva n'a pas de défaut (le statut décrit la collecte), BCEAO donne un agrégat de portefeuille,
+  PaySim est un simulateur de comptes de particuliers, les jeux de compétition ou d'études sont privés. Le pilote
+  reste le seul chemin vers une évaluation réelle ; les sources servent au réalisme de la démo, rien de plus.
+- **Ce que le calage a appris** : les demandes Kiva Bénin (médiane ~250 000 FCFA, 94 % mensuelles, ~12 mois) sont
+  petites devant les ventes simulées ; sur une population « réalisme », le défaut simulé tombe à 0,3 % contre 9,4 %
+  de dégradation BCEAO (mesures différentes, `docs/data/README.md`). Le niveau des ventes des archétypes ou
+  l'optimisme du futur caché sont à questionner au pilote ; rien n'a été réglé sur le repère.
+- **Contrainte de démo** : la composition des 9 personnes n'a pas pu suivre Kiva (essai : Gildas en alimentation
+  supprime le seul crédit en défaut de la console) ; le réalisme passe par les demandes, pas par les personnes.
+- Preuve externe utile : Field & Pande (fréquence mensuelle sans hausse des défauts) soutient l'ADR 0015 (ADR 0020).

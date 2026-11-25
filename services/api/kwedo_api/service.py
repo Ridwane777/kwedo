@@ -42,7 +42,8 @@ CATEGORIES_OBJET = {"stock": "Achat de stock", "equipement": "Équipement", "fon
 OBJET_MAX = 200
 MONTANT_DEMANDE_MIN, MONTANT_DEMANDE_MAX = 5_000, 50_000_000
 DUREES_REPERES = (3, 6, 9, 12)
-# Démo : montants demandés (multiples du plafond, certains au-dessus) et objets variés pour la file de la console.
+# Démo : objets variés pour la file de la console. Montant, fréquence et durée : profil « réalisme » du générateur
+# (agrégats Kiva Bénin, `demande_demo` de demo.json) ; à défaut, le multiple du plafond prudent ci-dessous.
 DEMANDES_DEMO = [
     (0.8, "stock", "Acheter des pagnes wax avant les fêtes de fin d'année."),
     (1.4, "equipement", "Un congélateur pour garder le poisson plus longtemps."),
@@ -253,8 +254,13 @@ class Service:
         # File de la console : tous les commerçants sauf la persona (elle enverra son dossier pendant la démo).
         for k, c in enumerate(d["commercants"][1:]):
             fois, cat, objet, insts = DEMANDES_RISQUE.get(c["id"], (*DEMANDES_DEMO[k % len(DEMANDES_DEMO)], ("inst-lagune",)))
+            reel = c.get("demande_demo") if c["id"] not in DEMANDES_RISQUE else None
             for inst in insts:
                 self.consentir(c["id"], inst, "accorde")
+                if reel:  # profil « réalisme » : montant, fréquence et durée calés sur les agrégats Kiva Bénin
+                    self.envoyer_dossier(c["id"], inst, reel["frequence"], reel["duree_mois"], montant=reel["montant"],
+                                         categorie=cat, objet=objet)
+                    continue
                 plafond = self.estimation(c["id"], inst)["plafond"] or 100_000
                 self.envoyer_dossier(c["id"], inst, montant=max(MONTANT_DEMANDE_MIN, round(plafond * fois / 5_000) * 5_000),
                                      categorie=cat, objet=objet)
