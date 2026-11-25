@@ -78,6 +78,8 @@ npx playwright install chromium && npx playwright test                # E2E, acc
 
 ## Évaluer
 
+**Fiche de résultats (référence, mesures, erreurs, limites) : [`docs/RESULTATS.md`](docs/RESULTATS.md).**
+
 `ml/dataset.py` → `ml/train.py` → `ml/evaluate_final.py` (voir `docs/evaluation/README.md` et
 `docs/evaluation/protocole-final.md`). Résultat clé, à lire avant tout (run final 1, données simulées) : le moteur
 manque **0,93 %** des échéances contre ≈ 1,24 % pour les règles « moyenne/médiane × k » à exposition égale sur
