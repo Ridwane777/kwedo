@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kwedo — le crédit au rythme de vos ventes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500..800&display=swap"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600&display=swap">
+<style>
+:root {
+  --fond: #f2f4f3;
+  --surface: #ffffff;
+  --surface2: #e7ecea;
+  --trait: #c9d2ce;
+  --encre: #0e1d18;
+  --encre2: #3b4a44;
+  --encre3: #56645e;
+  --marque: #0a5a47;
+  --marque2: #0f6d58;
+  --doux: #d7ebe3;
+  --ambre: #c98a0b;
+  --ambre-doux: #faebc8;
+  --ambre-encre: #6b4500;
+  --alerte: #b0261c;
+  --alerte-doux: #fadeda;
+  --bon: #1d6b35;
+  --bon-doux: #daeedd;
+}
+
+body { font-family: 'Public Sans', Arial, sans-serif; color: #0e1d18; }
+
+section {
+  padding: 128px 128px 160px;
+  background: #f2f4f3;
+  color: #0e1d18;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Public Sans', Arial, sans-serif;
+}
+section.dark { background: #0a5a47; color: #f2f4f3; }
+section.ink { background: #0e1d18; color: #f2f4f3; }
+
+h1, h2, h3 { font-family: 'Bricolage Grotesque', 'Public Sans', Arial, sans-serif; color: inherit; }
+h1 { font-size: 120px; line-height: 1.04; font-weight: 700; letter-spacing: -2px; }
+h2 { font-size: 68px; line-height: 1.08; font-weight: 700; letter-spacing: -1px; }
+h3 { font-size: 40px; line-height: 1.15; font-weight: 600; }
+
+.grow { flex: 1; }
+.brand { display: flex; align-items: center; gap: 20px; }
+.wordmark { font-family: 'Bricolage Grotesque', Arial, sans-serif; font-size: 56px; font-weight: 700; color: #f2f4f3; }
+
+.eyebrow { font-size: 26px; font-weight: 600; letter-spacing: 4px; color: #0a5a47; }
+.dark .eyebrow { color: #d7ebe3; }
+.lead { font-size: 36px; line-height: 1.4; color: #3b4a44; }
+.dark .lead { color: #d7ebe3; }
+.body { font-size: 28px; line-height: 1.4; color: #3b4a44; }
+.body-d { font-size: 28px; line-height: 1.4; color: #d7ebe3; }
+.small { font-size: 26px; line-height: 1.35; color: #56645e; }
+.small-d { font-size: 26px; line-height: 1.35; color: #56645e; }
+.small-l { font-size: 28px; line-height: 1.35; color: #d7ebe3; }
+.who { font-size: 26px; font-weight: 600; letter-spacing: 2px; color: #0a5a47; }
+.who-d { font-size: 26px; font-weight: 600; letter-spacing: 2px; color: #d7ebe3; }
+.acc { color: #0a5a47; }
+
+.ul { font-size: 30px; line-height: 1.4; color: #3b4a44; padding-left: 32px; }
+li { margin-top: 12px; }
+
+.pill { align-self: flex-start; font-size: 28px; font-weight: 600; padding: 14px 30px; border-radius: 40px; }
+.pill-amb { background: #faebc8; color: #6b4500; }
+.pill-red { background: #fadeda; color: #b0261c; }
+.pill-good { background: #daeedd; color: #1d6b35; }
+.pill-soft { background: #d7ebe3; color: #0a5a47; }
+
+.card { box-sizing: border-box; background: #ffffff; border: 2px solid #c9d2ce; border-radius: 28px; padding: 36px; }
+.card-d { box-sizing: border-box; background: #0f6d58; border-radius: 28px; padding: 30px; }
+.card-l { box-sizing: border-box; background: #ffffff; color: #0e1d18; border-radius: 28px; padding: 36px; }
+.card-g { box-sizing: border-box; background: #0a5a47; border-radius: 28px; padding: 32px; }
+.cards { display: flex; gap: 32px; }
+.cardc { flex: 1; }
+
+.split { display: flex; gap: 80px; flex: 1; align-items: center; }
+.left { display: flex; flex-direction: column; }
+
+.row { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; border-top: 2px solid #e7ecea; }
+.row-l { font-size: 32px; color: #3b4a44; }
+.row-r { font-size: 32px; font-weight: 600; color: #0a5a47; }
+.late { animation: rise 600ms cubic-bezier(.2,.7,.2,1) both; animation-delay: 1300ms; }
+
+.steps { display: flex; align-items: stretch; gap: 12px; }
+.arw { width: 40px; display: flex; align-items: center; justify-content: center; }
+.num { font-family: 'Bricolage Grotesque', Arial, sans-serif; font-size: 72px; font-weight: 700; color: #d7ebe3; line-height: 1; }
+
+.rrows { display: flex; flex-direction: column; gap: 24px; }
+.rr { display: flex; align-items: stretch; }
+.rl { box-sizing: border-box; width: 640px; background: #faebc8; border-radius: 22px; padding: 28px 36px; display: flex; align-items: center; }
+.rrr { box-sizing: border-box; flex: 1; background: #d7ebe3; border-radius: 22px; padding: 28px 36px; display: flex; align-items: center; }
+.arw2 { width: 120px; display: flex; align-items: center; justify-content: center; }
+.arw3 { width: 56px; display: flex; align-items: center; justify-content: center; }
+.rt { font-size: 32px; line-height: 1.3; color: #0e1d18; font-weight: 600; }
+
+.duo { display: flex; gap: 64px; }
+.big { font-family: 'Bricolage Grotesque', Arial, sans-serif; font-size: 92px; font-weight: 700; line-height: 1.05; color: #0a5a47; }
+.tiles { display: flex; gap: 16px; }
+.tile { box-sizing: border-box; flex: 1; background: #f2f4f3; border-radius: 18px; padding: 18px 22px; }
+.tv { font-size: 34px; font-weight: 700; color: #0e1d18; margin-top: 4px; }
+.gauge { width: 640px; height: 20px; background: #e7ecea; border-radius: 10px; margin-top: 16px; }
+.gfill { width: 538px; height: 20px; background: #c98a0b; border-radius: 10px; }
+
+.flow { display: flex; align-items: center; gap: 16px; }
+.mid { display: flex; flex-direction: column; }
+.mb { box-sizing: border-box; padding: 28px 32px; }
+.chips { display: flex; flex-wrap: wrap; gap: 20px; }
+
+.eco { display: flex; align-items: center; gap: 64px; }
+.zero { box-sizing: border-box; width: 480px; background: #0f6d58; border-radius: 28px; padding: 40px; }
+.zv { font-family: 'Bricolage Grotesque', Arial, sans-serif; font-size: 104px; font-weight: 700; line-height: 1.05; color: #f2f4f3; }
+.fcol { flex: 1; display: flex; flex-direction: column; }
+.frow { display: flex; gap: 24px; }
+
+.hrow { display: flex; gap: 48px; margin-top: 64px; }
+.hcol { flex: 1; border-top: 4px solid #c9d2ce; padding-top: 28px; }
+
+.foot { position: absolute; left: 128px; top: 984px; width: 1664px; height: 32px; display: flex; justify-content: space-between; }
+.foot-t { font-size: 24px; color: #56645e; }
+.dark .foot-t { color: #d7ebe3; }
+.ink .foot-t { color: #a9b8b2; }
+
+@keyframes rise { from { opacity: 0; transform: translateY(32px); } }
+@keyframes fade { from { opacity: 0; } }
+@keyframes pop { from { opacity: 0; transform: scale(0.9); } }
+.rise { animation: rise 560ms cubic-bezier(.2,.7,.2,1) both; animation-delay: calc(var(--i, 0) * 90ms); }
+.fadein { animation: fade 700ms ease both; animation-delay: calc(var(--i, 0) * 90ms); }
+.pop { animation: pop 520ms cubic-bezier(.2,.8,.2,1) both; animation-delay: calc(var(--i, 0) * 90ms); }
+
+html{scroll-snap-type:y mandatory;background:#0e1d18}
+body{margin:0}
+section p,section h1,section h2,section h3,section ul,section li{margin:0}
+section *{box-sizing:border-box}
+.frame{height:100vh;scroll-snap-align:start;scroll-snap-stop:always;position:relative;overflow:hidden;background:#0e1d18}
+.stage{position:absolute;left:50%;top:50%;width:1920px;height:1080px;transform:translate(-50%,-50%) scale(var(--s,1))}
+.stage section{position:relative;width:1920px;height:1080px;box-sizing:border-box;overflow:hidden}
+.shp-arrow{background:currentColor;clip-path:polygon(0 30%,58% 30%,58% 0,100% 50%,58% 100%,58% 70%,0 70%)}
+.frame:not(.on) *{animation-play-state:paused!important}
+.frame.reset *{animation:none!important}
+#notes{position:fixed;left:0;right:0;bottom:0;background:rgba(14,29,24,.94);color:#f2f4f3;font:20px/1.45 'Public Sans',Arial,sans-serif;padding:18px 32px;display:none;z-index:9;max-height:32vh;overflow:auto}
+#notes.show{display:block}
+#hint{position:fixed;right:14px;top:10px;font:13px 'Public Sans',Arial,sans-serif;color:#a9b8b2;z-index:9;opacity:.8}
+</style></head><body>
+<div class="frame" id="f-cover"><div class="stage"><section data-notes="Ouverture. Présentez-vous, puis annoncez : on va suivre une commerçante, Afiavi. Dites que le cas d’usage traité est le numéro 3 : évaluer la capacité de remboursement d’un commerçant sans historique bancaire." id="cover" class="dark" data-transition="fade">
+<svg aria-label="Logo Kwedo" width="640" height="640" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" style="position:absolute;left:1150px;top:170px;width:640px;height:640px"><defs><mask id="mcv"><rect width="32" height="32" fill="#fff"/><path d="M14.67 15.23Q22.51 13.04 26.53 5.97Q20.42 10.36 14.67 15.23z" fill="#000"/><path d="M16.5 14.63L16.84 15.07M16.06 14.07L15.72 13.64M17.5 14.23L17.84 14.66M16.86 13.41L16.52 12.97M18.47 13.77L18.8 14.21M17.66 12.75L17.32 12.32M19.39 13.28L19.73 13.71M18.47 12.1L18.13 11.66M20.29 12.73L20.62 13.16M19.28 11.45L18.94 11.01M21.14 12.14L21.48 12.57M20.1 10.8L19.76 10.37M21.96 11.5L22.3 11.93M20.92 10.16L20.58 9.73M22.74 10.81L23.08 11.24M21.74 9.53L21.4 9.09M23.49 10.08L23.83 10.51M22.57 8.9L22.23 8.46M24.2 9.3L24.54 9.73M23.4 8.27L23.06 7.84M24.87 8.47L25.21 8.9M24.23 7.65L23.89 7.22M25.51 7.6L25.85 8.03M25.06 7.03L24.73 6.6" stroke="#000" stroke-width=".34" stroke-linecap="round"/><path d="M26.96 4.81a1.05 1.05 0 1 0 2.1 0a1.05 1.05 0 1 0-2.1 0M12.14 16.39a1.05 1.05 0 1 0 2.1 0a1.05 1.05 0 1 0-2.1 0" fill="#000"/></mask></defs><path d="M5 6.5a2.5 2.5 0 0 1 5 0v19a2.5 2.5 0 0 1-5 0z" fill="#12705a"/><path d="M14.2 18.2 25 27.2" stroke="#12705a" stroke-width="4.6" stroke-linecap="round" fill="none"/><path d="M13.19 16.39A9.4 6.9 -38 1 1 28.01 4.81A9.4 6.9 -38 1 1 13.19 16.39z" fill="#168067" mask="url(#mcv)"/></svg><div class="brand rise" style="--i:0"><svg aria-label="Logo Kwedo" width="72" height="72" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" style=""><defs><mask id="mcb"><rect width="32" height="32" fill="#fff"/><path d="M14.67 15.23Q22.51 13.04 26.53 5.97Q20.42 10.36 14.67 15.23z" fill="#000"/><path d="M16.5 14.63L16.84 15.07M16.06 14.07L15.72 13.64M17.5 14.23L17.84 14.66M16.86 13.41L16.52 12.97M18.47 13.77L18.8 14.21M17.66 12.75L17.32 12.32M19.39 13.28L19.73 13.71M18.47 12.1L18.13 11.66M20.29 12.73L20.62 13.16M19.28 11.45L18.94 11.01M21.14 12.14L21.48 12.57M20.1 10.8L19.76 10.37M21.96 11.5L22.3 11.93M20.92 10.16L20.58 9.73M22.74 10.81L23.08 11.24M21.74 9.53L21.4 9.09M23.49 10.08L23.83 10.51M22.57 8.9L22.23 8.46M24.2 9.3L24.54 9.73M23.4 8.27L23.06 7.84M24.87 8.47L25.21 8.9M24.23 7.65L23.89 7.22M25.51 7.6L25.85 8.03M25.06 7.03L24.73 6.6" stroke="#000" stroke-width=".34" stroke-linecap="round"/><path d="M26.96 4.81a1.05 1.05 0 1 0 2.1 0a1.05 1.05 0 1 0-2.1 0M12.14 16.39a1.05 1.05 0 1 0 2.1 0a1.05 1.05 0 1 0-2.1 0" fill="#000"/></mask></defs><path d="M5 6.5a2.5 2.5 0 0 1 5 0v19a2.5 2.5 0 0 1-5 0z" fill="#f2f4f3"/><path d="M14.2 18.2 25 27.2" stroke="#f2f4f3" stroke-width="4.6" stroke-linecap="round" fill="none"/><path d="M13.19 16.39A9.4 6.9 -38 1 1 28.01 4.81A9.4 6.9 -38 1 1 13.19 16.39z" fill="#d7ebe3" mask="url(#mcb)"/></svg><p class="wordmark">Kwedo</p></div><div class="grow"></div><p class="eyebrow rise" style="--i:1">GPU CHALLENGE · CAS D’USAGE 3 · CRÉDIT DES PETITS COMMERÇANTS</p><h1 class="rise" style="--i:2;width:1400px;margin-top:24px">Le crédit qui suit le rythme de vos ventes.</h1><p class="lead rise" style="--i:3;width:1100px;margin-top:40px">Kwedo lit les encaissements mobile money d’un petit commerçant et donne à l’institution de crédit un dossier prêt à décider.</p><p class="pill pill-amb rise" style="--i:4;margin-top:44px">Prototype · données simulées</p>
+
+
+</section>
+</div></div>
+<div class="frame" id="f-afiavi"><div class="stage"><section data-notes="Moment d’émotion. Laissez les encaissements apparaître un à un, puis la phrase de refus. Précisez que les montants sont fictifs. Le message : les ventes existent, elles ne se lisent pas." id="afiavi" class="" data-transition="fade">
+<div class="split"><div class="left" style="width:760px"><p class="eyebrow rise" style="--i:0">AFIAVI, VENDEUSE DE TISSUS À COTONOU</p><h2 class="rise" style="--i:1;margin-top:28px;font-size:84px;line-height:1.05">Elle vend tous les jours.</h2><h2 class="rise acc" style="--i:2;margin-top:20px;font-size:84px;line-height:1.05">Pour le crédit, elle n’existe pas.</h2><p class="lead rise" style="--i:3;margin-top:44px">Chaque paiement mobile money prouve son activité. Aucune banque ne sait encore le lire.</p></div><div class="card" style="width:780px"><p class="small rise" style="--i:1">Quelques encaissements de sa journée (exemple fictif)</p><div class="row rise" style="--i:2"><p class="row-l">Client · tissu</p><p class="row-r">+ 18 500 FCFA</p></div><div class="row rise" style="--i:3"><p class="row-l">Client · pagne</p><p class="row-r">+ 12 000 FCFA</p></div><div class="row rise" style="--i:4"><p class="row-l">Client · tissu</p><p class="row-r">+ 7 200 FCFA</p></div><div class="row rise" style="--i:5"><p class="row-l">Client · wax</p><p class="row-r">+ 26 000 FCFA</p></div><p class="pill pill-red late" style="margin-top:32px">Dossier classique : refusé, pas d’historique</p></div></div>
+<div class="foot"><p class="foot-t">Kwedo · prototype, données simulées</p><p class="foot-t">02 / 11</p></div>
+
+</section>
+</div></div>
+<div class="frame" id="f-problemes"><div class="stage"><section data-notes="Trois colonnes, trois points de vue. À vérifier avant de chiffrer : le coût des crédits digitaux existants (frais de décaissement de l’ordre de 10 % relevés sur une offre concurrente) et les chiffres d’inclusion financière. Ne les citez que s’ils sont sourcés." id="problemes" class="" data-transition="fade">
+<p class="eyebrow rise" style="--i:0">LES PROBLÈMES</p><h2 class="rise" style="--i:1;margin-top:24px">Trois acteurs, un même angle mort.</h2><div class="cards" style="margin-top:56px"><div class="card cardc rise" style="--i:2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:64px;height:64px;color:#0a5a47"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><circle cx="17" cy="9" r="2.8"/><path d="M17 14c2.8 0 4.5 2 4.5 5"/></svg><h3 style="margin-top:28px;font-size:40px">Les commerçants</h3><ul class="ul" style="margin-top:24px"><li>Pas de bilan ni d’historique bancaire</li><li>Exclus du crédit formel</li><li>Des crédits digitaux rapides, mais souvent chers et peu lisibles</li></ul></div><div class="card cardc rise" style="--i:3"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:64px;height:64px;color:#0a5a47"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><h3 style="margin-top:28px;font-size:40px">Les institutions</h3><ul class="ul" style="margin-top:24px"><li>Aucune donnée fiable sur ces clients</li><li>De petits dossiers longs à analyser</li><li>Des flux qui peuvent être arrangés</li></ul></div><div class="card cardc rise" style="--i:4"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:64px;height:64px;color:#0a5a47"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg><h3 style="margin-top:28px;font-size:40px">L’écosystème</h3><ul class="ul" style="margin-top:24px"><li>Le mobile money rythme déjà le quotidien des commerçants</li><li>Ces traces de ventes restent inexploitées</li><li>Une inclusion financière encore incomplète</li></ul></div></div>
+<div class="foot"><p class="foot-t">Kwedo · prototype, données simulées</p><p class="foot-t">03 / 11</p></div>
+
+</section>
+</div></div>
+<div class="frame" id="f-solution"><div class="stage"><section data-notes="La solution en quatre temps. Insistez sur la dernière : le moteur propose, l’humain tranche. C’est aussi ce qui rassure les institutions et le régulateur. Tout se suit depuis le téléphone ou WhatsApp (notifications, rappels, relances) : fonction prévue, les relances du prototype sont simulées." id="solution" class="dark" data-transition="fade">
+<p class="eyebrow rise" style="--i:0">NOTRE SOLUTION</p><h2 class="rise" style="--i:1;margin-top:24px;width:1500px">Kwedo lit les ventes. L’institution décide.</h2><div class="steps" style="margin-top:72px"><div class="card-d cardc pop" style="--i:2"><p class="num">1</p><h3 style="margin-top:20px;font-size:34px">Les encaissements</h3><p class="body-d" style="margin-top:16px">Seuls les paiements de clients comptent. Les transferts vers soi-même et les allers-retours sont écartés.</p></div><div class="arw fadein" style="--i:3"><span class="shp-arrow" style="display:block;width:40px;height:24px;background:#d7ebe3"></span></div><div class="card-d cardc pop" style="--i:4"><p class="num">2</p><h3 style="margin-top:20px;font-size:34px">Un plafond prudent</h3><p class="body-d" style="margin-top:16px">On part d’une mauvaise semaine, pas de la moyenne. Un plafond, son prix, ses raisons.</p></div><div class="arw fadein" style="--i:5"><span class="shp-arrow" style="display:block;width:40px;height:24px;background:#d7ebe3"></span></div><div class="card-d cardc pop" style="--i:6"><p class="num">3</p><h3 style="margin-top:20px;font-size:34px">Un dossier prêt</h3><p class="body-d" style="margin-top:16px">Indicateurs, alertes de cohérence, montant proposé et facteurs qui ont pesé.</p></div><div class="arw fadein" style="--i:7"><span class="shp-arrow" style="display:block;width:40px;height:24px;background:#d7ebe3"></span></div><div class="card-d cardc pop" style="--i:8"><p class="num">4</p><h3 style="margin-top:20px;font-size:34px">Une décision humaine</h3><p class="body-d" style="margin-top:16px">L’agent valide, ajuste ou refuse, avec un justificatif obligatoire et tracé.</p></div></div><p class="pill pill-soft rise" style="--i:9;margin-top:44px">Suivi et notifications sur le téléphone ou directement dans WhatsApp</p>
+<div class="foot"><p class="foot-t">Kwedo · prototype, données simulées</p><p class="foot-t">04 / 11</p></div>
+
+</section>
+</div></div>
+<div class="frame" id="f-resolution"><div class="stage"><section data-notes="Faites le lien ligne à ligne avec la slide des problèmes. Pour la détection des flux arrangés, appuyez-vous sur la démo : un dossier avec alertes et 2,3 millions de FCFA de flux circulaires exclus." id="resolution" class="" data-transition="fade">
+<p class="eyebrow rise" style="--i:0">COMMENT KWEDO RÉPOND</p><h2 class="rise" style="--i:1;margin-top:24px">Chaque problème a sa réponse.</h2><div class="rrows" style="margin-top:48px"><div class="rr rise" style="--i:2"><div class="rl"><p class="rt">Pas d’historique bancaire</p></div><div class="arw2"><span class="shp-arrow" style="display:block;width:64px;height:32px;background:#0a5a47"></span></div><div class="rrr"><p class="rt">Les encaissements mobile money prouvent la capacité de remboursement.</p></div></div><div class="rr rise" style="--i:3"><div class="rl"><p class="rt">Des flux qui peuvent être arrangés</p></div><div class="arw2"><span class="shp-arrow" style="display:block;width:64px;height:32px;background:#0a5a47"></span></div><div class="rrr"><p class="rt">Allers-retours, pics et concentrations sont détectés et exclus du chiffre d’affaires vérifié.</p></div></div><div class="rr rise" style="--i:4"><div class="rl"><p class="rt">Des dossiers longs à analyser</p></div><div class="arw2"><span class="shp-arrow" style="display:block;width:64px;height:32px;background:#0a5a47"></span></div><div class="rrr"><p class="rt">L’agent lit un dossier en un écran, alertes d’abord, puis décide.</p></div></div><div class="rr rise" style="--i:5"><div class="rl"><p class="rt">Un crédit cher et opaque</p></div><div class="arw2"><span class="shp-arrow" style="display:block;width:64px;height:32px;background:#0a5a47"></span></div><div class="rrr"><p class="rt">Coût total affiché avant l’accord, aucun frais Kwedo pour le commerçant.</p></div></div></div>
+<div class="foot"><p class="foot-t">Kwedo · prototype, données simulées</p><p class="foot-t">05 / 11</p></div>
+
+</section>
+</div></div>
+<div class="frame" id="f-demo"><div class="stage"><section data-notes="Passez ici en démo en direct, sur la plateforme. Parcours conseillé : estimation, simulateur (« et si mes ventes baissaient de 30 % »), envoi du dossier, puis côté institution : fiche, chaîne de calcul, décision avec justificatif. Montrez ensuite un dossier à alertes (pic de ventes avant la demande, flux circulaires). Le message de la slide : chaque institution applique ses propres règles, d’où deux plafonds différents." id="demo" class="ink" data-transition="fade">
+<p class="eyebrow rise" style="--i:0;color:#d7ebe3">DÉMONSTRATION · 3 À 4 MINUTES</p><h2 class="rise" style="--i:1;margin-top:24px;width:1600px">Même commerçante, deux institutions, deux plafonds.</h2><div class="duo" style="margin-top:48px"><div class="card-l pop" style="--i:2;width:800px"><p class="small-d">Côté commerçante · selon Caisse Lagune (fictive)</p><p class="small-d" style="margin-top:20px;color:#1c2a25">Bonjour Afiavi, vous pouvez emprunter jusqu’à</p><p class="big" style="margin-top:8px">865 000 FCFA</p><div class="tiles" style="margin-top:24px"><div class="tile"><p class="small-d">Chaque semaine</p><p class="tv">34 864 FCFA</p></div><div class="tile"><p class="small-d">Pendant</p><p class="tv">26 semaines</p></div></div><p class="small-d" style="margin-top:20px">Aucun frais Kwedo · coût total affiché</p></div><div class="card-l pop" style="--i:4;width:800px"><p class="small-d">Côté institution · Banque Baobab (fictive)</p><p class="small-d" style="margin-top:20px;color:#1c2a25">Afiavi Houngbo · tissus · 52 semaines</p><p class="big" style="margin-top:8px">460 000 FCFA</p><p class="small-d" style="margin-top:24px">Risque d’impayé annoncé : 5,9 % pour un seuil de 7 %</p><div class="gauge"><div class="gfill"></div></div><p class="pill pill-good" style="margin-top:24px">Aucune alerte de cohérence</p></div></div>
+<div class="foot"><p class="foot-t">Kwedo · prototype, données simulées</p><p class="foot-t">06 / 11</p></div>
+
+</section>
+</div></div>
+<div class="frame" id="f-gains"><div class="stage"><section data-notes="Un bénéfice par profil, avec notifications sur le téléphone ou directement dans WhatsApp (rappels, relances, alertes), là où les gens sont déjà. Précisez que c’est prévu : dans le prototype, les relances sont simulées.  Soyez honnêtes sur le gain de temps : il reste à mesurer en pilote, avec de vrais agents. Cette franchise est un point fort devant un jury." id="gains" class="" data-transition="fade">
+<p class="eyebrow rise" style="--i:0">CE QUE CHACUN Y GAGNE</p><h2 class="rise" style="--i:1;margin-top:24px">Une même plateforme, quatre bénéfices.</h2><div class="cards" style="margin-top:48px;gap:28px"><div class="card cardc rise" style="--i:2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:56px;height:56px;color:#0a5a47"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg><p class="who" style="margin-top:20px">Le commerçant</p><h3 style="margin-top:8px;font-size:36px">Savoir avant de demander</h3><ul class="ul" style="margin-top:20px;font-size:26px"><li>Plafond, échéance et coût total connus à l’avance</li><li>Rappels d’échéance et suivi sur son téléphone ou dans WhatsApp</li></ul></div><div class="card cardc rise" style="--i:3"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:56px;height:56px;color:#0a5a47"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><p class="who" style="margin-top:20px">L’agent de crédit</p><h3 style="margin-top:8px;font-size:36px">Un dossier lisible en un écran</h3><ul class="ul" style="margin-top:20px;font-size:26px"><li>Alertes d’abord, raisons en clair</li><li>Décision justifiée et tracée</li></ul></div><div class="card cardc rise" style="--i:4"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:56px;height:56px;color:#0a5a47"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg><p class="who" style="margin-top:20px">Le responsable crédit</p><h3 style="margin-top:8px;font-size:36px">Ses règles, ses seuils</h3><ul class="ul" style="margin-top:20px;font-size:26px"><li>Paramètres versionnés, jamais réécrits</li><li>Portefeuille suivi, alertes et relances par notification ou WhatsApp</li></ul></div><div class="card cardc rise" style="--i:5"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:56px;height:56px;color:#0a5a47"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg><p class="who" style="margin-top:20px">L’institution</p><h3 style="margin-top:8px;font-size:36px">Un segment enfin mesurable</h3><ul class="ul" style="margin-top:20px;font-size:26px"><li>Risque évalué sans bilan ni historique</li><li>Données cloisonnées entre institutions</li></ul></div></div><p class="small rise" style="--i:6;margin-top:36px">Le gain de temps n’a pas encore été mesuré avec de vrais agents.</p>
+<div class="foot"><p class="foot-t">Kwedo · prototype, données simulées</p><p class="foot-t">07 / 11</p></div>
+
+</section>
+</div></div>
+<div class="frame" id="f-moteur"><div class="stage"><section data-notes="Expliquez le principe : on part d’une mauvaise semaine (percentile prudent) et on prend le plus bas entre la formule et la simulation. Le GPU sert à la simulation à grande échelle, à la génération de données synthétiques et à l’entraînement des trois modèles, pas à la décision en direct. Dites clairement que les données sont simulées : c’est une démonstration, pas une performance réelle." id="moteur" class="" data-transition="fade">
+<p class="eyebrow rise" style="--i:0">LE MOTEUR DE RISQUE</p><h2 class="rise" style="--i:1;margin-top:24px">Un plafond prudent, jamais une boîte noire.</h2><div class="flow" style="margin-top:44px"><div class="mb card rise" style="--i:2;width:430px"><p class="who">1 · Entrée</p><h3 style="margin-top:8px;font-size:36px">Encaissements vérifiés</h3><p class="body" style="margin-top:12px">Paiements de clients seulement, hors flux circulaires.</p></div><div class="arw3"><span class="shp-arrow" style="display:block;width:56px;height:28px;background:#0a5a47"></span></div><div class="mid"><div class="mb card rise" style="--i:3;width:620px"><p class="who">2a · Formule</p><h3 style="margin-top:8px;font-size:36px">R = Cp × m × s</h3><p class="body" style="margin-top:12px">Capacité de remboursement, puis plafond sur n semaines.</p></div><div class="mb card rise" style="--i:4;width:620px;margin-top:24px"><p class="who">2b · Simulation et modèle</p><h3 style="margin-top:8px;font-size:36px">2 000 avenirs</h3><p class="body" style="margin-top:12px">Probabilité de manquer une échéance, modèle entraîné.</p></div></div><div class="arw3"><span class="shp-arrow" style="display:block;width:56px;height:28px;background:#0a5a47"></span></div><div class="mb card-g pop" style="--i:6;width:420px"><p class="who-d">3 · Résultat</p><h3 style="margin-top:8px;font-size:40px;color:#f2f4f3">Le plus bas des deux</h3><p class="body-d" style="margin-top:12px">La formule n’est jamais dépassée.</p></div></div><div class="chips" style="margin-top:36px"><p class="pill pill-soft rise" style="--i:7">3 modèles entraînés sur GPU : prévision, défaut, anomalies</p><p class="pill pill-soft rise" style="--i:8">Entraînés sur données simulées, à réentraîner en pilote</p></div>
+<div class="foot"><p class="foot-t">Kwedo · prototype, données simulées</p><p class="foot-t">08 / 11</p></div>
+
+</section>
+</div></div>
+<div class="frame" id="f-modele"><div class="stage"><section data-notes="Le commerçant ne paie rien : des frais de dossier créeraient de la méfiance, un conflit d’intérêts et freineraient l’adoption. Côté institution, la première étape est un pilote pour évaluer l’application sur de vrais dossiers ; durée, périmètre et conditions se fixent avec la première institution partenaire. Ensuite, deux offres : un abonnement annuel (service hébergé et suivi) ou une licence (droit d’usage, intégration chez l’institution). Les prix ne sont pas arrêtés. Jamais de commission sur le montant prêté." id="modele" class="dark" data-transition="fade">
+<p class="eyebrow rise" style="--i:0">MODÈLE ÉCONOMIQUE</p><h2 class="rise" style="--i:1;margin-top:24px;width:1600px">Gratuit pour le commerçant. Deux offres pour l’institution, après un pilote.</h2><div class="eco" style="margin-top:56px"><div class="zero pop" style="--i:2"><p class="zv">0 FCFA</p><p class="body-d" style="margin-top:12px">pour le commerçant : ni frais de dossier, ni commission</p></div><div class="fcol"><div class="card-l pop" style="--i:3;display:flex;align-items:center;gap:36px"><p class="pill pill-amb" style="flex:none">Étape 1</p><div><h3 style="font-size:40px">Phase pilote</h3><p class="body" style="margin-top:10px;font-size:28px">L’institution évalue Kwedo sur de vrais dossiers, avant tout engagement.</p></div></div><div class="frow" style="margin-top:32px"><div class="card-d cardc pop" style="--i:4"><h3 style="font-size:40px">Abonnement annuel</h3><p class="body-d" style="margin-top:14px">Kwedo hébergé et suivi par l’équipe, reconduit chaque année.</p></div><div class="card-d cardc pop" style="--i:5"><h3 style="font-size:40px">Licence</h3><p class="body-d" style="margin-top:14px">Droit d’usage de Kwedo, intégré au système de l’institution.</p></div></div><p class="pill pill-amb rise" style="--i:6;margin-top:32px">Jamais un pourcentage du montant prêté</p></div></div>
+<div class="foot"><p class="foot-t">Kwedo · prototype, données simulées</p><p class="foot-t">09 / 11</p></div>
+
+</section>
+</div></div>
+<div class="frame" id="f-vision"><div class="stage"><section data-notes="Trois horizons. Le pilote est la prochaine étape concrète : une institution, de vraies données, réentraînement des modèles. Les extensions (e-MECeF, crédit fournisseur, paiement différé, épargne, micro-assurance, chaînes agricoles, autres pays) sont des pistes à valider, pas des promesses." id="vision" class="" data-transition="fade">
+<p class="eyebrow rise" style="--i:0">VISION À LONG TERME</p><h2 class="rise" style="--i:1;margin-top:24px;width:1600px">De la capacité de remboursement à la finance du quotidien.</h2><div class="hrow" style="margin-top:56px"><div class="hcol rise" style="--i:2"><div class="hdot"><svg aria-label="Logo Kwedo" width="64" height="64" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" style=""><defs><mask id="mv1"><rect width="32" height="32" fill="#fff"/><path d="M14.67 15.23Q22.51 13.04 26.53 5.97Q20.42 10.36 14.67 15.23z" fill="#000"/><path d="M16.5 14.63L16.84 15.07M16.06 14.07L15.72 13.64M17.5 14.23L17.84 14.66M16.86 13.41L16.52 12.97M18.47 13.77L18.8 14.21M17.66 12.75L17.32 12.32M19.39 13.28L19.73 13.71M18.47 12.1L18.13 11.66M20.29 12.73L20.62 13.16M19.28 11.45L18.94 11.01M21.14 12.14L21.48 12.57M20.1 10.8L19.76 10.37M21.96 11.5L22.3 11.93M20.92 10.16L20.58 9.73M22.74 10.81L23.08 11.24M21.74 9.53L21.4 9.09M23.49 10.08L23.83 10.51M22.57 8.9L22.23 8.46M24.2 9.3L24.54 9.73M23.4 8.27L23.06 7.84M24.87 8.47L25.21 8.9M24.23 7.65L23.89 7.22M25.51 7.6L25.85 8.03M25.06 7.03L24.73 6.6" stroke="#000" stroke-width=".34" stroke-linecap="round"/><path d="M26.96 4.81a1.05 1.05 0 1 0 2.1 0a1.05 1.05 0 1 0-2.1 0M12.14 16.39a1.05 1.05 0 1 0 2.1 0a1.05 1.05 0 1 0-2.1 0" fill="#000"/></mask></defs><path d="M5 6.5a2.5 2.5 0 0 1 5 0v19a2.5 2.5 0 0 1-5 0z" fill="#0e1d18"/><path d="M14.2 18.2 25 27.2" stroke="#0e1d18" stroke-width="4.6" stroke-linecap="round" fill="none"/><path d="M13.19 16.39A9.4 6.9 -38 1 1 28.01 4.81A9.4 6.9 -38 1 1 13.19 16.39z" fill="#0a5a47" mask="url(#mv1)"/></svg></div><p class="who" style="margin-top:28px">D’ABORD</p><h3 style="margin-top:6px;font-size:44px">Pilote</h3><ul class="ul" style="margin-top:20px"><li>Une institution partenaire</li><li>Vraies données, modèles réentraînés</li></ul></div><div class="hcol rise" style="--i:3"><div class="hdot"><svg aria-label="Logo Kwedo" width="64" height="64" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" style=""><defs><mask id="mv2"><rect width="32" height="32" fill="#fff"/><path d="M14.67 15.23Q22.51 13.04 26.53 5.97Q20.42 10.36 14.67 15.23z" fill="#000"/><path d="M16.5 14.63L16.84 15.07M16.06 14.07L15.72 13.64M17.5 14.23L17.84 14.66M16.86 13.41L16.52 12.97M18.47 13.77L18.8 14.21M17.66 12.75L17.32 12.32M19.39 13.28L19.73 13.71M18.47 12.1L18.13 11.66M20.29 12.73L20.62 13.16M19.28 11.45L18.94 11.01M21.14 12.14L21.48 12.57M20.1 10.8L19.76 10.37M21.96 11.5L22.3 11.93M20.92 10.16L20.58 9.73M22.74 10.81L23.08 11.24M21.74 9.53L21.4 9.09M23.49 10.08L23.83 10.51M22.57 8.9L22.23 8.46M24.2 9.3L24.54 9.73M23.4 8.27L23.06 7.84M24.87 8.47L25.21 8.9M24.23 7.65L23.89 7.22M25.51 7.6L25.85 8.03M25.06 7.03L24.73 6.6" stroke="#000" stroke-width=".34" stroke-linecap="round"/><path d="M26.96 4.81a1.05 1.05 0 1 0 2.1 0a1.05 1.05 0 1 0-2.1 0M12.14 16.39a1.05 1.05 0 1 0 2.1 0a1.05 1.05 0 1 0-2.1 0" fill="#000"/></mask></defs><path d="M5 6.5a2.5 2.5 0 0 1 5 0v19a2.5 2.5 0 0 1-5 0z" fill="#0e1d18"/><path d="M14.2 18.2 25 27.2" stroke="#0e1d18" stroke-width="4.6" stroke-linecap="round" fill="none"/><path d="M13.19 16.39A9.4 6.9 -38 1 1 28.01 4.81A9.4 6.9 -38 1 1 13.19 16.39z" fill="#0a5a47" mask="url(#mv2)"/></svg></div><p class="who" style="margin-top:28px">ENSUITE</p><h3 style="margin-top:6px;font-size:44px">Extension</h3><ul class="ul" style="margin-top:20px"><li>Factures e-MECeF et état de trésorerie</li><li>Crédit fournisseur et paiement différé</li></ul></div><div class="hcol rise" style="--i:4"><div class="hdot"><svg aria-label="Logo Kwedo" width="64" height="64" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" style=""><defs><mask id="mv3"><rect width="32" height="32" fill="#fff"/><path d="M14.67 15.23Q22.51 13.04 26.53 5.97Q20.42 10.36 14.67 15.23z" fill="#000"/><path d="M16.5 14.63L16.84 15.07M16.06 14.07L15.72 13.64M17.5 14.23L17.84 14.66M16.86 13.41L16.52 12.97M18.47 13.77L18.8 14.21M17.66 12.75L17.32 12.32M19.39 13.28L19.73 13.71M18.47 12.1L18.13 11.66M20.29 12.73L20.62 13.16M19.28 11.45L18.94 11.01M21.14 12.14L21.48 12.57M20.1 10.8L19.76 10.37M21.96 11.5L22.3 11.93M20.92 10.16L20.58 9.73M22.74 10.81L23.08 11.24M21.74 9.53L21.4 9.09M23.49 10.08L23.83 10.51M22.57 8.9L22.23 8.46M24.2 9.3L24.54 9.73M23.4 8.27L23.06 7.84M24.87 8.47L25.21 8.9M24.23 7.65L23.89 7.22M25.51 7.6L25.85 8.03M25.06 7.03L24.73 6.6" stroke="#000" stroke-width=".34" stroke-linecap="round"/><path d="M26.96 4.81a1.05 1.05 0 1 0 2.1 0a1.05 1.05 0 1 0-2.1 0M12.14 16.39a1.05 1.05 0 1 0 2.1 0a1.05 1.05 0 1 0-2.1 0" fill="#000"/></mask></defs><path d="M5 6.5a2.5 2.5 0 0 1 5 0v19a2.5 2.5 0 0 1-5 0z" fill="#0e1d18"/><path d="M14.2 18.2 25 27.2" stroke="#0e1d18" stroke-width="4.6" stroke-linecap="round" fill="none"/><path d="M13.19 16.39A9.4 6.9 -38 1 1 28.01 4.81A9.4 6.9 -38 1 1 13.19 16.39z" fill="#0a5a47" mask="url(#mv3)"/></svg></div><p class="who" style="margin-top:28px">PLUS TARD</p><h3 style="margin-top:6px;font-size:44px">Plateforme</h3><ul class="ul" style="margin-top:20px"><li>Épargne et micro-assurance</li><li>Chaînes agricoles, autres pays de l’UEMOA</li></ul></div></div><p class="small rise" style="--i:5;margin-top:36px">Ce sont des directions, pas des engagements.</p>
+<div class="foot"><p class="foot-t">Kwedo · prototype, données simulées</p><p class="foot-t">10 / 11</p></div>
+
+</section>
+</div></div>
+<div class="frame" id="f-fin"><div class="stage"><section data-notes="Fermez la boucle avec Afiavi. Gardez une phrase : « les ventes existent, Kwedo apprend aux institutions à les lire ». Questions probables : données simulées, pourquoi pas de frais pour le commerçant, rôle exact du GPU, loi n°2017-20 et consentement." id="fin" class="dark" data-transition="fade">
+<svg aria-label="Logo Kwedo" width="560" height="560" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" style="position:absolute;left:1230px;top:220px;width:560px;height:560px"><defs><mask id="mfn"><rect width="32" height="32" fill="#fff"/><path d="M14.67 15.23Q22.51 13.04 26.53 5.97Q20.42 10.36 14.67 15.23z" fill="#000"/><path d="M16.5 14.63L16.84 15.07M16.06 14.07L15.72 13.64M17.5 14.23L17.84 14.66M16.86 13.41L16.52 12.97M18.47 13.77L18.8 14.21M17.66 12.75L17.32 12.32M19.39 13.28L19.73 13.71M18.47 12.1L18.13 11.66M20.29 12.73L20.62 13.16M19.28 11.45L18.94 11.01M21.14 12.14L21.48 12.57M20.1 10.8L19.76 10.37M21.96 11.5L22.3 11.93M20.92 10.16L20.58 9.73M22.74 10.81L23.08 11.24M21.74 9.53L21.4 9.09M23.49 10.08L23.83 10.51M22.57 8.9L22.23 8.46M24.2 9.3L24.54 9.73M23.4 8.27L23.06 7.84M24.87 8.47L25.21 8.9M24.23 7.65L23.89 7.22M25.51 7.6L25.85 8.03M25.06 7.03L24.73 6.6" stroke="#000" stroke-width=".34" stroke-linecap="round"/><path d="M26.96 4.81a1.05 1.05 0 1 0 2.1 0a1.05 1.05 0 1 0-2.1 0M12.14 16.39a1.05 1.05 0 1 0 2.1 0a1.05 1.05 0 1 0-2.1 0" fill="#000"/></mask></defs><path d="M5 6.5a2.5 2.5 0 0 1 5 0v19a2.5 2.5 0 0 1-5 0z" fill="#12705a"/><path d="M14.2 18.2 25 27.2" stroke="#12705a" stroke-width="4.6" stroke-linecap="round" fill="none"/><path d="M13.19 16.39A9.4 6.9 -38 1 1 28.01 4.81A9.4 6.9 -38 1 1 13.19 16.39z" fill="#168067" mask="url(#mfn)"/></svg><div class="brand rise" style="--i:0"><svg aria-label="Logo Kwedo" width="72" height="72" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" style=""><defs><mask id="mfb"><rect width="32" height="32" fill="#fff"/><path d="M14.67 15.23Q22.51 13.04 26.53 5.97Q20.42 10.36 14.67 15.23z" fill="#000"/><path d="M16.5 14.63L16.84 15.07M16.06 14.07L15.72 13.64M17.5 14.23L17.84 14.66M16.86 13.41L16.52 12.97M18.47 13.77L18.8 14.21M17.66 12.75L17.32 12.32M19.39 13.28L19.73 13.71M18.47 12.1L18.13 11.66M20.29 12.73L20.62 13.16M19.28 11.45L18.94 11.01M21.14 12.14L21.48 12.57M20.1 10.8L19.76 10.37M21.96 11.5L22.3 11.93M20.92 10.16L20.58 9.73M22.74 10.81L23.08 11.24M21.74 9.53L21.4 9.09M23.49 10.08L23.83 10.51M22.57 8.9L22.23 8.46M24.2 9.3L24.54 9.73M23.4 8.27L23.06 7.84M24.87 8.47L25.21 8.9M24.23 7.65L23.89 7.22M25.51 7.6L25.85 8.03M25.06 7.03L24.73 6.6" stroke="#000" stroke-width=".34" stroke-linecap="round"/><path d="M26.96 4.81a1.05 1.05 0 1 0 2.1 0a1.05 1.05 0 1 0-2.1 0M12.14 16.39a1.05 1.05 0 1 0 2.1 0a1.05 1.05 0 1 0-2.1 0" fill="#000"/></mask></defs><path d="M5 6.5a2.5 2.5 0 0 1 5 0v19a2.5 2.5 0 0 1-5 0z" fill="#f2f4f3"/><path d="M14.2 18.2 25 27.2" stroke="#f2f4f3" stroke-width="4.6" stroke-linecap="round" fill="none"/><path d="M13.19 16.39A9.4 6.9 -38 1 1 28.01 4.81A9.4 6.9 -38 1 1 13.19 16.39z" fill="#d7ebe3" mask="url(#mfb)"/></svg><p class="wordmark">Kwedo</p></div><div class="grow"></div><h1 class="rise" style="--i:1;width:1150px;font-size:104px">Afiavi encaisse déjà.</h1><h1 class="rise" style="--i:3;width:1150px;font-size:104px;margin-top:12px;color:#d7ebe3">Il ne manquait que de savoir la lire.</h1><p class="lead rise" style="--i:5;margin-top:48px;width:1100px">Merci. Place à vos questions.</p><p class="small-l rise" style="--i:6;margin-top:28px">WINTECH · Epitech Cotonou</p>
+
+
+</section>
+</div></div>
+<div id="notes"></div><div id="hint">↑ ↓ naviguer · N notes · F plein écran</div>
+<script>
+const frames=[...document.querySelectorAll('.frame')],notes=document.getElementById('notes');
+function fit(){document.documentElement.style.setProperty('--s',Math.min(innerWidth/1920,innerHeight/1080))}
+addEventListener('resize',fit);fit();
+let cur=0;
+const io=new IntersectionObserver(es=>es.forEach(e=>{
+  const f=e.target;
+  if(e.isIntersecting&&e.intersectionRatio>.6){f.classList.remove('reset');void f.offsetWidth;f.classList.add('on');cur=frames.indexOf(f);
+    notes.textContent=f.querySelector('section').dataset.notes||'';history.replaceState(null,'','#'+f.id.slice(2))}
+  else if(!e.isIntersecting){f.classList.remove('on');f.classList.add('reset')}
+}),{threshold:[0,.6]});
+frames.forEach(f=>io.observe(f));
+function go(i){cur=Math.max(0,Math.min(frames.length-1,i));frames[cur].scrollIntoView({behavior:'smooth'})}
+addEventListener('keydown',e=>{
+  if(['ArrowDown','ArrowRight','PageDown',' ','Enter'].includes(e.key)){e.preventDefault();go(cur+1)}
+  else if(['ArrowUp','ArrowLeft','PageUp','Backspace'].includes(e.key)){e.preventDefault();go(cur-1)}
+  else if(e.key==='Home')go(0);else if(e.key==='End')go(frames.length-1);
+  else if(e.key==='n'||e.key==='N')notes.classList.toggle('show');
+  else if(e.key==='f'||e.key==='F'){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()}
+});
+if(location.hash){const t=document.getElementById('f-'+location.hash.slice(1));if(t)t.scrollIntoView()}
+</script></body></html>
