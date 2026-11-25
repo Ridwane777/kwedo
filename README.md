@@ -3,9 +3,11 @@
 Prototype d'une plateforme de crédit pour petits commerçants sans historique bancaire
 (GPU Challenge, cas d'usage 3). Deux volets reliés par un même moteur :
 
-- **Application commerçant** : estimation de crédit expliquée, simulateur « et si », conseils, envoi du dossier,
-  suivi, offre, échéancier, remboursement.
-- **Console prêteur** : file de dossiers analysés, décision humaine tracée avec justificatif, portefeuille, relances.
+- **Application commerçant** : plafond expliqué et affiché avec ses conditions (fréquence, durée, institution),
+  simulateur « et si », conseils chiffrés, dépôt du dossier avec montant demandé libre et objet, accord signé par code
+  SMS simulé, suivi, offre ou contre-proposition, échéancier, remboursement.
+- **Console prêteur** : Aujourd'hui, Demandes (à décider, complément, en attente, traitées), Crédits, Recouvrement,
+  Commerçants ; fiche centrée sur le risque de la demande, décision humaine tracée avec justificatif.
 
 > **Données 100 % synthétiques.** Personnes et institutions fictives. Aucun score affiché n'est une performance réelle.
 
@@ -19,19 +21,21 @@ Avancement : `docs/PROGRESS.md`.
 | `apps/web` | Next.js : `/` présentation, `/app` commerçant, `/console` prêteur, `/demo` scénario guidé |
 | `services/api` | FastAPI + SQLite (WAL), journal en ajout seul |
 | `packages/engine` | Moteur d'analyse (NumPy + LightGBM), sans état, déterministe |
-| `packages/generator` | Générateurs de commerçants simulés (réglage et test) |
+| `packages/generator` | Générateurs de commerçants simulés : réglage et test (évaluation), réalisme (démo seulement, calé sur des agrégats publics) |
 | `ml/` | Entraînement et évaluation des modèles (CPU, 4 threads max) |
 | `docs/` | Plan, ADR, contrats, légal, performance, business, rétrospective |
 
 ## Moteur, en une formule
 
 ```
-R     = C_p × m × s                      (échéance hebdomadaire supportable)
-L_max = R × (1 − (1 + i)^−n) / i         (plafond théorique)
+R     = C_p × m × s                      (échéance supportable par période : semaine, quinzaine ou mois)
+L_max = R × (1 − (1 + i)^−n) / i         (plafond théorique, n échéances, taux i de la période)
 ```
 
-Le plafond proposé est le plus gros montant dont le risque d'impayé **calibré** (simulation + modèle LightGBM +
-calibration isotonique, ADR 0007/0008) reste sous le seuil de l'institution **et** sous `L_max`, jamais au-dessus.
+Le plafond proposé est le plus gros montant dont le risque d'impayé **calibré** (simulation + modèle LightGBM v3 avec
+fréquence et durée en entrée + calibration isotonique par fréquence, ADR 0007/0008/0016) reste sous le seuil de
+l'institution **et** sous `L_max`, jamais au-dessus. Pour une demande libre, le moteur calcule aussi le risque du
+montant demandé (ADR 0017).
 
 ## Lancer
 
@@ -57,9 +61,9 @@ Puis ouvrir `/demo` (scénario guidé), `/app` (commerçant, pensé pour 360 px)
 
 ## Accès et profils (ADR 0009)
 
-`/connexion` propose six profils fictifs : commerçant, agent et responsable de deux institutions (Lagune, Baobab),
-admin général. L'API fait respecter les droits (session signée en cookie HttpOnly) : une institution ne voit que ses
-dossiers, crédits, portefeuille, paramètres et journal ; seul le responsable modifie les paramètres ; le commerçant
+`/connexion` propose sept profils fictifs : commerçant, commerçant à risque, agent et responsable de deux institutions
+(Lagune, Baobab), admin général. L'API fait respecter les droits (session signée en cookie HttpOnly) : une institution
+ne voit que ses demandes, crédits, commerçants, paramètres et journal ; seul le responsable modifie les paramètres ; le commerçant
 ne reçoit jamais m, s, percentile, seuil, L_max, R, alertes ni modèles ; l'admin supervise sans lire de dossier, de
 nom de commerçant ni de valeur de réglage.
 
@@ -70,9 +74,9 @@ après un redémarrage de l'API.
 ## Tester
 
 ```
-npm run test:engine                                                   # moteur (14 tests)
-npm run test:gen                                                      # générateur (7)
-npm run test:api                                                      # API FastAPI et cloisonnement (16)
+npm run test:engine                                                   # moteur (25 tests)
+npm run test:gen                                                      # générateur (14)
+npm run test:api                                                      # API FastAPI et cloisonnement (38)
 npx playwright install chromium && npx playwright test                # E2E, accessibilité en clair et en sombre, menu de compte, thème, écrans par rôle à 360/1440 px, ports 3462/3463
 ```
 
@@ -80,8 +84,8 @@ npx playwright install chromium && npx playwright test                # E2E, acc
 
 **Fiche de résultats (référence, mesures, erreurs, limites) : [`docs/RESULTATS.md`](docs/RESULTATS.md).**
 
-`ml/dataset.py` → `ml/train.py` → `ml/evaluate_final.py` (voir `docs/evaluation/README.md` et
-`docs/evaluation/protocole-final.md`). Résultat clé, à lire avant tout (run final 1, données simulées) : le moteur
+Évaluation actuelle (modèle v3) : voir le paragraphe « Risque toutes fréquences » ci-dessous. Historique (run final 1,
+modèle v2, `ml/dataset.py` → `ml/train.py` → `ml/evaluate_final.py`, `docs/evaluation/protocole-final.md`) : le moteur
 manque **0,93 %** des échéances contre ≈ 1,24 % pour les règles « moyenne/médiane × k » à exposition égale sur
 l'ensemble du test (écart significatif), **mais pas mieux qu'elles sur les activités jamais vues**, et son risque
 annoncé reste sous-estimé hors du domaine de réglage. Critères de la passe de correction **non atteints**.
@@ -92,6 +96,7 @@ fréquence × durée, le moteur manque moins d'échéances que les règles naïv
 
 ## Documentation
 
-`docs/PLAN.md`, `docs/PROGRESS.md`, `docs/DEFINITION-DE-TERMINE.md`, `docs/adr/`, `docs/contracts/`,
-`docs/evaluation/`, `docs/performance/`, `docs/design.md`, `docs/legal/`, `docs/business/`, `docs/dependencies.md`,
+`docs/RESULTATS.md` (fiche de résultats), `docs/PLAN.md`, `docs/PROGRESS.md`, `docs/DEFINITION-DE-TERMINE.md`,
+`docs/adr/`, `docs/contracts/`, `docs/evaluation/` (dont `diagnostic/` et `bceao/`), `docs/data/` (sources publiques et
+licences), `docs/performance/`, `docs/design.md`, `docs/legal/`, `docs/business/`, `docs/dependencies.md`,
 `docs/retrospective/`.
