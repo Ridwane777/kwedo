@@ -1,4 +1,5 @@
-// Tournage de la vidéo de démo Kwedo (≤ 2 min 30) : cartes + parcours réel sur l'app, sous-titres et curseur.
+// Vidéo de démonstration Kwedo, parcours de bout en bout : Afiavi demande, l'institution décide, Afiavi rembourse.
+// Puis référence et résultats. Rythme serré (pas de son) : chaque écran reste le temps de lire son sous-titre.
 const { chromium } = require("playwright");
 const cartes = require("./cartes");
 const B = process.env.KWEDO_URL || "http://127.0.0.1:3461";
@@ -19,7 +20,7 @@ const DECOR = `
   addEventListener("mouseup", () => { c.style.transform = "translate(-50%,-50%)"; }, true);
   const b = document.createElement("div");
   b.id = "kw-legende";
-  b.style.cssText = "position:fixed;z-index:2147483646;left:50%;bottom:26px;transform:translateX(-50%);max-width:1180px;background:rgba(19,32,27,.88);color:#fff;font:600 24px/1.35 'Public Sans',system-ui,sans-serif;padding:14px 26px;border-radius:16px;text-align:center;pointer-events:none;opacity:0;transition:opacity .3s";
+  b.style.cssText = "position:fixed;z-index:2147483646;left:50%;bottom:22px;transform:translateX(-50%);max-width:1100px;background:rgba(19,32,27,.9);color:#fff;font:600 23px/1.3 'Public Sans',system-ui,sans-serif;padding:11px 24px;border-radius:14px;text-align:center;pointer-events:none;opacity:0;transition:opacity .2s";
   document.documentElement.appendChild(b);
 })();`;
 
@@ -38,14 +39,21 @@ async function legende(p, texte) {
 async function viser(p, loc) {
   await loc.scrollIntoViewIfNeeded();
   const r = await loc.boundingBox();
-  if (r) await p.mouse.move(r.x + r.width / 2, r.y + r.height / 2, { steps: 25 });
-  await pause(p, 0.35);
+  if (r) await p.mouse.move(r.x + r.width / 2, r.y + r.height / 2, { steps: 12 });
+  await pause(p, 0.15);
 }
 async function clique(p, loc) { await viser(p, loc); await loc.click(); }
+async function taper(p, loc, texte, delai) { await clique(p, loc); await loc.pressSequentially(texte, { delay: delai }); }
 
-async function defiler(p, dy, duree = 1.2) {
-  const n = 24;
-  for (let k = 0; k < n; k++) { await p.mouse.wheel(0, dy / n); await p.waitForTimeout((duree * 1000) / n); }
+async function defiler(p, dy) {
+  for (let k = 0; k < 15; k++) { await p.mouse.wheel(0, dy / 15); await p.waitForTimeout(40); }
+}
+
+// Risque affiché sur la fiche (jamais écrit en dur : il dépend de l'état de la démo).
+async function risque(p) {
+  const t = await p.locator("body").innerText();
+  const m = t.match(/Risque de défaut pour cette demande\s*([\d\s,]+\s?%)/);
+  return m ? m[1].replace(/\s+/g, " ").trim().replace(" %", " %") : "risque calculé";
 }
 
 async function carte(p, html, texte, s) {
@@ -58,7 +66,7 @@ async function carte(p, html, texte, s) {
 async function connecter(p, motif) {
   await p.context().clearCookies();
   await p.goto(B + "/connexion");
-  await pause(p, 0.8);
+  await pause(p, 0.4);
   await clique(p, p.getByRole("button", { name: new RegExp(motif) }).first());
   await p.waitForURL(/\/(app|console)/, { timeout: 15000 }).catch(() => {});
 }
@@ -71,91 +79,101 @@ async function connecter(p, motif) {
   const t0 = Date.now();
   const top = (n) => console.log(`${((Date.now() - t0) / 1000).toFixed(1)} s  ${n}`);
 
-  top("titre");
-  await carte(p, cartes.titre, "", 7);
-  top("référence");
-  await carte(p, cartes.reference, "Notre référence : le crédit mobile money de MTN Bénin.", 11);
+  top("ouverture");
+  await carte(p, cartes.ouverture, "", 2.5);
 
-  // 1. Commerçant
-  top("commerçant");
+  // Acte 1 : Afiavi prépare sa demande
+  top("Afiavi");
   await connecter(p, "Afiavi Houngbo");
   await p.goto(B + "/app"); await p.getByText("votre plafond estimé").waitFor({ timeout: 20000 });
-  await legende(p, "Afiavi vend des pagnes. Kwedo lit ses encaissements mobile money vérifiés.");
-  await pause(p, 4.5);
-  await viser(p, p.getByText(/remboursés (chaque|toutes)/).first());
-  await legende(p, "Un plafond prudent, toujours affiché avec ses conditions : fréquence, durée, institution.");
-  await pause(p, 4.5);
+  await legende(p, "Son plafond, calculé sur ses ventes vérifiées.");
+  await pause(p, 2.8);
   await viser(p, p.getByText("Plafond selon la durée").first());
-  await legende(p, "Le plafond dépend de la durée : de 440 000 FCFA sur 3 mois à 1,66 million sur 12 mois.");
-  await pause(p, 5);
+  await legende(p, "Il dépend de la durée choisie.");
+  await pause(p, 2.6);
   await clique(p, p.getByText("Chaque mois", { exact: true }).first());
-  await legende(p, "Elle peut aussi rembourser chaque mois : tout se recalcule.");
-  await pause(p, 3.5);
+  await legende(p, "Rembourser chaque mois : tout se recalcule.");
+  await pause(p, 2.4);
   await defiler(p, 650);
-  await legende(p, "Chaque montant est expliqué : la base est une mauvaise semaine, pas la moyenne.");
-  await pause(p, 4.5);
+  await legende(p, "Chaque montant est expliqué.");
+  await pause(p, 2.6);
 
-  await p.goto(B + "/app/conseils"); await p.getByText("Faire monter mon plafond").waitFor();
-  await legende(p, "Des conseils chiffrés par le moteur, du plus utile au moins utile.");
-  await pause(p, 4.5);
+  await p.goto(B + "/app/conseils"); await p.getByText("À améliorer, du plus utile au moins utile").waitFor({ timeout: 30000 });
+  await legende(p, "Ses conseils, chiffrés : ce qui ferait monter son plafond.");
+  await pause(p, 3.2);
 
-  // 2. Dépôt du dossier
   top("dépôt");
   await p.goto(B + "/app/dossier"); await p.getByRole("button", { name: "Déposer mon dossier de crédit" }).waitFor();
-  await legende(p, "Elle dépose son dossier : elle choisit l'institution, le montant et l'objet.");
+  await legende(p, "Elle dépose son dossier.");
   await clique(p, p.getByRole("button", { name: "Déposer mon dossier de crédit" }));
-  await clique(p, p.locator("label", { hasText: "Mutuelle Solidaire" }));
+  await clique(p, p.locator("label", { hasText: "Caisse Lagune" }));
   await clique(p, p.getByRole("button", { name: "Continuer" }));
-  const montant = p.getByPlaceholder("Ex. 300 000");
-  await clique(p, montant); await montant.pressSequentially("350000", { delay: 70 });
+  await taper(p, p.getByPlaceholder("Ex. 300 000"), "350000", 45);
   await clique(p, p.locator("label", { hasText: "Achat de stock" }));
-  const objet = p.getByPlaceholder("Ex. : acheter des pagnes avant les fêtes");
-  await clique(p, objet); await objet.pressSequentially("Acheter des pagnes avant les fêtes", { delay: 35 });
-  await pause(p, 1);
+  await taper(p, p.getByPlaceholder("Ex. : acheter des pagnes avant les fêtes"), "Pagnes pour les fêtes", 20);
   await clique(p, p.getByRole("button", { name: "Continuer" }));
-  await legende(p, "Récapitulatif, puis accord signé par code SMS (simulé) pour cette seule institution.");
-  await pause(p, 2.5);
-  const recevoir = p.getByRole("button", { name: /Recevoir mon code/ });
+  await legende(p, "Accord signé par code SMS (simulé).");
   const champ = p.locator('input[maxlength="6"], input[autocomplete="one-time-code"], input[inputmode="numeric"]').first();
-  if (await recevoir.count()) { await clique(p, recevoir); await champ.waitFor({ timeout: 15000 }).catch(() => {}); await pause(p, 1.2); }
-  const code = (await p.locator("body").innerText()).match(/\b(\d{6})\b/);
-  if (!code) await p.screenshot({ path: "sms-echec.png" });
-  if (code && (await champ.count())) {
-    await clique(p, champ); await champ.pressSequentially(code[1], { delay: 120 });
-    await pause(p, 0.8);
-    const signer = p.getByRole("button", { name: /Signer et envoyer/ });
-    if (await signer.count()) await clique(p, signer);
-    await legende(p, "Dossier envoyé : seule la Mutuelle le voit, et c'est elle qui décide.");
-  } else console.log("!! code SMS non trouvé : dépôt non signé");
-  await pause(p, 3.5);
+  await clique(p, p.getByRole("button", { name: /Recevoir mon code/ }));
+  await champ.waitFor({ timeout: 15000 });
+  const code = (await p.locator("body").innerText()).match(/\b(\d{6})\b/)[1];
+  await taper(p, champ, code, 60);
+  await clique(p, p.getByRole("button", { name: /Signer et envoyer/ }));
+  await p.getByText(/Dossier envoyé/).waitFor({ timeout: 15000 }).catch(() => {});
+  await legende(p, "Dossier envoyé à Caisse Lagune.");
+  await pause(p, 2.2);
 
-  // 3. Console de l'institution
-  top("console");
-  await connecter(p, "Agent de crédit");
-  await p.goto(B + "/console"); await p.getByRole("heading", { name: "Aujourd'hui" }).waitFor();
-  await legende(p, "Côté institution : l'agent de crédit voit ce qu'il doit traiter aujourd'hui.");
-  await pause(p, 4.5);
+  // Acte 2 : l'institution décide
+  top("institution");
+  await connecter(p, "Les dossiers de son institution");
   await p.goto(B + "/console/demandes"); await p.getByRole("heading", { name: "Demandes" }).waitFor();
-  await legende(p, "Les demandes, triables par risque. Les dossiers traités restent consultables.");
   const tri = p.getByLabel("Tri");
   if (await tri.count()) { await viser(p, tri); await tri.selectOption({ label: "Risque décroissant" }).catch(() => {}); }
-  await pause(p, 3.5);
+  await legende(p, "Chez Caisse Lagune : les demandes, triées par risque.");
+  await pause(p, 2.8);
   await clique(p, p.getByRole("link", { name: /Hounkpè Dossou/ }).first());
   await p.getByText("Risque de défaut pour cette demande").waitFor();
-  await legende(p, "Le risque est calculé pour la demande exacte : 25,2 %, au-dessus de la tolérance de 10 %.");
-  await pause(p, 5.5);
-  await viser(p, p.getByText("Ce qui a pesé sur le plafond prudent"));
-  await legende(p, "Les raisons sont lisibles, et une alerte signale un profil de flux inhabituel.");
-  await pause(p, 4);
-  await clique(p, p.locator("label", { hasText: "Contre-proposer" }));
-  await legende(p, "L'agent décide : il peut contre-proposer un montant plus prudent. Rien n'est automatique.");
-  await pause(p, 5);
+  await legende(p, `Un dossier à risque : ${await risque(p)}, au-dessus de la tolérance, avec une alerte.`);
+  await pause(p, 3.4);
+  await p.goto(B + "/console/demandes");
+  await clique(p, p.getByRole("link", { name: /Afiavi Houngbo/ }).first());
+  await p.getByText("Risque de défaut pour cette demande").waitFor();
+  await legende(p, `La demande d'Afiavi : ${await risque(p)}, dans la tolérance. Raisons détaillées.`);
+  await pause(p, 3.4);
+  await clique(p, p.locator("label", { hasText: "Accorder" }).first());
+  await taper(p, p.locator("textarea").first(), "Ventes régulières, demande sous le plafond.", 12);
+  await clique(p, p.getByRole("button", { name: /Enregistrer la décision/ }));
+  await legende(p, "L'agent accorde, avec un justificatif tracé.");
+  await pause(p, 2.6);
 
-  // 4. Résultats et fin
+  // Acte 3 : Afiavi accepte et rembourse
+  top("remboursement");
+  await connecter(p, "Afiavi Houngbo");
+  await p.goto(B + "/app/dossier");
+  await clique(p, p.getByRole("link", { name: /Voir l.offre/ }).first());
+  await p.getByRole("button", { name: /Accepter/ }).waitFor();
+  await legende(p, "Afiavi reçoit l'offre et l'accepte.");
+  await pause(p, 2.2);
+  await clique(p, p.getByRole("button", { name: /Accepter/ }).first());
+  await p.getByRole("heading", { name: "Mon crédit" }).waitFor();
+  await legende(p, "Elle paie ses premières échéances par mobile money (simulé).");
+  const payer = p.getByRole("button", { name: /Payer .* par mobile money/ });
+  for (let k = 0; k < 2; k++) {
+    await pause(p, 1.2);
+    await clique(p, payer);
+    await p.getByText(/Paiement reçu/).waitFor({ timeout: 10000 }).catch(() => {});
+  }
+  await pause(p, 1);
+  await clique(p, p.getByText(/Échéancier \(/).first());
+  await legende(p, "Échéancier à jour, reçus, rappels au choix.");
+  await pause(p, 2.6);
+
+  // Acte 4 : référence et résultats
+  top("référence");
+  await carte(p, cartes.reference, "", 8);
   top("résultats");
-  await carte(p, cartes.resultats, "Les chiffres de MTN et les nôtres ne se mesurent pas de la même façon : nous le disons.", 20);
-  top("fin");
-  await carte(p, cartes.fin, "", 6);
+  await carte(p, cartes.resultats, "", 10);
+  await carte(p, cartes.fin, "", 2.5);
   top("total");
 
   await ctx.close(); await nav.close();
