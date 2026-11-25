@@ -54,6 +54,46 @@ légèrement moins bon (ex. 6 mois : 1,29 % contre 1,21 % et 1,19 %).
 
 Tableau complet des 12 cellules : [`evaluation/README.md`](evaluation/README.md).
 
+## 3 bis. Comparaison avec les solutions concurrentes au Bénin
+
+**Concurrent de référence : le crédit mobile money de MTN Bénin** (Prêt Xpress, puis MoMo Kash), le plus proche de
+Kwedo : il décide aussi à partir de l'historique mobile money, sans passage en agence. Références secondaires : la
+**PNIF** et le **Microcrédit Alafia**, voies publiques vers les institutions de microfinance.
+
+| | **Kwedo** (prototype) | **MTN Prêt Xpress** (MTN, Ecobank, Optasia ; 2024) | **MTN MoMo Kash** (MTN, UBA, Jumo ; 2025) | **PNIF** (État, 14 IMF ; lancée le 24/11/2026) | **Microcrédit Alafia** (FNM) |
+|---|---|---|---|---|---|
+| Données de décision | Encaissements mobile money **vérifiés** (flux pro, allers-retours exclus) | « utilisation des services MoMo et d'autres services MTN » ; compte MoMo ≥ 6 mois ; volume de transactions habituel | Non publié | Plafond **fixé à la main en agence** par l'IMF | Dossier en agence ; phase suivante réservée à qui a remboursé |
+| Montant | Selon les ventes, montant libre demandé | Jusqu'à 100 000 FCFA | Non publié (100 000 FCFA selon une source) | 50 000 à 50 M FCFA | Phase II : 50 001 – 100 000 ; phase III : 100 001 – 200 000 FCFA |
+| Durée et fréquence | 3 à 12 mois ; semaine, quinzaine ou mois | Jour, semaine ou mois ; périodicité ≤ 30 jours | Non publié | 3 à 36 mois | Phase II : 6 ou 10 mois ; phase III : 6 ou 12 mois, semaine ou mois |
+| Coût | Intérêts de l'institution, aucun frais Kwedo | 10 % de frais d'accès + taxes, pénalités de retard | Non publié | 0 FCFA de frais de dossier ; taux selon l'offre | 4 % (6 mois) ; 8 % (10 mois en phase II, 12 mois en phase III) |
+| Explication au demandeur | Raisons chiffrées, conseils, plafond avec ses conditions | Récapitulatif avant validation ; motif de refus non expliqué | Non publié | Offre et mensualité affichées | Non publié |
+| Qui décide | Un agent de l'institution, avec le risque de la demande | Automatique | Automatique | L'IMF | L'IMF |
+| Résultats publiés | Sur données **simulées** (section 3) | Aucun | 170 000 crédits, ~13 Md FCFA ; remboursement > 95 % ; « défaillance inférieure à 0,5 % » (annonce des partenaires, méthode non publiée) | Aucun (lancement du 24/11/2026) | 635 829 bénéficiaires, 53,37 Md FCFA (oct. 2020 – fin 2025) ; « taux de remboursement 95 % » affiché par le FNM, méthode non publiée |
+
+**Ce que cette comparaison permet de dire**
+- Kwedo vise un **segment que ces offres couvrent mal** : les montants au-delà de 100 000 FCFA décidés sur les ventes
+  réelles. Les produits MTN plafonnent à 100 000 FCFA et décident sur l'usage du téléphone ; la PNIF et Alafia passent
+  par une évaluation en agence.
+- Kwedo est le seul à **expliquer la décision** (raisons chiffrées, conseils) et à laisser **un humain décider** avec
+  un risque calculé ; il ne prête pas lui-même.
+
+**Ce qu'elle ne permet pas de dire**
+- **Aucune comparaison chiffrée de performance n'est possible.** Les concurrents ne publient ni leur modèle ni leurs
+  données ; leurs taux (> 95 % de remboursement, < 0,5 % de défaillance) sont des annonces sans méthode, sur leurs
+  propres clients et des montants plus faibles. Nos taux sont mesurés sur données simulées. Les mettre côte à côte
+  serait trompeur.
+- Le prototype ne prétend donc **pas** faire mieux que MTN, la PNIF ou Alafia : il propose une autre façon de décider,
+  à valider au pilote avec les mêmes définitions que ces acteurs.
+
+Sources : [Banouto, Prêt Xpress (22/03/2024)](https://www.banouto.bj/economie/article/20240322-pret-xpress-mtn-benin-les-abonnes-mobile-money-peuvent-emprunter-jusqu-a-100-000-fcfa) ;
+[Cadreco, MoMo Kash (22/10/2025)](https://cadreco.media/evenement/2025/momo-kash-le-nouveau-produit-de-mtn-mobile-money-pour-transformer-lacces-au-credit-au-benin) ;
+[CIO Mag, nano-crédit au Bénin (10/06/2026)](https://cio-mag.com/nano-credit-et-bnpl-au-benin-le-mobile-money-comme-alternative-au-credit-classique-pour-le-secteur-informel/) ;
+[Bénin Web TV, conditions PNIF](https://beninwebtv.com/benin-credit-48-heures-pnif-50-millions-fcfa/) ;
+[lamétéo.info, fonctionnement PNIF](https://www.lameteo.info/benin-obtenir-un-credit-en-48-heures-depuis-son-telephone-pour-financer-les-petits-projets-voici-comment-fonctionne-la-plateforme-pnif/) ;
+[Matin Libre, bilan FNM (11/02/2026)](https://matinlibre.com/2026/02/11/inclusion-financiere-au-benin-le-bilan-historique-du-fnm-sous-lere-joel-adeyemi-affoyon/) ;
+[FNM](https://www.fnm.bj/) ; [Ministère, Microcrédit Alafia](https://social.gouv.bj/micro-credit-alafia) ;
+[FNM, lancement Alafia phase 3](https://www.fnm.bj/lancement-de-la-phase-3-du-microcredit-alafia-a-parakou/).
+
 ## 4. Autres mesures (évaluations précédentes, remboursement hebdomadaire : run 1 du moteur 0.2.0, temps machine de la v0.1)
 
 | Mesure | Résultat | Seuil | Verdict |
