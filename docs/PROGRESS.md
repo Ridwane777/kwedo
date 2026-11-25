@@ -311,3 +311,32 @@ Décision : ADR 0019 (console organisée par objet). Crédit progressif : retir�
   `test:engine` 25/25 (non-régression Koffi intacte), `test:api` 38/38, build web OK. Pas d'E2E : aucun écran modifié.
 - **Écarts** : composition des 9 personnes non alignée sur Kiva (6/2/1 contre 52/34/10 %, voir rétrospective) ;
   PaySim non appliqué aux flux (non pertinent pour des encaissements de commerçants) ; licence PaySim non vérifiée.
+
+## Mission mesure à définition égale BCEAO (`docs/MISSION-MESURE-BCEAO.md`, branche `mesure-bceao`)
+
+- **Définition** : Référentiel comptable spécifique des SFD, classe 29. Tout l'encours d'un prêt est déclassé dès
+  qu'une échéance est impayée ; ce déclassement devient obligatoire au-delà de 3 mois (approché par plus de 90 jours),
+  et la créance passe en perte à 24 mois. Taux = encours en souffrance ÷ encours brut ; formule vérifiée sur les
+  colonnes publiées par la BCEAO. Le texte de l'instruction n'a pas été trouvé : la définition retenue est donc une
+  approximation, nommée comme telle.
+- **Couche de portefeuille** `scripts/portefeuille_bceao.py`, posée à côté du simulateur. Un contrôle vérifie
+  qu'elle donne le même nombre d'échéances manquées que lui. Mesure : `scripts/mesure_bceao.py`. Graines neuves :
+  `docs/evaluation/bceao/graines.json`. Résultats avec intervalles bootstrap :
+  `docs/evaluation/bceao/resultats.json`.
+- **Résultat** (impayés de plus de 90 jours) :
+  - montants du moteur : 0 à 6 % ;
+  - règle « médiane × k » : du même ordre ;
+  - prêts au plafond : 10 à 20 % ;
+  - repère BCEAO : 9,4 %.
+
+  L'écart avec le 0,3 % disparaît en grande partie : il venait de la mesure et des petits montants. L'étape « monde
+  pessimiste » ne se justifie pas par ce seul écart.
+- **Documents mis à jour** : `docs/data/README.md` (contrôle de niveau) et la ligne BCEAO de la section 4 de
+  `docs/RESULTATS.md`.
+- **Preuves** : `npm run test:gen` 14/14, `test:engine` 25/25. `ml/`, `packages/engine`, les générateurs et les runs
+  sont inchangés.
+- **Écarts** :
+  - une seule graine par population (500 commerçants) ;
+  - résultat très sensible à la règle de recouvrement : avec rattrapage des impayés, les taux tombent presque à 0
+    hors plafond ;
+  - restructurations non simulées.
