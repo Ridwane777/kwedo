@@ -1,0 +1,58 @@
+{
+ "v": 5,
+ "createdOnFiles": {
+  "v": 1,
+  "at": "2026-11-24T13:50:00Z"
+ },
+ "lists": "css",
+ "format": {
+  "v": 1,
+  "shared": [
+   "project/deck.css"
+  ]
+ },
+ "title": "Kwedo — le crédit au rythme de vos ventes",
+ "cover": "cover",
+ "order": [
+  "cover",
+  "afiavi",
+  "problemes",
+  "solution",
+  "resolution",
+  "demo",
+  "gains",
+  "moteur",
+  "modele",
+  "vision",
+  "fin"
+ ],
+ "sections": {
+  "s1": {
+   "description": "Ouverture : Kwedo et l’histoire d’Afiavi",
+   "start": "cover"
+  },
+  "s2": {
+   "description": "Les problèmes, la solution et comment elle y répond",
+   "start": "problemes"
+  },
+  "s3": {
+   "description": "Démonstration et gains par utilisateur",
+   "start": "demo"
+  },
+  "s4": {
+   "description": "Moteur de risque, modèle économique, vision et conclusion",
+   "start": "moteur"
+  }
+ },
+ "faces": {
+  "bricolage-grotesque": {
+   "family": "Bricolage Grotesque",
+   "href": "https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500..800&display=swap"
+  },
+  "public-sans": {
+   "family": "Public Sans",
+   "href": "https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600&display=swap"
+  }
+ },
+ "designSystems": []
+}

@@ -1,0 +1,124 @@
+:root {
+  --fond: #f2f4f3;
+  --surface: #ffffff;
+  --surface2: #e7ecea;
+  --trait: #c9d2ce;
+  --encre: #0e1d18;
+  --encre2: #3b4a44;
+  --encre3: #56645e;
+  --marque: #0a5a47;
+  --marque2: #0f6d58;
+  --doux: #d7ebe3;
+  --ambre: #c98a0b;
+  --ambre-doux: #faebc8;
+  --ambre-encre: #6b4500;
+  --alerte: #b0261c;
+  --alerte-doux: #fadeda;
+  --bon: #1d6b35;
+  --bon-doux: #daeedd;
+}
+
+body { font-family: 'Public Sans', Arial, sans-serif; color: #0e1d18; }
+
+section {
+  padding: 128px 128px 160px;
+  background: #f2f4f3;
+  color: #0e1d18;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Public Sans', Arial, sans-serif;
+}
+section.dark { background: #0a5a47; color: #f2f4f3; }
+section.ink { background: #0e1d18; color: #f2f4f3; }
+
+h1, h2, h3 { font-family: 'Bricolage Grotesque', 'Public Sans', Arial, sans-serif; color: inherit; }
+h1 { font-size: 120px; line-height: 1.04; font-weight: 700; letter-spacing: -2px; }
+h2 { font-size: 68px; line-height: 1.08; font-weight: 700; letter-spacing: -1px; }
+h3 { font-size: 40px; line-height: 1.15; font-weight: 600; }
+
+.grow { flex: 1; }
+.brand { display: flex; align-items: center; gap: 20px; }
+.wordmark { font-family: 'Bricolage Grotesque', Arial, sans-serif; font-size: 56px; font-weight: 700; color: #f2f4f3; }
+
+.eyebrow { font-size: 26px; font-weight: 600; letter-spacing: 4px; color: #0a5a47; }
+.dark .eyebrow { color: #d7ebe3; }
+.lead { font-size: 36px; line-height: 1.4; color: #3b4a44; }
+.dark .lead { color: #d7ebe3; }
+.body { font-size: 28px; line-height: 1.4; color: #3b4a44; }
+.body-d { font-size: 28px; line-height: 1.4; color: #d7ebe3; }
+.small { font-size: 26px; line-height: 1.35; color: #56645e; }
+.small-d { font-size: 26px; line-height: 1.35; color: #56645e; }
+.small-l { font-size: 28px; line-height: 1.35; color: #d7ebe3; }
+.who { font-size: 26px; font-weight: 600; letter-spacing: 2px; color: #0a5a47; }
+.who-d { font-size: 26px; font-weight: 600; letter-spacing: 2px; color: #d7ebe3; }
+.acc { color: #0a5a47; }
+
+.ul { font-size: 30px; line-height: 1.4; color: #3b4a44; padding-left: 32px; }
+li { margin-top: 12px; }
+
+.pill { align-self: flex-start; font-size: 28px; font-weight: 600; padding: 14px 30px; border-radius: 40px; }
+.pill-amb { background: #faebc8; color: #6b4500; }
+.pill-red { background: #fadeda; color: #b0261c; }
+.pill-good { background: #daeedd; color: #1d6b35; }
+.pill-soft { background: #d7ebe3; color: #0a5a47; }
+
+.card { box-sizing: border-box; background: #ffffff; border: 2px solid #c9d2ce; border-radius: 28px; padding: 36px; }
+.card-d { box-sizing: border-box; background: #0f6d58; border-radius: 28px; padding: 30px; }
+.card-l { box-sizing: border-box; background: #ffffff; color: #0e1d18; border-radius: 28px; padding: 36px; }
+.card-g { box-sizing: border-box; background: #0a5a47; border-radius: 28px; padding: 32px; }
+.cards { display: flex; gap: 32px; }
+.cardc { flex: 1; }
+
+.split { display: flex; gap: 80px; flex: 1; align-items: center; }
+.left { display: flex; flex-direction: column; }
+
+.row { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; border-top: 2px solid #e7ecea; }
+.row-l { font-size: 32px; color: #3b4a44; }
+.row-r { font-size: 32px; font-weight: 600; color: #0a5a47; }
+.late { animation: rise 600ms cubic-bezier(.2,.7,.2,1) both; animation-delay: 1300ms; }
+
+.steps { display: flex; align-items: stretch; gap: 12px; }
+.arw { width: 40px; display: flex; align-items: center; justify-content: center; }
+.num { font-family: 'Bricolage Grotesque', Arial, sans-serif; font-size: 72px; font-weight: 700; color: #d7ebe3; line-height: 1; }
+
+.rrows { display: flex; flex-direction: column; gap: 24px; }
+.rr { display: flex; align-items: stretch; }
+.rl { box-sizing: border-box; width: 640px; background: #faebc8; border-radius: 22px; padding: 28px 36px; display: flex; align-items: center; }
+.rrr { box-sizing: border-box; flex: 1; background: #d7ebe3; border-radius: 22px; padding: 28px 36px; display: flex; align-items: center; }
+.arw2 { width: 120px; display: flex; align-items: center; justify-content: center; }
+.arw3 { width: 56px; display: flex; align-items: center; justify-content: center; }
+.rt { font-size: 32px; line-height: 1.3; color: #0e1d18; font-weight: 600; }
+
+.duo { display: flex; gap: 64px; }
+.big { font-family: 'Bricolage Grotesque', Arial, sans-serif; font-size: 92px; font-weight: 700; line-height: 1.05; color: #0a5a47; }
+.tiles { display: flex; gap: 16px; }
+.tile { box-sizing: border-box; flex: 1; background: #f2f4f3; border-radius: 18px; padding: 18px 22px; }
+.tv { font-size: 34px; font-weight: 700; color: #0e1d18; margin-top: 4px; }
+.gauge { width: 640px; height: 20px; background: #e7ecea; border-radius: 10px; margin-top: 16px; }
+.gfill { width: 538px; height: 20px; background: #c98a0b; border-radius: 10px; }
+
+.flow { display: flex; align-items: center; gap: 16px; }
+.mid { display: flex; flex-direction: column; }
+.mb { box-sizing: border-box; padding: 28px 32px; }
+.chips { display: flex; flex-wrap: wrap; gap: 20px; }
+
+.eco { display: flex; align-items: center; gap: 64px; }
+.zero { box-sizing: border-box; width: 480px; background: #0f6d58; border-radius: 28px; padding: 40px; }
+.zv { font-family: 'Bricolage Grotesque', Arial, sans-serif; font-size: 104px; font-weight: 700; line-height: 1.05; color: #f2f4f3; }
+.fcol { flex: 1; display: flex; flex-direction: column; }
+.frow { display: flex; gap: 24px; }
+
+.hrow { display: flex; gap: 48px; margin-top: 64px; }
+.hcol { flex: 1; border-top: 4px solid #c9d2ce; padding-top: 28px; }
+
+.foot { position: absolute; left: 128px; top: 984px; width: 1664px; height: 32px; display: flex; justify-content: space-between; }
+.foot-t { font-size: 24px; color: #56645e; }
+.dark .foot-t { color: #d7ebe3; }
+.ink .foot-t { color: #a9b8b2; }
+
+@keyframes rise { from { opacity: 0; transform: translateY(32px); } }
+@keyframes fade { from { opacity: 0; } }
+@keyframes pop { from { opacity: 0; transform: scale(0.9); } }
+.rise { animation: rise 560ms cubic-bezier(.2,.7,.2,1) both; animation-delay: calc(var(--i, 0) * 90ms); }
+.fadein { animation: fade 700ms ease both; animation-delay: calc(var(--i, 0) * 90ms); }
+.pop { animation: pop 520ms cubic-bezier(.2,.8,.2,1) both; animation-delay: calc(var(--i, 0) * 90ms); }
