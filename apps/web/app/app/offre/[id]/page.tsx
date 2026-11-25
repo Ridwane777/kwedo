@@ -7,12 +7,16 @@ import { Raisons } from "@/components/estimation";
 import { Bouton, Chargement, Erreur, Simule } from "@/components/ui";
 import { api, useApi } from "@/lib/api";
 import { useCommercant } from "@/lib/commercant";
-import { fcfa, nombre, pct, STATUTS } from "@/lib/format";
+import { delai, duree, fcfa, FREQ, nombre, pct, STATUTS, type Frequence } from "@/lib/format";
 import type { Raison } from "@/lib/types";
 
 type Offre = {
   id: string; institution: string; statut: string; montant_offre: number | null; duree_offre: number | null; plafond_estime: number;
-  echeance?: number; cout_total?: number; taux_periode?: number; raisons: Raison[]; conseils: string[];
+  echeance?: number; cout_total?: number; taux_periode?: number; nb_echeances?: number; raisons: Raison[]; conseils: string[];
+  frequence: Frequence; duree_mois: number | null; frequence_demandee: Frequence; duree_mois_demandee: number | null;
+  delai_versement_h: number; estimation_eprouvee: boolean;
+  montant_demande: number | null; objet_libelle: string | null; objet_texte: string | null;
+  nature?: "demande_acceptee" | "contre_proposition"; ecart_montant?: number;
   decision: { type: string; motif: string } | null; credit: { id: string } | null;
 };
 
@@ -83,19 +87,36 @@ export default function PageOffre() {
   return (
     <section className="space-y-6">
       <div className="space-y-1">
+        {o.nature && (
+          <p data-testid="nature-offre" className={`inline-block rounded-full px-3 py-1 text-sm font-semibold ${o.nature === "demande_acceptee" ? "bg-bon-doux text-bon" : "bg-ambre-doux text-ambre-encre"}`}>
+            {o.nature === "demande_acceptee" ? "Votre demande est acceptée" : "Contre-proposition de l'institution"}
+          </p>
+        )}
         <p className="text-encre-2">{o.institution} vous propose</p>
         <p className="montant text-5xl text-montant">{fcfa(o.montant_offre)}</p>
+        {o.montant_demande && (
+          <p className="text-sm text-encre-2" data-testid="ecart-demande">
+            Vous aviez demandé {fcfa(o.montant_demande)}{o.objet_libelle ? ` (${o.objet_libelle.toLowerCase()})` : ""}
+            {o.nature === "contre_proposition" && o.ecart_montant ? ` : écart de ${fcfa(o.ecart_montant)}.` : "."}
+          </p>
+        )}
         <Simule quoi="Offre fictive" />
       </div>
       <dl className="divide-y divide-trait border-y border-trait text-[16px]">
-        <div className="flex justify-between py-3"><dt>Durée</dt><dd>{o.duree_offre} semaines</dd></div>
-        <div className="flex justify-between py-3"><dt>Échéance chaque semaine</dt><dd className="chiffres font-medium">{fcfa((o.echeance ?? 0) * ratio)}</dd></div>
-        <div className="flex justify-between py-3"><dt>Taux par semaine</dt><dd className="chiffres">{pct(o.taux_periode, 2)}</dd></div>
+        <div className="flex justify-between py-3"><dt>Remboursement</dt><dd>{FREQ[o.frequence].nom}</dd></div>
+        <div className="flex justify-between py-3"><dt>Durée</dt><dd>{duree({ duree_mois: o.duree_mois, duree_semaines: o.duree_offre })} · {o.nb_echeances} échéances</dd></div>
+        <div className="flex justify-between py-3"><dt>{FREQ[o.frequence].echeance}</dt><dd className="chiffres font-medium">{fcfa((o.echeance ?? 0) * ratio)}</dd></div>
+        <div className="flex justify-between py-3"><dt>Taux par {FREQ[o.frequence].periode}</dt><dd className="chiffres">{pct(o.taux_periode, 2)}</dd></div>
         <div className="flex justify-between py-3"><dt>Coût total du crédit</dt><dd className="chiffres">{fcfa((o.cout_total ?? 0) * ratio)}</dd></div>
+        <div className="flex justify-between py-3"><dt>Versement</dt><dd>{delai(o.delai_versement_h)} après votre accord</dd></div>
         <div className="flex justify-between py-3"><dt>Frais Kwedo</dt><dd>0 FCFA</dd></div>
       </dl>
+      {(o.frequence !== o.frequence_demandee || o.duree_mois !== o.duree_mois_demandee) && (
+        <p className="text-sm text-encre-2">Vous aviez demandé : {FREQ[o.frequence_demandee].chaque}{o.duree_mois_demandee ? `, ${o.duree_mois_demandee} mois` : ""}. L'institution a ajusté les modalités.</p>
+      )}
+      {!o.estimation_eprouvee && <p className="text-xs text-encre-2">Estimation prudente, moins éprouvée que le remboursement hebdomadaire.</p>}
       {o.decision?.motif && o.decision.type === "ajuste" && (
-        <p className="text-sm text-encre-2">Votre estimation était de {fcfa(o.plafond_estime)}. Motif de l'agent : « {o.decision.motif} »</p>
+        <p className="text-sm text-encre-2">Votre plafond estimé était de {fcfa(o.plafond_estime)} ({FREQ[o.frequence_demandee].chaque}, aux conditions de {o.institution}). Motif de l'agent : « {o.decision.motif} »</p>
       )}
       <label className="block">
         <span className="text-encre-2">Je préfère emprunter moins (facultatif)</span>

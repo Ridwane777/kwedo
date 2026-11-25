@@ -1,6 +1,8 @@
 "use client";
 
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft, ArrowRight, Save } from "lucide-react";
+import Link from "next/link";
+import { Ariane, TON_STATUT } from "../../commun";
 import { LienIcone } from "@/components/bouton-icone";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
@@ -8,12 +10,19 @@ import { CourbeFlux } from "@/components/courbe-flux";
 import { Bouton, Chargement, Erreur, Pastille, Simule } from "@/components/ui";
 import { api, useApi } from "@/lib/api";
 import { useRaccourcis } from "@/lib/clavier";
-import { ACTIVITES, date, fcfa, nombre, pct, RECO, STATUTS } from "@/lib/format";
-import type { Dossier } from "@/lib/types";
+import { ACTIVITES, CATEGORIES_OBJET, date, duree, fcfa, FREQ, nombre, pct, RECO, STATUTS, type Frequence } from "@/lib/format";
+import type { Dossier, Evaluation } from "@/lib/types";
+
+/** Risque d'une demande ou d'une contre-proposition, rapporté à la tolérance de l'institution. */
+function Tolerance({ e }: { e: Evaluation }) {
+  return e.dans_tolerance
+    ? <Pastille ton="bon">Dans la tolérance</Pastille>
+    : <Pastille ton="alerte">Au-dessus de la tolérance</Pastille>;
+}
 
 type TypeDecision = "valide" | "ajuste" | "refuse" | "complement";
-const LIBELLES: Record<TypeDecision, string> = { valide: "Valider le montant proposé", ajuste: "Ajuster le montant", refuse: "Refuser", complement: "Demander un complément" };
-const COURTS: Record<TypeDecision, string> = { valide: "Valider", ajuste: "Ajuster", refuse: "Refuser", complement: "Complément" };
+const LIBELLES: Record<TypeDecision, string> = { valide: "Accorder la demande", ajuste: "Contre-proposer", refuse: "Refuser", complement: "Demander un complément" };
+const COURTS: Record<TypeDecision, string> = { valide: "Accorder", ajuste: "Contre-proposer", refuse: "Refuser", complement: "Complément" };
 
 function Ligne({ l, v }: { l: string; v: string }) {
   return (
@@ -29,10 +38,12 @@ const pourAgent = (t: string) => t
   .replace(/vous encaissez/g, "le commerçant encaisse")
   .replace(/Vos encaissements/g, "Ses encaissements")
   .replace(/Votre activité/g, "Son activité")
-  .replace(/Votre historique/g, "Son historique");
+  .replace(/Votre historique/g, "Son historique")
+  .replace(/vos encaissements/g, "ses encaissements")
+  .replace(/vos ventes/g, "ses ventes");
 const decimales = (t: string) => t.replace(/(\d)\.(\d)/g, "$1,$2");
 
-const ONGLETS = ["Flux et indicateurs", "Chaîne de calcul", "Modèles", "Journal d'accès"] as const;
+const ONGLETS = ["Flux et indicateurs", "Comment c'est calculé","Modèles", "Journal d'accès"] as const;
 
 /** Onglets ARIA : flèches gauche/droite, Début/Fin ; chaque panneau reste dans le DOM pour ne rien retirer. */
 function Onglets({ panneaux }: { panneaux: React.ReactNode[] }) {
@@ -61,6 +72,38 @@ function Onglets({ panneaux }: { panneaux: React.ReactNode[] }) {
   );
 }
 
+const REPONSE: Record<string, { l: string; ton: "bon" | "neutre" | "attention" }> = {
+  accorde: { l: "En attente de la réponse du commerçant", ton: "attention" },
+  offre_acceptee: { l: "Offre acceptée par le commerçant", ton: "bon" },
+  offre_refusee: { l: "Offre déclinée par le commerçant", ton: "neutre" },
+};
+
+/** Après décision : ce qui a été décidé, par qui, pourquoi, et ce que le commerçant a répondu. */
+function BandeauDecision({ d }: { d: Dossier }) {
+  const x = d.decisions[d.decisions.length - 1];
+  if (!x) return null;
+  const rep = REPONSE[d.statut];
+  const accord = x.type === "valide" || x.type === "ajuste";
+  return (
+    <section aria-label="Décision" data-testid="bandeau-decision" className={`rounded-2xl border-l-4 bg-surface p-4 ${x.type === "refuse" ? "border-alerte" : accord ? "border-bon" : "border-ambre"}`}>
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <p className="titre text-lg">{LIBELLES[x.type as TypeDecision] ?? x.type}</p>
+        {accord && d.montant_offre != null && (
+          <p className="chiffres font-semibold">{fcfa(d.montant_offre)} · {FREQ[d.frequence].chaque}, {duree({ duree_mois: d.duree_mois, duree_semaines: d.duree_offre })}</p>
+        )}
+        {rep && <Pastille ton={rep.ton}>{rep.l}</Pastille>}
+        {d.credit && (
+          <Link href={`/console/credits/${d.credit.id}`} className="ml-auto inline-flex min-h-11 items-center gap-1 font-medium text-marque hover:underline">
+            Voir le crédit <ArrowRight aria-hidden="true" size={18} />
+          </Link>
+        )}
+      </div>
+      <p className="mt-1 italic">« {x.motif} »</p>
+      <p className="text-xs text-encre-2">{x.auteur}, le {date(x.horodatage, true)}</p>
+    </section>
+  );
+}
+
 export default function Fiche() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
@@ -72,29 +115,43 @@ export default function Fiche() {
   const [enregistree, setEnregistree] = useState(false);
   const motifRef = useRef<HTMLTextAreaElement>(null);
 
-  useEffect(() => { if (d) setMontant((m) => m || d.analyse.plafond); }, [d]);
+  const [freq, setFreq] = useState<Frequence>("hebdomadaire");
+  const [mois, setMois] = useState(6);
+  useEffect(() => { if (d) setMontant((m) => m || Math.min(d.montant_demande ?? d.analyse.plafond, d.analyse.plafond) || d.analyse.plafond); }, [d]);
+  // Modalités demandées par le commerçant : point de départ de l'ajustement.
+  useEffect(() => {
+    if (!d) return;
+    setFreq(d.frequence);
+    setMois(d.duree_mois ?? Math.round((d.analyse.duree_semaines * 12) / 52));
+  }, [d]);
 
   const choisir = (t: TypeDecision) => { setType(t); setTimeout(() => motifRef.current?.focus(), 0); };
   const raccourcis = useMemo(() => ({
     v: () => choisir("valide"), a: () => choisir("ajuste"), r: () => choisir("refuse"), c: () => choisir("complement"),
-    Escape: () => router.push("/console"),
+    Escape: () => router.push("/console/demandes"),
   }), [router]);
   const ouvert = d ? ["recu", "en_analyse", "complement"].includes(d.statut) : false;
   useRaccourcis(raccourcis, ouvert);
 
+  // Contre-proposition : risque recalculé à chaque changement de montant, durée ou fréquence.
+  const contre = useApi<Evaluation>(d && type === "ajuste" && montant >= 5000 ? `/dossiers/${id}/risque?montant=${montant}&frequence=${freq}&duree_mois=${mois}` : null);
   if (erreur) return <Erreur message={erreur} reessayer={recharger} />;
   if (!d) return <Chargement lignes={8} label="Chargement du dossier" />;
+  const dem = d.demande;
   const a = d.analyse, ind = a.indicateurs;
-  const plafondFormule = a.l_max;
   const alertes = a.alertes ?? [];
   const seuil = a.parametres.seuil_risque;
-  const partRisque = Math.min(1, a.risque / Math.max(seuil, 1e-9));
+  const moisDemandes = d.duree_mois ?? Math.round((a.duree_semaines * 12) / 52);
+  const modifie = freq !== d.frequence || mois !== moisDemandes;
 
   async function decider() {
     if (!type) return;
     setEnvoi({ etat: "envoi" });
     try {
-      await api(`/dossiers/${id}/decisions`, { body: { type, motif, montant_decide: type === "ajuste" ? montant : undefined } });
+      await api(`/dossiers/${id}/decisions`, { body: {
+        type, motif, montant_decide: type === "ajuste" ? montant : undefined,
+        ...(type === "ajuste" && modifie ? { frequence: freq, duree_mois: mois } : {}),
+      } });
       setEnregistree(true);
       setEnvoi({ etat: "idle" });
       await recharger();
@@ -104,15 +161,19 @@ export default function Fiche() {
   }
 
   const motifValide = motif.trim().length >= 10;
-  const montantValide = type !== "ajuste" || (montant > 0 && montant <= plafondFormule);
+  // Borne que le serveur fait respecter ; à l'écran, elle s'énonce en mots.
+  const borne = Math.max(a.l_max, d.montant_demande ?? 0);
+  const auDelaBorne = type === "ajuste" && !modifie && montant > borne;
+  const montantValide = type !== "ajuste" || (montant >= 5000 && montant <= (d.montant_demande ?? Infinity) && (modifie || montant <= borne));
 
   return (
     <article className="space-y-4">
+      <Ariane etapes={[{ label: "Demandes", href: "/console/demandes" }, { label: d.commercant.nom, href: `/console/commercants/${d.commercant_id}` }, { label: `Dossier du ${date(d.cree_le)}` }]} />
       <header className="space-y-1">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-          <LienIcone href="/console" icone={ArrowLeft} label="Retour à la file (Échap)" ancre="gauche" className="border border-trait" />
-          <h1 className="titre text-[1.75rem] leading-tight">{d.commercant.nom}</h1>
-          <Pastille ton="info">{STATUTS[d.statut]}</Pastille>
+          <LienIcone href="/console/demandes" icone={ArrowLeft} label="Retour aux demandes (Échap)" ancre="gauche" className="border border-trait" />
+          <h1 className="titre text-[1.75rem] leading-tight"><Link href={`/console/commercants/${d.commercant_id}`} className="hover:underline">{d.commercant.nom}</Link></h1>
+          <Pastille ton={TON_STATUT[d.statut]}>{STATUTS[d.statut]}</Pastille>
           {!d.consentement_actif && <Pastille ton="alerte">Accord du commerçant retiré : données figées</Pastille>}
         </div>
         <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-encre-2">
@@ -123,31 +184,40 @@ export default function Fiche() {
         </p>
       </header>
 
+      {d.decisions.length > 0 && <BandeauDecision d={d} />}
+
       <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="order-1 min-w-0 space-y-4 xl:order-none xl:col-start-1 xl:row-start-1">
-          {/* Synthèse : montant, risque, recommandation */}
+          {/* Synthèse centrée sur le risque de la demande (ADR 0017) */}
           <section aria-labelledby="t-ana" className="grid gap-4 rounded-2xl border border-trait bg-surface p-4 sm:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
             <div>
-              <h2 id="t-ana" className="text-sm font-semibold text-encre-2">Montant proposé par le moteur</h2>
-              <p className="montant mt-1 text-[2.6rem] leading-none text-montant">{fcfa(a.plafond)}</p>
-              <p className="mt-2 text-encre-2">{a.duree_semaines} échéances de {fcfa(a.echeance_hebdo)}. Plafond de la formule : {fcfa(plafondFormule)}.</p>
+              <h2 id="t-ana" className="text-sm font-semibold text-encre-2">Montant demandé</h2>
+              <p className="montant mt-1 text-[2.6rem] leading-none text-montant" data-testid="montant-demande">{fcfa(dem.montant)}</p>
+              {d.objet_texte && <p className="mt-2"><strong>{CATEGORIES_OBJET[d.objet_categorie ?? ""] ?? "Objet"}</strong> : « {d.objet_texte} »</p>}
+              <p className="mt-1 text-sm" data-testid="modalites-demandees">
+                {FREQ[d.frequence_demandee].chaque}, {duree({ duree_mois: d.duree_mois_demandee, duree_semaines: a.duree_semaines })} · {dem.nb_echeances} échéances de {fcfa(dem.echeance)} · coût total {fcfa(dem.cout_total)}
+                {(d.frequence !== d.frequence_demandee || d.duree_mois !== d.duree_mois_demandee) && <> · retenu : {FREQ[d.frequence].chaque}, {duree({ duree_mois: d.duree_mois, duree_semaines: d.duree_offre })}</>}
+              </p>
+              {(a.risque_valide === false || a.risque_eprouve === false) && <p className="mt-1 text-xs text-ambre-encre">Risque moins éprouvé pour cette fréquence au dernier run d'évaluation (ADR 0016).</p>}
             </div>
             <dl className="grid content-start gap-3">
               <div>
-                <dt className="text-sm font-semibold text-encre-2">Recommandation</dt>
-                <dd className="titre text-xl">{RECO[a.recommandation]}{a.provisoire ? ", provisoire" : ""}</dd>
-              </div>
-              <div>
-                <dt className="text-sm font-semibold text-encre-2">Risque d'impayé annoncé</dt>
-                <dd>
-                  <span className="chiffres text-lg font-semibold">{pct(a.risque, 1)}</span>
-                  <span className="text-encre-2"> pour un seuil de {pct(seuil)}</span>
-                  <span aria-hidden="true" className="mt-1.5 block h-1.5 w-full overflow-hidden rounded-full bg-surface-2">
-                    <span className={`block h-full rounded-full ${partRisque > 0.8 ? "bg-ambre" : "bg-marque"}`} style={{ width: `${partRisque * 100}%` }} />
-                  </span>
+                <dt className="text-sm font-semibold text-encre-2">Risque de défaut pour cette demande</dt>
+                <dd data-testid="risque-demande">
+                  <span className="chiffres text-lg font-semibold">{pct(dem.risque, 1)}</span>
+                  <span className="text-encre-2"> pour une tolérance de {pct(seuil)}</span>
+                  <span className="ml-2"><Tolerance e={dem} /></span>
                 </dd>
               </div>
+              <div>
+                <dt className="text-sm font-semibold text-encre-2">Repère : plafond prudent</dt>
+                <dd className="text-sm">{fcfa(a.plafond)} ({pct(dem.risque_plafond, 1)} de risque)</dd>
+                <dd className="text-sm text-encre-2">Recommandation au plafond : {RECO[a.recommandation]}{a.provisoire ? ", provisoire" : ""}</dd>
+              </div>
             </dl>
+            <ul className="space-y-1 text-[15px] sm:col-span-2">
+              {dem.raisons.map((r) => <li key={r.code} className="border-l-2 border-marque pl-3">{pourAgent(r.texte)}</li>)}
+            </ul>
           </section>
 
           {/* Alertes avant le détail */}
@@ -169,7 +239,7 @@ export default function Fiche() {
 
           {/* Ce qui a pesé */}
           <section aria-labelledby="t-rai">
-            <h2 id="t-rai" className="mb-2 text-sm font-semibold">Ce qui a pesé sur le montant</h2>
+            <h2 id="t-rai" className="mb-2 text-sm font-semibold">Ce qui a pesé sur le plafond prudent</h2>
             <ol className="divide-y divide-trait rounded-2xl border border-trait bg-surface">
               {a.raisons.map((r) => (
                 <li key={r.code} className="grid grid-cols-[minmax(0,1fr)_auto] gap-4 px-4 py-2.5">
@@ -196,7 +266,7 @@ export default function Fiche() {
             <div key="flux" className="space-y-4">
               <CourbeFlux serie={a.serie_hebdo} prudent={a.encaissement_prudent} median={ind.encaissement_median} debut={ind.debut} dense hauteur={190} />
               <dl className="grid gap-x-8 md:grid-cols-2">
-                <Ligne l={`Encaissement prudent (p${a.parametres.percentile})`} v={fcfa(a.encaissement_prudent)} />
+                <Ligne l="Encaissement d'une mauvaise semaine" v={fcfa(a.encaissement_prudent)} />
                 <Ligne l="Encaissement médian" v={fcfa(ind.encaissement_median)} />
                 <Ligne l="Régularité (écart relatif)" v={pct(ind.regularite_cv)} />
                 <Ligne l="Jours actifs par semaine" v={ind.jours_actifs.toLocaleString("fr-FR")} />
@@ -210,9 +280,11 @@ export default function Fiche() {
                 <Ligne l="Exclu : circulaires" v={fcfa(ind.exclu_circulaires)} />
               </dl>
             </div>,
-            <div key="calcul">
-              <ol className="list-decimal space-y-1 pl-5">{a.chaine_calcul.map((l) => <li key={l}>{decimales(l).replace(/annoncé [\d,]+\s?%/, `annoncé ${pct(a.risque, 1)}`)}</li>)}</ol>
-              <p className="mt-3 text-xs text-encre-2">Moteur {d.version_moteur}, graine {d.graine}, {decimales(`m=${a.parametres.m}, s=${a.parametres.s}, n=${a.parametres.n}, i=${a.parametres.i}`)}, {nombre(a.parametres.trajectoires)} trajectoires.</p>
+            <div key="calcul" className="space-y-2" data-testid="comment-calcule">
+              <p>Le moteur part d'une mauvaise période de ventes du commerçant, pas de sa moyenne, et garde une marge de sécurité sur ce qu'il peut rembourser.</p>
+              <p>Il teste ensuite {nombre(a.parametres.trajectoires)} avenirs possibles de ses ventes : le risque est la part des avenirs où au moins une échéance serait manquée, corrigée par un modèle calibré. Le plafond prudent est le plus haut montant dont le risque reste dans la tolérance de l'institution.</p>
+              <p>L'institution décide : accorder, contre-proposer, refuser ou demander un complément.</p>
+              <p className="text-xs text-encre-2">Rejouable à l'identique : moteur {d.version_moteur}, graine {d.graine}. Réglages : page Paramètres.</p>
             </div>,
             <div key="modeles">
               {a.modeles ? (
@@ -223,7 +295,7 @@ export default function Fiche() {
                     <Ligne l="Probabilité de défaut" v={pct(a.modeles.proba_defaut, 1)} />
                     <Ligne l="Score d'anomalie" v={a.modeles.score_anomalie.toLocaleString("fr-FR")} />
                   </dl>
-                  <p className="mt-2 text-xs text-encre-2">La probabilité de défaut est le risque calibré au montant proposé ; la formule reste le plafond.</p>
+                  <p className="mt-2 text-xs text-encre-2">La probabilité de défaut est le risque calibré au montant proposé.</p>
                 </>
               ) : <p className="text-encre-2">Aucun modèle appliqué à ce dossier.</p>}
             </div>,
@@ -255,9 +327,41 @@ export default function Fiche() {
                     Montant décidé (FCFA)
                     <input inputMode="numeric" value={nombre(montant)} onChange={(e) => setMontant(Number(e.target.value.replace(/\D/g, "")) || 0)}
                       className="chiffres mt-1 block min-h-11 w-full rounded-xl border border-trait bg-fond px-3" aria-invalid={!montantValide} />
-                    <span className={`text-xs ${montantValide ? "text-encre-2" : "text-alerte"}`}>Plafond de la formule : {fcfa(plafondFormule)}. Il ne peut pas être dépassé.</span>
+                    <span className={`text-xs ${montantValide ? "text-encre-2" : "text-alerte"}`}>
+                      {auDelaBorne ? "Au-delà, les ventes ne permettent pas de rembourser prudemment."
+                        : d.montant_demande ? `Pas plus que demandé (${fcfa(d.montant_demande)}).` : "Au-delà du plafond prudent, les ventes ne permettent pas de rembourser prudemment."}
+                    </span>
                   </label>
                 )}
+                {type === "ajuste" && (
+                  <div className="grid grid-cols-2 gap-2">
+                    <label className="block text-sm">
+                      Fréquence
+                      <select value={freq} onChange={(e) => setFreq(e.target.value as Frequence)} className="mt-1 block min-h-11 w-full rounded-xl border border-trait bg-fond px-2">
+                        {d.modalites.frequences.map((f) => <option key={f} value={f}>{FREQ[f].nom}</option>)}
+                      </select>
+                    </label>
+                    <label className="block text-sm">
+                      Durée
+                      <select value={mois} onChange={(e) => setMois(Number(e.target.value))} className="mt-1 block min-h-11 w-full rounded-xl border border-trait bg-fond px-2">
+                        {Array.from({ length: d.modalites.duree_max_mois - d.modalites.duree_min_mois + 1 }, (_, k) => d.modalites.duree_min_mois + k)
+                          .map((m) => <option key={m} value={m}>{m} mois</option>)}
+                      </select>
+                    </label>
+                    <span className="col-span-2 text-xs text-encre-2">Limites de l'institution : {d.modalites.frequences.map((f) => FREQ[f].chaque).join(", ")} ; {d.modalites.duree_min_mois} à {d.modalites.duree_max_mois} mois.</span>
+                  </div>
+                )}
+                {type === "ajuste" && (
+                  <div className="rounded-xl bg-fond p-3 text-sm" aria-live="polite" data-testid="risque-contre">
+                    {contre.erreur ? <span className="text-alerte">{contre.erreur}</span> : !contre.donnees ? "Calcul du risque…" : (
+                      <>
+                        <p>Risque recalculé : <strong className="chiffres">{pct(contre.donnees.risque, 1)}</strong> <Tolerance e={contre.donnees} /></p>
+                        <p className="text-encre-2">{contre.donnees.nb_echeances} échéances de {fcfa(contre.donnees.echeance)} · écart à la demande {fcfa(montant - dem.montant)}</p>
+                      </>
+                    )}
+                  </div>
+                )}
+                {type === "valide" && <p className="rounded-xl bg-fond p-3 text-sm">Accorder {fcfa(dem.montant)} aux modalités demandées : risque {pct(dem.risque, 1)} <Tolerance e={dem} /></p>}
                 <label className="block">
                   Justificatif {type === "refuse" ? "(motif du refus)" : ""} <span className="text-alerte">*</span>
                   <textarea ref={motifRef} value={motif} onChange={(e) => setMotif(e.target.value)} rows={3} required minLength={10}
@@ -275,7 +379,7 @@ export default function Fiche() {
                 {d.decisions.map((x) => (
                   <div key={x.id} className="apparait space-y-1">
                     <p className="font-semibold">{LIBELLES[x.type as TypeDecision]}</p>
-                    <p className="chiffres">Proposé {fcfa(x.montant_propose)}, décidé {fcfa(x.montant_decide)}</p>
+                    <p className="chiffres">{x.montant_demande ? `Demandé ${fcfa(x.montant_demande)}, ` : ""}plafond {fcfa(x.montant_propose)}, décidé {fcfa(x.montant_decide)}{x.risque != null ? `, risque ${pct(x.risque, 1)}` : ""}</p>
                     <p className="italic">« {x.motif} »</p>
                     <p className="text-xs text-encre-2">{x.auteur}, {date(x.horodatage, true)}, moteur {x.version_moteur}, graine {x.graine}</p>
                   </div>

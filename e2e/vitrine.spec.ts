@@ -3,18 +3,19 @@ import { connecter, reinitialiser } from "./session";
 
 // Revue de la mission vitrine : chaque écran, chaque rôle, à 360, 768, 1440 et 1920 px, en clair et en sombre.
 // Captures dans .captures/revue-vitrine/<theme>-<écran>-<largeur>.png ; débordement horizontal interdit.
-const CAP = `${process.env.KWEDO_CAPTURES ?? ".captures"}/revue-finitions`;
+const CAP = `${process.env.KWEDO_CAPTURES ?? ".captures"}/revue-ajustements`;
 const LARGEURS = [360, 768, 1440, 1920] as const;
 const THEMES = [["clair", "light"], ["sombre", "dark"]] as const;
 
 const GROUPES: { nom: string; profil?: string; pages: string[] }[] = [
   { nom: "public", pages: ["/", "/connexion", "/app/inscription", "/demo"] },
   { nom: "commercant", profil: "commercant", pages: ["/app", "/app/simulateur", "/app/dossier", "/app/credit", "/app/activite", "/app/conseils"] },
-  { nom: "console", profil: "agent-lagune", pages: ["/console", "FICHE", "/console/portefeuille", "/console/parametres", "/console/journal"] },
+  { nom: "console", profil: "agent-lagune", pages: ["/console", "FICHE", "/console/credits", "/console/parametres", "/console/journal"] },
   { nom: "admin", profil: "admin", pages: ["/admin"] },
 ];
 
 test.beforeAll(async ({ browser }) => {
+  test.setTimeout(120_000); // réinitialisation avec historique de démo (ADR 0019)
   const p = await browser.newPage();
   await reinitialiser(p.request);
   await p.close();

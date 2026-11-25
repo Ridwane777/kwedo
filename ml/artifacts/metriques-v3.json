@@ -1,0 +1,194 @@
+{
+ "avertissement": "Mesures sur données simulées (générateur de réglage, partition de validation v).",
+ "lignes": {
+  "a": 504000,
+  "b": 252000,
+  "v": 252000
+ },
+ "comparaison": {
+  "unique": {
+   "hebdomadaire": {
+    "auc": 0.9243,
+    "brier": 0.08695,
+    "ece_10": 0.0067,
+    "taux": 0.3325,
+    "par_duree": {
+     "3": {
+      "annonce": 0.3265,
+      "observe": 0.3252
+     },
+     "6": {
+      "annonce": 0.3299,
+      "observe": 0.3316
+     },
+     "9": {
+      "annonce": 0.3303,
+      "observe": 0.3352
+     },
+     "12": {
+      "annonce": 0.3305,
+      "observe": 0.3381
+     }
+    }
+   },
+   "quinzaine": {
+    "auc": 0.9695,
+    "brier": 0.06093,
+    "ece_10": 0.0036,
+    "taux": 0.2893,
+    "par_duree": {
+     "3": {
+      "annonce": 0.283,
+      "observe": 0.2796
+     },
+     "6": {
+      "annonce": 0.2913,
+      "observe": 0.2875
+     },
+     "9": {
+      "annonce": 0.2921,
+      "observe": 0.2933
+     },
+     "12": {
+      "annonce": 0.2937,
+      "observe": 0.2968
+     }
+    }
+   },
+   "mensuelle": {
+    "auc": 0.9758,
+    "brier": 0.0554,
+    "ece_10": 0.0057,
+    "taux": 0.2677,
+    "par_duree": {
+     "3": {
+      "annonce": 0.2653,
+      "observe": 0.2547
+     },
+     "6": {
+      "annonce": 0.2672,
+      "observe": 0.2662
+     },
+     "9": {
+      "annonce": 0.2733,
+      "observe": 0.2728
+     },
+     "12": {
+      "annonce": 0.2737,
+      "observe": 0.277
+     }
+    }
+   },
+   "brier_moyen": 0.06776,
+   "ece_moyen": 0.0053
+  },
+  "par_frequence": {
+   "hebdomadaire": {
+    "auc": 0.9231,
+    "brier": 0.08787,
+    "ece_10": 0.0066,
+    "taux": 0.3325,
+    "par_duree": {
+     "3": {
+      "annonce": 0.3269,
+      "observe": 0.3252
+     },
+     "6": {
+      "annonce": 0.3282,
+      "observe": 0.3316
+     },
+     "9": {
+      "annonce": 0.3287,
+      "observe": 0.3352
+     },
+     "12": {
+      "annonce": 0.329,
+      "observe": 0.3381
+     }
+    }
+   },
+   "quinzaine": {
+    "auc": 0.9709,
+    "brier": 0.0601,
+    "ece_10": 0.0039,
+    "taux": 0.2893,
+    "par_duree": {
+     "3": {
+      "annonce": 0.2864,
+      "observe": 0.2796
+     },
+     "6": {
+      "annonce": 0.2901,
+      "observe": 0.2875
+     },
+     "9": {
+      "annonce": 0.2938,
+      "observe": 0.2933
+     },
+     "12": {
+      "annonce": 0.294,
+      "observe": 0.2968
+     }
+    }
+   },
+   "mensuelle": {
+    "auc": 0.9771,
+    "brier": 0.0539,
+    "ece_10": 0.0048,
+    "taux": 0.2677,
+    "par_duree": {
+     "3": {
+      "annonce": 0.262,
+      "observe": 0.2547
+     },
+     "6": {
+      "annonce": 0.2689,
+      "observe": 0.2662
+     },
+     "9": {
+      "annonce": 0.2741,
+      "observe": 0.2728
+     },
+     "12": {
+      "annonce": 0.2755,
+      "observe": 0.277
+     }
+    }
+   },
+   "brier_moyen": 0.06729,
+   "ece_moyen": 0.0051
+  }
+ },
+ "choix": {
+  "retenu": "unique",
+  "regle": "Brier moyen sur v le plus bas ; à moins de 1 % d'écart relatif, modèle unique.",
+  "brier_unique": 0.06776,
+  "brier_par_frequence": 0.06729
+ },
+ "importance_gain": {
+  "echeance_sur_median_periode": 1516381.1,
+  "risque_simule": 870361.2,
+  "echeance_sur_prudent_periode": 353747.9,
+  "log_tx_semaine": 189480.2,
+  "log_median": 136427.1,
+  "log_ticket": 127561.2,
+  "recent4_sur_median": 8101.9,
+  "saisonnalite": 7542.9,
+  "semaines_par_periode": 7435.8,
+  "part_sorties_sur_entrees": 6369.6,
+  "min12_sur_median": 6272.5,
+  "p20_sur_median": 6044.4,
+  "log_payeurs": 4821.0,
+  "autocorr1": 3971.8,
+  "p10_sur_median": 3315.8,
+  "part_flux_pro": 3188.2,
+  "jours_actifs": 2504.5,
+  "regularite_cv": 2479.6,
+  "part_plus_gros_payeur": 2415.2,
+  "nb_echeances": 2413.8,
+  "tendance_hebdo": 1234.2,
+  "moyenne_sur_median": 646.6,
+  "part_semaines_vides": 222.0,
+  "semaines": 207.1
+ }
+}

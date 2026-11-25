@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import threading
 import time
@@ -19,8 +20,8 @@ from fastapi import FastAPI, Request
 from fastapi.responses import Response
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from . import auth
-from .service import ErreurMetier, Service
+from . import auth, console
+from .service import CHAMPS_PARAMETRES, ErreurMetier, Service
 
 ROUTES = []
 
@@ -134,7 +135,8 @@ def equipe_echeance(s, u, b, pp):
 @route("GET", r"/auth/profils", public)
 def profils(s, q, b, h):
     noms = {i["id"]: i["nom"] for i in s.q("SELECT id, nom FROM institutions")}
-    return [{"id": k, "role": p["role"], "nom": p["nom"], "institution": noms.get(p["institution_id"])} for k, p in auth.PROFILS.items()]
+    return [{"id": k, "role": p["role"], "nom": p["nom"], "institution": noms.get(p["institution_id"]), "libelle": p.get("libelle")}
+            for k, p in auth.PROFILS.items()]
 
 
 @route("POST", r"/auth/connexion", public)
@@ -207,7 +209,18 @@ def canal(s, q, b, h, cid):
 
 @route("GET", r"/commercants/(?P<cid>[\w-]+)/estimation", commercant_du_chemin)
 def estimation(s, q, b, h, cid):
-    return s.estimation(cid, q.get("institution_id", "inst-lagune"), float(q.get("choc_ventes", 0) or 0), _int(q.get("montant_souhaite")))
+    return s.estimation(cid, q.get("institution_id", "inst-lagune"), float(q.get("choc_ventes", 0) or 0), _int(q.get("montant_souhaite")),
+                        q.get("frequence") or None, _int(q.get("duree_mois")))
+
+
+@route("GET", r"/commercants/(?P<cid>[\w-]+)/plafonds", commercant_du_chemin)
+def plafonds(s, q, b, h, cid):
+    return s.plafonds(cid, q.get("institution_id", "inst-lagune"), q.get("frequence") or None)
+
+
+@route("GET", r"/commercants/(?P<cid>[\w-]+)/conseils", commercant_du_chemin)
+def conseils(s, q, b, h, cid):
+    return s.conseils(cid, q.get("institution_id", "inst-lagune"), q.get("frequence") or None, _int(q.get("duree_mois")))
 
 
 @route("GET", r"/commercants/(?P<cid>[\w-]+)/consentements", commercant_du_chemin)
@@ -215,8 +228,16 @@ def consentements(s, q, b, h, cid):
     return s.consentements(cid)
 
 
+@route("POST", r"/commercants/(?P<cid>[\w-]+)/code-sms", commercant_du_chemin)
+def code_sms(s, q, b, h, cid):
+    return s.emettre_code(cid, b.get("institution_id", ""))
+
+
 @route("POST", r"/commercants/(?P<cid>[\w-]+)/consentements", commercant_du_chemin)
 def consentir(s, q, b, h, cid):
+    # Accorder l'accès exige la signature par code SMS (ADR 0015) ; le retrait reste libre et immédiat.
+    if b.get("action") == "accorde":
+        s.verifier_code(cid, b.get("institution_id", ""), b.get("code", ""), "accord de consultation du dossier")
     return s.consentir(cid, b.get("institution_id", ""), b.get("action", ""))
 
 
@@ -232,8 +253,16 @@ def file(s, q, b, h):
 
 @route("POST", r"/dossiers", commercant_du_corps)
 def envoyer(s, q, b, h):
-    d = s.envoyer_dossier(b.get("commercant_id", ""), b.get("institution_id", ""))
-    return {k: d[k] for k in ("id", "institution_id", "statut")}  # jamais les alertes côté commerçant
+    d = s.envoyer_dossier(b.get("commercant_id", ""), b.get("institution_id", ""), b.get("frequence") or None, _int(b.get("duree_mois")),
+                          b.get("montant_demande"), b.get("objet_categorie"), b.get("objet"))
+    # Jamais les alertes ni le risque côté commerçant.
+    return {k: d[k] for k in ("id", "institution_id", "statut", "frequence", "duree_mois", "montant_demande", "objet_categorie", "objet_texte")}
+
+
+@route("GET", r"/dossiers/(?P<did>[\w-]+)/risque", equipe_dossier)
+def risque_termes(s, q, b, h, did):
+    """Risque recalculé pour une contre-proposition (montant, fréquence, durée dans les modalités de l'institution)."""
+    return s.evaluer(did, _int(q.get("montant")), q.get("frequence") or None, _int(q.get("duree_mois")))
 
 
 @route("GET", r"/dossiers/(?P<did>[\w-]+)", equipe_dossier)
@@ -249,7 +278,7 @@ def rejouer(s, q, b, h, did):
 @route("POST", r"/dossiers/(?P<did>[\w-]+)/decisions", equipe_dossier)
 def decider(s, q, b, h, did):
     return s.decider(did, b.get("type", ""), h["X-Acteur"], b.get("motif", ""),
-                     _int(b.get("montant_decide")), _int(b.get("duree_semaines")))
+                     _int(b.get("montant_decide")), _int(b.get("duree_semaines")), b.get("frequence") or None, _int(b.get("duree_mois")))
 
 
 @route("POST", r"/dossiers/(?P<did>[\w-]+)/offre", commercant_du_dossier)
@@ -278,6 +307,47 @@ def portefeuille(s, q, b, h):
     return s.portefeuille(h["institution"])
 
 
+# ---------- console par objet (ADR 0019) : listes paginées, toutes limitées à l'institution de la session ----------
+@route("GET", r"/console/aujourdhui", equipe)
+def c_aujourdhui(s, q, b, h):
+    return console.aujourdhui(s, h["institution"])
+
+
+@route("GET", r"/console/demandes", equipe)
+def c_demandes(s, q, b, h):
+    return console.demandes(s, h["institution"], q)
+
+
+@route("GET", r"/console/credits", equipe)
+def c_credits(s, q, b, h):
+    return console.credits(s, h["institution"], q)
+
+
+@route("GET", r"/console/credits/(?P<cr>[\w-]+)", equipe)
+def c_credit(s, q, b, h, cr):
+    return console.credit(s, h["institution"], cr)
+
+
+@route("GET", r"/console/retards", equipe)
+def c_retards(s, q, b, h):
+    return console.retards(s, h["institution"], q)
+
+
+@route("GET", r"/console/relances", equipe)
+def c_relances(s, q, b, h):
+    return console.relances(s, h["institution"], q)
+
+
+@route("GET", r"/console/commercants", equipe)
+def c_commercants(s, q, b, h):
+    return console.commercants(s, h["institution"], q)
+
+
+@route("GET", r"/console/commercants/(?P<cid>[\w-]+)", equipe)
+def c_commercant(s, q, b, h, cid):
+    return console.commercant(s, h["institution"], cid)
+
+
 @route("POST", r"/relances/executer", admin)
 def relances(s, q, b, h):
     return s.executer_relances()
@@ -290,8 +360,13 @@ def params(s, q, b, h, inst):
 
 @route("POST", r"/institutions/(?P<inst>[\w-]+)/parametres", responsable_institution)
 def nv_params(s, q, b, h, inst):
-    kw = {k: b[k] for k in ("m", "s", "n", "i", "percentile", "seuil_risque") if k in b}
+    kw = {k: b[k] for k in CHAMPS_PARAMETRES if k in b}
     return s.nouveaux_parametres(inst, h["X-Acteur"], **kw)
+
+
+@route("POST", r"/institutions/(?P<inst>[\w-]+)/parametres/apercu", responsable_institution)
+def apercu_params(s, q, b, h, inst):
+    return s.apercu_parametres(inst, **{k: b[k] for k in s.BORNES_APERCU if k in b})
 
 
 @route("GET", r"/journal", connecte_pro)
@@ -391,8 +466,10 @@ def main():
     s = Service(a.db)
     if not s.un("SELECT 1 FROM institutions LIMIT 1"):
         s.reinitialiser()
-    print(f"Kwedo API sur http://127.0.0.1:{a.port} (données simulées, FastAPI)", flush=True)
-    uvicorn.run(fabriquer(s), host="127.0.0.1", port=a.port, log_level="warning", access_log=False)
+    # KWEDO_HOST : 127.0.0.1 par défaut (VPS partagé) ; 0.0.0.0 dans le conteneur Docker (ADR 0013).
+    hote = os.environ.get("KWEDO_HOST", "127.0.0.1")
+    print(f"Kwedo API sur http://{hote}:{a.port} (données simulées, FastAPI)", flush=True)
+    uvicorn.run(fabriquer(s), host=hote, port=a.port, log_level="warning", access_log=False)
 
 
 if __name__ == "__main__":

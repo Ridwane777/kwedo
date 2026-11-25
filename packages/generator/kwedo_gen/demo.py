@@ -27,6 +27,10 @@ PERSONNES = [
     ("com-koffi", "Koffi Adjovi", "+229 01 90 00 00 05", "cosmetique", 20265, "pic_avant_demande", True, 52, REGLAGE),
     ("com-nafissatou", "Nafissatou Bello", "+229 01 90 00 00 06", "artisanat", 20266, None, True, 10, TEST),
     ("com-gildas", "Gildas Ahouansou", "+229 01 90 00 00 07", "quincaillerie", 20267, None, True, 52, TEST),
+    # Profils à risque (graines choisies parmi des tirages du générateur ; risque calculé par le moteur, rien d'imposé) :
+    # ventes en baisse et irrégulières ; dépendance à un seul client avec compte non séparé.
+    ("com-hounkpe", "Hounkpè Dossou", "+229 01 90 00 00 08", "tissus", 60025, None, True, 52, TEST),
+    ("com-yaba", "Yaba Agossou", "+229 01 90 00 00 09", "cosmetique", 50007, "concentration", False, 52, TEST),
 ]
 
 

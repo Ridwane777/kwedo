@@ -3,6 +3,7 @@
 import { Link2 } from "lucide-react";
 import Link from "next/link";
 import { CourbeFlux } from "@/components/courbe-flux";
+import { PlafondConditions } from "@/components/estimation";
 import { Chargement, Erreur, LienBouton, Simule } from "@/components/ui";
 import { useApi } from "@/lib/api";
 import { useCommercant } from "@/lib/commercant";
@@ -50,7 +51,9 @@ export default function Activite() {
             </ul>
             <Link href="/app/credit" className="inline-block min-h-10 py-2 font-medium text-marque">Payer ou voir l'échéancier</Link>
           </>
-        ) : <p className="text-encre-2">Pas de crédit en cours. Votre plafond estimé : <strong className="chiffres text-encre">{fcfa(e.plafond)}</strong>.</p>}
+        ) : <div className="space-y-1"><p className="text-encre-2">Pas de crédit en cours.</p>
+          <PlafondConditions montant={e.plafond} frequence={e.frequence} duree={{ duree_mois: e.parametres.duree_mois, duree_semaines: e.duree_semaines }} institution={e.institution} />
+          <Link href="/app#selon-duree" className="inline-block min-h-10 py-2 font-medium text-marque">Voir selon la durée</Link></div>}
       </div>
 
       <div className="space-y-2">

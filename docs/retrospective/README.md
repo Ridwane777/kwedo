@@ -67,3 +67,38 @@ au run final).
 
 **Ensuite** : calibrer sur de vrais remboursements d'une institution pilote, par activité ; prévoir une marge de
 prudence explicite pour les activités sans historique de remboursement ; mesurer le temps humain selon `docs/evaluation/protocole-temps.md`, avec un chronomètre externe.
+
+## Mission risque toutes fréquences (ADR 0016)
+
+**Ce que ça a coûté** : environ 25 minutes de calcul sur 4 cœurs (jeux de réglage ≈ 6 min, entraînement des deux
+variantes ≈ 5 min, contrôle sur le réglage ≈ 3 min, jeux finaux 2 × 4 000 commerçants ≈ 8 min, run final ≈ 5 min),
+aucun GPU ; 12 cellules × 14 échéances par commerçant, soit ≈ 500 000 lignes d'entraînement. Côté code : un module de
+remboursement par échéancier dans le générateur, un modèle v3 et sa calibration par fréquence, un chemin v3 dans le
+moteur, un champ `risque_eprouve`. Un seul run final, aucun relancé.
+
+**Ce qui reste faible** :
+- Les activités jamais vues : le moteur n'y bat les règles naïves dans aucune cellule (hebdomadaire : légèrement
+  moins bon). La calibration ne corrige pas une dérive que les flux ne laissent pas voir.
+- La calibration sous le générateur de test : risque annoncé ≈ 11 %, observé 16 à 21 % ; ECE 0,05 à 0,09.
+- La règle « éprouvée » est relative à l'hebdomadaire, lui-même imparfait : la mention a disparu parce que quinzaine
+  et mensuel font au moins aussi bien, pas parce que le risque est une probabilité fiable.
+- Défaut mesuré à la semaine (retard toléré X = 0 jour) ; mois de 52/12 semaines, pas de dates calendaires.
+- Tout reste simulé : la validation qui compte se fera sur les remboursements d'une institution pilote.
+
+## Diagnostic du risque (`docs/evaluation/diagnostic/`)
+
+**Cause trouvée** : l'ablation du générateur (réglage → test, un écart à la fois puis en cumul, graines neuves, v3
+inchangé) attribue l'essentiel du problème aux **activités jamais vues**. Cet écart explique 50 / 64 / 75 % de la
+sous-estimation (hebdo / quinzaine / mensuel) et la totalité de l'absence de gain contre les règles naïves. Le
+modèle reconnaît l'activité à son profil (99 %) et extrapole « ticket élevé → sûr » : quincaillerie annoncée
+4,8 %, observée 30,8 %. La phrase « une dérive que les flux ne laissent pas voir » écrite plus haut était donc
+**fausse pour la cause principale** : les entrées changent nettement (KS 0,2–0,3), mais le modèle les lit hors de son
+étendue d'entraînement. Elle reste juste pour le second bloc : les dépenses personnelles et les semaines vides
+(≈ 40 % de l'écart hebdo) ne touchent que le futur caché.
+
+**Forme** : une pente (b ≈ 0,61) plutôt qu'un décalage ; les petits risques sont les plus sous-estimés.
+
+**Leçon** : la calibration isotonique sur le réglage ne protège pas d'une extrapolation sur des profils hors
+étendue. Une recalibration apprise sur le test corrige l'ECE (0,079 → 0,012), mais dégrade le réglage
+(0,007 → 0,084) : c'est se régler sur le test. Le correctif le moins risqué est un plancher « risque simulé » pour
+les activités inconnues (ECE jamais vus 0,18 → 0,12). Rien n'est appliqué ; coût ≈ 75 min de calcul sur 4 cœurs.

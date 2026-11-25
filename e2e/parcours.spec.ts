@@ -18,46 +18,111 @@ test("parcours complet : estimation → décision → offre → remboursement �
   // 1. Estimation avec raisons, étiquette « simulé »
   await page.setViewportSize({ width: 360, height: 780 });
   await page.goto("/app");
-  await expect(page.getByText("vous pouvez emprunter jusqu'à")).toBeVisible();
+  await expect(page.getByText("votre plafond estimé")).toBeVisible();
+  await expect(page.getByTestId("plafond-conditions").first()).toContainText(/Jusqu'à .* remboursés chaque semaine pendant 26 semaines, aux conditions de Caisse Lagune/);
   await expect(page.getByText(/\d[\d\s]*\sFCFA/).first()).toBeVisible();
   await expect(page.getByText("Démo simulée")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Pourquoi ce montant" })).toBeVisible();
   await expect(page.locator("ol li")).toHaveCount(3);
+  await expect(page.getByTestId("phrase-echeance")).toContainText("chaque semaine pendant 26 semaines");
+  await expect(page.getByText(/moins éprouvée/)).toHaveCount(0);
   await capture(page, "1-estimation");
+
+  // 1 bis. Fréquence et durée au choix (options de l'institution) : échéance exacte recalculée, sans mention prudente
+  await page.getByRole("radiogroup", { name: "Je rembourse" }).getByText("Chaque mois").click();
+  await expect(page.getByRole("radio", { name: "Chaque mois" })).toBeChecked();
+  await expect(page.getByTestId("phrase-echeance")).toContainText(/chaque mois pendant 6 mois \(6 échéances\)/);
+  await expect(page.getByText(/moins éprouvée/)).toHaveCount(0); // mensuel éprouvé au run 2026-11-24-frequences (ADR 0016)
+  await page.getByLabel("Pendant").selectOption("12");
+  await expect(page.getByTestId("phrase-echeance")).toContainText(/chaque mois pendant 12 mois \(12 échéances\)/);
+  await page.getByLabel("Selon les règles de").selectOption("inst-baobab");
+  await expect(page.getByText("(seule option de cette institution)")).toBeVisible();
+  await expect(page.getByLabel("Pendant").locator("option")).toHaveCount(7); // 6 à 12 mois
+  await page.getByLabel("Selon les règles de").selectOption("inst-lagune");
 
   // 2. Simulateur : le curseur de baisse fait baisser le plafond
   await page.goto("/app/simulateur");
   await expect(page.getByText("il manque")).toBeVisible({ timeout: 15_000 });
   await capture(page, "2-simulateur");
 
-  // 3. Consentements et envoi à deux institutions
+  // 3. Dépôt du dossier : institution → modalités → confirmation signée par code SMS (accord vérifié avant envoi)
   await page.goto("/app/dossier");
-  await page.getByRole("switch", { name: /Caisse Lagune/ }).click();
-  await expect(page.getByRole("switch", { name: /Caisse Lagune/ })).toHaveAttribute("aria-checked", "true");
-  await page.getByRole("switch", { name: /Banque Baobab/ }).click();
-  await expect(page.getByRole("switch", { name: /Banque Baobab/ })).toHaveAttribute("aria-checked", "true");
-  await page.getByRole("button", { name: /Envoyer à 2 institutions/ }).click();
+  await expect(page.getByRole("switch")).toHaveCount(0);
+  await page.getByRole("button", { name: "Déposer mon dossier de crédit" }).click();
+  await page.getByRole("radio", { name: /Caisse Lagune/ }).check();
+  await page.getByRole("button", { name: "Continuer" }).click();
+  await page.getByTestId("montant-souhaite").fill("600000");
+  await page.getByText("Achat de stock", { exact: true }).click();
+  await page.getByLabel("En une phrase, à quoi servira-t-il ?").fill("Acheter des pagnes avant les fêtes.");
+  await expect(page.getByTestId("phrase-echeance")).toContainText("chaque semaine pendant 26 semaines");
+  await page.getByRole("button", { name: "Continuer" }).click();
+  expect((await page.getByTestId("recap-montant").textContent())!.replace(/\D/g, "")).toBe("600000");
+  await expect(page.getByText("J'accepte que Caisse Lagune Microfinance (fictive) consulte mon dossier de crédit.")).toBeVisible();
+  await expect(page.getByText("sous 48 h après accord")).toBeVisible();
+  const signer = page.getByRole("button", { name: "Signer et envoyer" });
+  await expect(signer).toBeDisabled();                              // pas d'envoi sans signature
+  await page.getByRole("button", { name: "Recevoir mon code par SMS" }).click();
+  const code = (await page.getByTestId("code-sms").textContent())!.trim();
+  await page.getByLabel("Code reçu par SMS").fill(code === "000000" ? "111111" : "000000"); // mauvais code
+  await signer.click();
+  await expect(page.getByRole("alert").filter({ hasText: "code SMS incorrect" })).toBeVisible();
+  expect((await (await page.request.get("/api/commercants/com-afiavi")).json()).dossiers).toHaveLength(0);
+  await page.getByRole("button", { name: "Renvoyer un code" }).click();
+  await expect(page.getByTestId("code-sms")).not.toHaveText(code);
+  const code2 = (await page.getByTestId("code-sms").textContent())!.trim();
+  await page.getByLabel("Code reçu par SMS").fill(code2);
+  await capture(page, "3-confirmation");
+  await signer.click();
+  await expect(page.getByText("Dossier envoyé à Caisse Lagune Microfinance (fictive)")).toBeVisible();
   await expect(page.getByText("Envoyé le").first()).toBeVisible();
+
+  // Deuxième institution, au mois (Baobab : mensuel seulement), depuis le bouton de l'estimation
+  await page.goto("/app");
+  await page.getByLabel("Selon les règles de").selectOption("inst-baobab");
+  await expect(page.getByText("(seule option de cette institution)")).toBeVisible();
+  await page.getByRole("link", { name: "Envoyer mon dossier" }).click();
+  await page.getByTestId("montant-souhaite").fill("600000");
+  await page.getByText("Achat de stock", { exact: true }).click();
+  await page.getByLabel("En une phrase, à quoi servira-t-il ?").fill("Acheter des pagnes avant les fêtes.");
+  await expect(page.getByTestId("phrase-echeance")).toContainText("chaque mois pendant 6 mois");
+  await page.getByRole("button", { name: "Continuer" }).click();
+  await expect(page.getByText("sous 72 h après accord")).toBeVisible();
+  await page.getByRole("button", { name: "Recevoir mon code par SMS" }).click();
+  await page.getByLabel("Code reçu par SMS").fill((await page.getByTestId("code-sms").textContent())!.trim());
+  await page.getByRole("button", { name: "Signer et envoyer" }).click();
+  await expect(page.getByText("Dossier envoyé à Banque Baobab Commerce (fictive)")).toBeVisible();
+  await expect(page.getByText(/chaque mois, 6 mois/)).toBeVisible();
   await capture(page, "3-dossier");
+
+  // Le retrait de l'accord est dans « Mon compte marchand »
+  await page.goto("/app/compte");
+  await expect(page.getByRole("button", { name: /Retirer l'accord pour Banque Baobab/ })).toBeVisible();
+  await expect(page.getByText(/L'historique d'un crédit en cours reste chez le prêteur/)).toBeVisible();
 
   // 4. Console : fiche analysée, ajustement avec justificatif
   const agent = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   await connecter(agent.request, "agent-lagune");
-  await agent.goto("/console");
+  await agent.goto("/console/demandes");
   await agent.getByRole("link", { name: "Afiavi Houngbo" }).click();
-  await expect(agent.getByText("Montant proposé par le moteur")).toBeVisible();
+  expect((await agent.getByTestId("montant-demande").textContent())!.replace(/\D/g, "")).toBe("600000");
+  await expect(agent.getByText("« Acheter des pagnes avant les fêtes. »")).toBeVisible();
+  await expect(agent.getByTestId("risque-demande")).toContainText(/tolérance/);
+  await expect(agent.getByTestId("modalites-demandees")).toContainText("chaque semaine, 26 semaines");
   await agent.keyboard.press("a");
+  await expect(agent.getByLabel("Fréquence")).toHaveValue("hebdomadaire");
+  await expect(agent.getByLabel("Durée").locator("option")).toHaveCount(10); // limites Lagune : 3 à 12 mois
   const champ = agent.getByLabel("Montant décidé (FCFA)");
-  await champ.fill("600000");
+  await champ.fill("400000");
+  await expect(agent.getByTestId("risque-contre")).toContainText("Risque recalculé");
   await agent.getByRole("button", { name: "Enregistrer la décision" }).isDisabled();
   await agent.getByLabel(/Justificatif/).fill("Saison creuse en janvier : prudence sur le montant.");
   await agent.getByRole("button", { name: "Enregistrer la décision" }).click();
-  await expect(agent.getByText("« Saison creuse en janvier : prudence sur le montant. »")).toBeVisible();
+  await expect(agent.getByTestId("bandeau-decision")).toContainText("« Saison creuse en janvier : prudence sur le montant. »");
   await expect(agent.getByText("Décision enregistrée au journal.")).toBeVisible();
   await capture(agent, "4-decision");
 
   // Le second dossier montre une alerte de manipulation
-  await agent.goto("/console");
+  await agent.goto("/console/demandes");
   await agent.getByRole("link", { name: "Séna Kpadonou" }).click();
   await expect(agent.getByText(/renvoi d'un montant proche/)).toBeVisible();
 
@@ -65,6 +130,8 @@ test("parcours complet : estimation → décision → offre → remboursement �
   await page.goto("/app/dossier");
   await page.getByRole("link", { name: /Voir l'offre/ }).click();
   await expect(page.getByText("vous propose")).toBeVisible();
+  await expect(page.getByTestId("nature-offre")).toHaveText("Contre-proposition de l'institution");
+  await expect(page.getByTestId("ecart-demande")).toContainText(/écart de .200/);
   await capture(page, "5-offre");
   await page.getByRole("button", { name: /^Accepter/ }).click();
   await expect(page).toHaveURL(/\/app\/credit/);
@@ -74,16 +141,16 @@ test("parcours complet : estimation → décision → offre → remboursement �
   await expect(page.getByText(/Paiement reçu\. Reçu n° SIM-PAY/)).toBeVisible();
   await capture(page, "6-credit");
 
-  // 7. Retard simulé → relance respectueuse → portefeuille
-  await agent.goto("/console/portefeuille");
+  // 7. Retard simulé → relance respectueuse → recouvrement
+  await agent.goto("/console/recouvrement");
   const admin = await browser.newPage();
   await connecter(admin.request, "admin");
   for (let k = 0; k < 3; k++) expect((await admin.request.post("/api/demo/avancer", { data: { jours: 7 } })).ok()).toBeTruthy();
   await admin.close();
   await agent.reload();
   await expect(agent.getByText(/n'est pas encore réglée/).first()).toBeVisible({ timeout: 15_000 });
-  await expect(agent.getByText("Échéances en retard")).toBeVisible();
-  await capture(agent, "7-portefeuille");
+  await expect(agent.getByRole("heading", { name: /Échéances en retard/ })).toBeVisible();
+  await capture(agent, "7-recouvrement");
 
   await page.reload();
   await expect(page.getByText("Messages reçus")).toBeVisible();

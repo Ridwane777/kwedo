@@ -147,6 +147,13 @@ Les deux thèmes sont aussi contrôlés par axe (WCAG 2.1 AA) sur les écrans pr
 - `Pastille` : point de couleur + libellé ; le sens n'est jamais porté par la couleur seule.
 - `Simule` : étiquette discrète (point ambre, fond surface) ; toujours présente, jamais criarde.
 - `Chargement`, `Vide`, `Erreur` : états soignés ; l'erreur dit quoi faire (réessayer, vérifier le serveur).
+- `ChoixModalites` (`components/estimation.tsx`, ADR 0015) : fréquence en boutons segmentés (une seule option →
+  texte « seule option de cette institution »), durée en liste de mois ; uniquement les options de l'institution.
+  L'échéance se lit en une phrase : « 41 500 FCFA chaque mois pendant 6 mois ». `MentionPrudente` : une ligne en
+  petit, couleur secondaire, jamais d'alerte rouge (« estimation prudente, moins éprouvée… »).
+- Dépôt du dossier : un seul bouton principal, puis trois étapes numérotées dans une carte (institution →
+  modalités → vérification et signature). Le code SMS de démo s'affiche dans une bulle de message étiquetée
+  « simulé » ; le bouton « Signer et envoyer » reste inactif tant que les 6 chiffres ne sont pas saisis.
 - `Marque` : « K » d'une barre et de deux traits de flux dans un carré arrondi, dessiné pour le projet ;
   variante `inverse` sur fond de marque.
 
@@ -154,12 +161,58 @@ Les deux thèmes sont aussi contrôlés par axe (WCAG 2.1 AA) sur les écrans pr
 
 - **Commerçant** (360 px d'abord) : carte « combien / à quel prix / que faire », puis courbe, raisons, simulateur.
   Barre d'onglets en bas, cibles de 64 px, indicateur actif en pastille.
-- **Console** : barre latérale claire (institution et rôle visibles), raccourcis 1–4 ; file avec compteurs
-  d'exception, segmenté « À traiter / Tous », lignes à alertes marquées d'un liseré ambre sur téléphone.
+  Conseils : bandeau-résumé ambre (gain possible, meilleur levier), puis une carte par levier à améliorer
+  (Où vous en êtes / Pourquoi ça compte / Quoi faire / Effet estimé), triées par effet ; effet chiffré sur fond
+  `bon-doux`, « effet non chiffré » sur `surface-2`. Grille 1 → 2 (lg) → 3 (2xl) colonnes. Les leviers déjà bons
+  sont repliés en lignes courtes « Ce qui va déjà bien » ; les paliers 3/6/12 mois restent dans le levier historique.
+- **Console** : barre latérale claire (institution et rôle visibles), organisée par objet (ADR 0019), raccourcis
+  1–7 sur toutes les pages. Voir « Architecture de la console » ci-dessous.
 - **Admin** : en-tête propre au rôle, chiffres de volume, institutions triées par dossiers en attente,
   activité récente sans données nominatives, commandes de démo avec confirmation avant réinitialisation.
 - **Connexion** : panneau de marque à gauche sur grand écran, profils groupés par institution ; « Profils fictifs »
   et l'absence de mot de passe sont dits clairement.
+
+## Architecture de la console (ADR 0019)
+
+| Section | URL | Contenu |
+|---|---|---|
+| Aujourd'hui (1) | `/console` | 4 indicateurs (encours, part en retard, PAR 30, recouvrement) cliquables ; 3 cartes « à faire » : dossiers à décider (bandeau ambre des alertes), échéances en retard (nouvelles depuis hier), offres sans réponse depuis 3 jours ; chaque carte finit par un lien vers la liste filtrée |
+| Demandes (2) | `/console/demandes` | onglets À décider · Complément demandé · En attente du commerçant · Traitées (compteurs) ; recherche par nom, statut, décision (Traitées), tranche de risque, alertes, période, tri |
+| Crédits (3) | `/console/credits` | indicateurs, puis onglets En cours · En retard · Remboursés · En défaut ; recherche, période, tri |
+| Recouvrement (4) | `/console/recouvrement` | échéances en retard (reprogrammer avec motif) ; historique des relances filtrable par commerçant et période |
+| Commerçants (5) | `/console/commercants` | commerçants ayant au moins un dossier dans l'institution ; recherche, tri |
+| Paramètres (6), Journal (7) | inchangés | |
+
+Détails : dossier (bandeau de décision liseré vert / rouge / ambre, réponse du commerçant, « Voir le crédit »),
+crédit (échéancier, paiements, relances, reprogrammations), commerçant (historique de cette institution seulement).
+Fil d'Ariane en tête de chaque détail ; noms et rangs d'échéance sont des liens croisés.
+
+Règles communes (`app/console/commun.tsx`) : l'état d'une liste (onglet, filtres, tri, page) vit **dans l'URL**,
+partageable et conservé au retour arrière ; la pagination est servie par l'API (20 par page, 50 au plus). Grand
+écran : tableau dont la première cellule est un lien (clavier) et la ligne entière cliquable ; téléphone (< 768 px) :
+**cartes**, onglets **défilants** horizontalement, recherche sur sa propre ligne. Vides distincts : « rien dans cet
+onglet » ou « aucun résultat pour ces filtres » (avec bouton d'effacement).
+
+## Ce qui est affiché du calcul (formule hors des écrans)
+
+Décision du propriétaire : la formule du moteur (plafond, encaissement prudent, part prélevable, annuité) reste dans
+le moteur et dans `docs/` (ADR, évaluation) ; elle ne s'affiche ni au commerçant ni à l'agent. La décision se lit par
+**la demande et son risque**.
+
+- **Commerçant** : « Pourquoi ce montant » (raisons du moteur) puis un bouton « Comment ce montant est calculé » qui
+  ouvre trois phrases sans symbole (une mauvaise période de vos ventes et une marge de sécurité ; 2 000 scénarios ;
+  l'institution décide), avec nombre d'échéances, durée et coût total. Les raisons et le « Pourquoi » restent
+  séparés : l'un dit ce qui pèse sur *ce* commerçant, l'autre la méthode commune.
+- **Console, fiche** : montant demandé, objet, risque de la demande et tolérance ; plafond prudent et son risque en
+  repère ; raisons. Onglet « Comment c'est calculé » en mots (moteur et graine pour le rejeu). La borne de la
+  contre-proposition, toujours appliquée par le serveur, s'énonce : « au-delà, les ventes ne permettent pas de
+  rembourser prudemment ».
+- **Console, paramètres** : chaque réglage porte un nom en clair et une phrase d'effet ; l'aperçu (responsable seul)
+  montre, avant enregistrement, le plafond prudent moyen, le risque moyen de la demande et le nombre de demandes
+  au-dessus de la tolérance pour les dossiers en attente, avant / après, recalculés par le moteur.
+- **Vitrine** : simulateur « calcul simplifié », décrit en mots. Le journal d'audit n'est pas concerné.
+- Contrôle : `e2e/formule.spec.ts` lit toutes les pages de `/app` et `/console` (panneaux repliés compris) et
+  échoue sur `L_max`, `C_p` ou « formule ».
 
 ## Mouvement
 

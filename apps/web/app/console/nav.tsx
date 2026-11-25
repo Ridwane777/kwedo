@@ -1,19 +1,24 @@
 "use client";
 
-import { ClipboardList, Inbox, ScrollText, SlidersHorizontal, type LucideIcon } from "lucide-react";
+import { BellRing, ClipboardList, Inbox, ScrollText, SlidersHorizontal, Store, Sun, type LucideIcon } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useMemo } from "react";
+import { useRaccourcis } from "@/lib/clavier";
 import { ICONE } from "@/components/bouton-icone";
 import { Marque } from "@/components/motif";
 import { Simule } from "@/components/ui";
 import { UserButton } from "@/components/user-button";
 import { GardePro, ROLES, type Utilisateur } from "@/lib/session";
 
-const LIENS: { href: string; label: string; touche: string; icone: LucideIcon }[] = [
-  { href: "/console", label: "File de dossiers", touche: "1", icone: Inbox },
-  { href: "/console/portefeuille", label: "Portefeuille", touche: "2", icone: ClipboardList },
-  { href: "/console/parametres", label: "Paramètres du moteur", touche: "3", icone: SlidersHorizontal },
-  { href: "/console/journal", label: "Journal d'audit", touche: "4", icone: ScrollText },
+const LIENS: { href: string; label: string; touche: string; icone: LucideIcon; aussi?: string }[] = [
+  { href: "/console", label: "Aujourd'hui", touche: "1", icone: Sun },
+  { href: "/console/demandes", label: "Demandes", touche: "2", icone: Inbox, aussi: "/console/dossiers" },
+  { href: "/console/credits", label: "Crédits", touche: "3", icone: ClipboardList },
+  { href: "/console/recouvrement", label: "Recouvrement", touche: "4", icone: BellRing },
+  { href: "/console/commercants", label: "Commerçants", touche: "5", icone: Store },
+  { href: "/console/parametres", label: "Paramètres du moteur", touche: "6", icone: SlidersHorizontal },
+  { href: "/console/journal", label: "Journal d'audit", touche: "7", icone: ScrollText },
 ];
 
 export function CadreConsole({ children }: { children: React.ReactNode }) {
@@ -32,6 +37,10 @@ export function CadreConsole({ children }: { children: React.ReactNode }) {
 /** Barre latérale sur grand écran ; sur téléphone, en-tête compact et onglets défilants. */
 function NavConsole({ u }: { u: Utilisateur }) {
   const chemin = usePathname();
+  const router = useRouter();
+  // Raccourcis 1 à 7 vers chaque section, sur toutes les pages de la console.
+  const raccourcis = useMemo(() => Object.fromEntries(LIENS.map((l) => [l.touche, () => router.push(l.href)])), [router]);
+  useRaccourcis(raccourcis);
   return (
     // Le fond et le filet sont portés par la colonne (pleine hauteur de la page) ; seul le contenu reste collé en haut.
     <div className="relative z-20 border-b border-trait bg-surface md:w-64 md:shrink-0 md:self-stretch md:border-b-0 md:border-r">
@@ -46,7 +55,7 @@ function NavConsole({ u }: { u: Utilisateur }) {
       </div>
       <div className="-mx-4 flex gap-1 overflow-x-auto px-4 pb-2 md:mx-0 md:flex-col md:overflow-visible md:px-0 md:pb-0">
         {LIENS.map((l) => {
-          const actif = l.href === "/console" ? chemin === "/console" || chemin.startsWith("/console/dossiers") : chemin.startsWith(l.href);
+          const actif = l.href === "/console" ? chemin === "/console" : chemin.startsWith(l.href) || (!!l.aussi && chemin.startsWith(l.aussi));
           const Icone = l.icone;
           return (
             <Link key={l.href} href={l.href} aria-current={actif ? "page" : undefined}

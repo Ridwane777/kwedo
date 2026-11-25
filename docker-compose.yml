@@ -1,0 +1,34 @@
+# Lancer tout le projet : docker compose up --build, puis http://localhost:3461 (ADR 0013).
+services:
+  api:
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
+    ports:
+      - "3460:3460"
+    environment:
+      # Secret des cookies de session, fixé pour survivre aux redémarrages (données fictives uniquement).
+      KWEDO_SECRET: ${KWEDO_SECRET:-kwedo-demo-docker}
+    volumes:
+      - kwedo-db:/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:3460/auth/profils', timeout=2)"]
+      interval: 10s
+      timeout: 3s
+      start_period: 30s
+      retries: 5
+
+  web:
+    build:
+      context: .
+      dockerfile: docker/web.Dockerfile
+    ports:
+      - "3461:3461"
+    environment:
+      KWEDO_API: http://api:3460
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  kwedo-db:

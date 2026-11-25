@@ -12,7 +12,7 @@ const EXEMPLE = [182, 205, 176, 230, 214, 198, 252, 268, 231, 219, 204, 246, 262
 
 const SCENE = [
   { t: "Les encaissements", d: "Le commerçant autorise la lecture de son compte marchand. Seuls les paiements de clients comptent : les transferts vers soi-même et les allers-retours sont écartés." },
-  { t: "Un plafond prudent", d: "On part d'une mauvaise semaine, pas de la moyenne. La formule donne une échéance supportable, puis le plafond, avec son prix et ses raisons." },
+  { t: "Un plafond prudent", d: "On part d'une mauvaise semaine, pas de la moyenne. Il en sort une échéance supportable, puis un plafond, avec son prix et ses raisons." },
   { t: "Un dossier prêt", d: "Le commerçant choisit à quelle institution il l'envoie. L'agent reçoit indicateurs, alertes de cohérence, montant proposé et facteurs qui ont pesé." },
   { t: "Une décision humaine", d: "L'agent valide, ajuste ou refuse avec un justificatif obligatoire. Tout est tracé ; le commerçant voit l'offre et son coût avant d'accepter." },
 ];
@@ -115,6 +115,7 @@ export default function Accueil() {
                   <span aria-hidden="true"><span className="compteur" style={{ "--cible": 400 } as React.CSSProperties} /> 000 FCFA</span>
                   <span className="sr-only">400 000 FCFA</span>
                 </p>
+                <p className="mt-1 text-sm text-encre-2" data-testid="plafond-conditions">Jusqu'à 400 000 FCFA, remboursés chaque semaine pendant 6 mois, aux conditions d'une institution fictive</p>
                 <div className="mt-4"><CourbeFlux serie={EXEMPLE} prudent={210000} median={247000} debut="2026-05-25" hauteur={170} /></div>
               </div>
               <div className="flex items-center gap-4 rounded-3xl border border-trait bg-surface p-5">
@@ -219,46 +220,8 @@ export default function Accueil() {
           <SimulateurVitrine />
         </Section>
 
-        {/* 6. Comment le plafond est calculé */}
-        <Section id="calcul" fond titre="Comment le plafond est calculé."
-          intro={<p>Une formule lisible, un test de résistance, des contrôles, puis une personne. Chaque étape peut baisser le montant ; aucune ne peut dépasser la formule.</p>}>
-          <ol className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <li className="revele rounded-3xl border border-trait bg-fond p-6">
-              <p className="text-sm font-semibold text-marque">1. La formule</p>
-              <p className="montant mt-3 text-[clamp(1.3rem,2vw,1.7rem)] leading-snug">R = Cₚ × m × s</p>
-              <p className="montant text-[clamp(1.1rem,1.7vw,1.4rem)] leading-snug">L = R × (1 − (1 + i)⁻ⁿ) / i</p>
-              <p className="mt-3 text-encre-2">Cₚ : une mauvaise semaine. m : la marge. s : la part prélevable. L : le plafond, jamais dépassé.</p>
-            </li>
-            <li className="revele rounded-3xl border border-trait bg-fond p-6">
-              <p className="text-sm font-semibold text-marque">2. 2 000 scénarios</p>
-              <svg aria-hidden="true" viewBox="0 0 200 90" className="mt-3 h-24 w-full">
-                {Array.from({ length: 22 }, (_, k) => {
-                  const a = (k - 11) * 2.6;
-                  return <path key={k} d={`M0 45 C60 ${45 - a * 0.4} 120 ${45 - a} 200 ${45 - a * 1.7}`} fill="none" stroke="var(--marque)" strokeOpacity={0.12 + (k % 5) * 0.05} />;
-                })}
-                <path d="M0 45 C60 47 120 52 200 60" fill="none" stroke="var(--alerte)" strokeWidth="2" />
-              </svg>
-              <p className="mt-2 text-encre-2">Des avenirs plausibles de ventes, avec chocs. On garde le plus gros montant dont le risque reste sous le seuil de l'institution.</p>
-            </li>
-            <li className="revele rounded-3xl border border-trait bg-fond p-6">
-              <p className="text-sm font-semibold text-marque">3. Les contrôles</p>
-              <ul className="mt-3 space-y-2 text-encre-2">
-                {["Transferts vers soi-même écartés", "Allers-retours repérés", "Pic juste avant la demande signalé", "Concentration sur un seul payeur"].map((c) => (
-                  <li key={c} className="flex gap-2"><Check aria-hidden="true" size={18} strokeWidth={1.75} className="mt-0.5 shrink-0 text-bon" />{c}</li>
-                ))}
-              </ul>
-              <p className="mt-3 text-sm text-encre-2">Une alerte demande un examen ; elle n'accuse personne.</p>
-            </li>
-            <li className="revele rounded-3xl border border-trait bg-fond p-6">
-              <p className="text-sm font-semibold text-marque">4. Une personne décide</p>
-              <UserCheck aria-hidden="true" size={40} strokeWidth={1.5} className="mt-3 text-encre-2" />
-              <p className="mt-3 text-encre-2">L'agent de crédit valide, ajuste ou refuse, avec un justificatif. Le montant décidé ne peut pas dépasser la formule.</p>
-            </li>
-          </ol>
-        </Section>
-
-        {/* 7. Pour les institutions */}
-        <Section id="institutions" titre="Pour les institutions : une console de décision."
+        {/* 6. Pour les institutions */}
+        <Section id="institutions" fond titre="Pour les institutions : une console de décision."
           intro={<p>Une file triée par urgence, une fiche qui tient en un écran, un portefeuille suivi, et des données cloisonnées entre institutions.</p>}>
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
             <Navigateur nom="console-fiche" alt="Fiche de décision de la console : montant proposé, risque, alertes, raisons et formulaire de décision (données simulées)" className="revele" />
@@ -271,15 +234,15 @@ export default function Accueil() {
                   ["Portefeuille", "Échéances, retards, relances, reprogrammation."],
                   ["Cloisonnement", "Chaque institution ne voit que ses dossiers et ses réglages."],
                 ].map(([t, d]) => (
-                  <li key={t} className="rounded-2xl border border-trait bg-surface p-4"><p className="font-semibold">{t}</p><p className="text-encre-2">{d}</p></li>
+                  <li key={t} className="rounded-2xl border border-trait bg-fond p-4"><p className="font-semibold">{t}</p><p className="text-encre-2">{d}</p></li>
                 ))}
               </ul>
             </div>
           </div>
         </Section>
 
-        {/* 8. Confiance et limites */}
-        <Section id="confiance" fond titre="Ce que Kwedo promet, et ce qu'il ne fait pas.">
+        {/* 7. Confiance et limites */}
+        <Section id="confiance" titre="Ce que Kwedo promet, et ce qu'il ne fait pas.">
           <div className="grid gap-6 lg:grid-cols-2">
             <ul className="revele grid gap-4 sm:grid-cols-2">
               {[
@@ -290,14 +253,14 @@ export default function Accueil() {
               ].map(([I, t, d]) => {
                 const Icone = I as typeof Lock;
                 return (
-                  <li key={t as string} className="rounded-3xl border border-trait bg-fond p-5">
+                  <li key={t as string} className="rounded-3xl border border-trait bg-surface p-5">
                     <Icone aria-hidden="true" size={22} strokeWidth={1.75} className="text-marque" />
                     <p className="mt-3 font-semibold">{t as string}</p><p className="text-encre-2">{d as string}</p>
                   </li>
                 );
               })}
             </ul>
-            <div className="revele rounded-3xl border border-trait bg-fond p-6">
+            <div className="revele rounded-3xl border border-trait bg-surface p-6">
               <h3 className="titre text-2xl">Kwedo ne fait pas</h3>
               <ul className="mt-4 space-y-3 text-encre-2">
                 <li><strong className="text-encre">Prêter.</strong> Les institutions agréées prêtent ; Kwedo les outille.</li>
@@ -310,30 +273,7 @@ export default function Accueil() {
           </div>
         </Section>
 
-        {/* 9. Où on en est, FAQ, appel à l'action */}
-        <Section id="etat" titre="Où on en est."
-          intro={<p>Kwedo est un prototype qui tourne sur des données entièrement simulées. La prochaine étape est un pilote avec une institution, sur de vrais remboursements.</p>}>
-          <div className="grid gap-6 lg:grid-cols-3">
-            <div className="revele rounded-3xl border border-trait bg-surface p-6 lg:col-span-2">
-              <h3 className="font-semibold">Ce que montrent les essais, honnêtement</h3>
-              <p className="mt-2 max-w-[70ch] text-encre-2">
-                Sur le jeu de test simulé, les plafonds proposés ont donné moins d'impayés que deux règles simples (0,93 % contre 1,25 % et 1,23 %).
-                <strong className="text-encre"> Sur des activités jamais vues pendant le réglage, l'écart disparaît</strong> (1,41 % contre 1,43 % et 1,40 %),
-                et le risque annoncé reste sous-estimé quand la simulation change. Rien de cela n'est une preuve sur le terrain.
-              </p>
-              <Simule quoi="Résultats sur données simulées" className="mt-4" />
-            </div>
-            <ol className="revele space-y-3 rounded-3xl border border-trait bg-surface p-6">
-              {[["Prototype complet", true], ["Démo guidée de bout en bout", true], ["Pilote avec une institution", false], ["Calibrage sur vrais remboursements", false]].map(([t, fait]) => (
-                <li key={t as string} className="flex items-center gap-3">
-                  <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${fait ? "bg-bon-doux text-bon" : "border border-trait text-encre-3"}`}>{fait ? <Check aria-hidden="true" size={16} /> : <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-encre-3" />}</span>
-                  <span>{t as string}<span className="sr-only">{fait ? " : fait" : " : à venir"}</span></span>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </Section>
-
+        {/* 9. FAQ, appel à l'action */}
         <Section id="faq" fond titre="Questions fréquentes.">
           <div className="grid gap-x-10 lg:grid-cols-2">
             {FAQ.map(([q, r]) => (
@@ -369,7 +309,7 @@ export default function Accueil() {
             <Simule quoi="Prototype, données simulées, personnes et institutions fictives" />
           </div>
           {[
-            ["Produit", [["#solution", "La solution"], ["#app", "L'app mobile"], ["#simulateur", "Simulateur"], ["#calcul", "Le calcul"]]],
+            ["Produit", [["#solution", "La solution"], ["#app", "L'app mobile"], ["#simulateur", "Simulateur"]]],
             ["Accès", [["/connexion", "Se connecter"], ["/demo", "Démo guidée"], ["/app/inscription", "Créer un profil commerçant"]]],
             ["Ressources", [["#faq", "Questions fréquentes"], ["#confiance", "Engagements et limites"], ["/design", "Système de design"]]],
           ].map(([titre, liens]) => (

@@ -6,20 +6,64 @@ import { BoutonIcone } from "@/components/bouton-icone";
 import { BoutonTheme } from "@/components/user-button";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Lisiere, Marque } from "@/components/motif";
-import { Bouton, Simule } from "@/components/ui";
+import { Bouton, Pastille, Simule } from "@/components/ui";
+import { fcfa, pct } from "@/lib/format";
 import { api, COMMERCANT_DEMO, connecter } from "@/lib/api";
 import { useRaccourcis } from "@/lib/clavier";
 import type { LigneDossier } from "@/lib/types";
 
-type Ecran = { telephone?: string; console?: string };
+type Ecran = { telephone?: string; console?: string; comparer?: boolean };
 type Temps = { titre: string; duree: number; dire: string; ecran: (ids: Ids) => Ecran; action?: { label: string; faire: (ids: Ids) => Promise<void> } };
-type Ids = { dossier?: string; alerte?: string };
+type Ids = { dossier?: string; alerte?: string; sain?: string; risque?: string };
+
+// Comparaison côte à côte : un dossier sain et un dossier à risque de la file Lagune (risques calculés par le moteur).
+const DOSSIER_SAIN = "com-edwige", DOSSIER_RISQUE = "com-hounkpe";
+
+type Fiche = { id: string; commercant: { nom: string }; montant_demande: number; analyse: { plafond: number; raisons: { code: string; texte: string }[] };
+  demande: { risque: number; seuil_risque: number; dans_tolerance: boolean } };
+
+const troisiemePersonne = (t: string) => t.replace(/vous encaissez/g, "le commerçant encaisse").replace(/Vos encaissements/g, "Ses encaissements")
+  .replace(/Votre activité/g, "Son activité").replace(/Votre historique/g, "Son historique").replace(/vos /g, "ses ");
+
+function decisionProposee(d: Fiche) {
+  if (d.demande.dans_tolerance) return "Accorder la demande";
+  return d.analyse.plafond > 0 ? `Contre-proposer autour du plafond prudent (${fcfa(d.analyse.plafond)})` : "Refuser ou demander un complément";
+}
+
+/** Deux dossiers côte à côte : risque de la demande, raisons, décision proposée. */
+function Comparaison({ ids, cle }: { ids: Ids; cle: number }) {
+  const [fiches, setFiches] = useState<Fiche[] | null>(null);
+  useEffect(() => {
+    if (!ids.sain || !ids.risque) return;
+    void Promise.all([ids.sain, ids.risque].map((x) => api<Fiche>(`/dossiers/${x}`))).then(setFiches).catch(() => setFiches(null));
+  }, [ids.sain, ids.risque, cle]);
+  if (!fiches) return <p className="text-encre-2">Chargement des deux dossiers…</p>;
+  return (
+    <div className="grid w-full gap-4 md:grid-cols-2" data-testid="comparaison">
+      {fiches.map((d, k) => (
+        <article key={d.id} className={`space-y-3 rounded-2xl border-l-4 bg-surface p-4 shadow-carte ${d.demande.dans_tolerance ? "border-bon" : "border-alerte"}`}>
+          <p className="text-sm font-semibold text-encre-2">{k === 0 ? "Dossier sain" : "Dossier à risque"}</p>
+          <h2 className="titre text-xl">{d.commercant.nom}</h2>
+          <p>Demande : <strong className="chiffres">{fcfa(d.montant_demande)}</strong> · plafond prudent {fcfa(d.analyse.plafond)}</p>
+          <p>Risque de défaut : <strong className="chiffres">{pct(d.demande.risque, 1)}</strong> pour une tolérance de {pct(d.demande.seuil_risque)}{" "}
+            <Pastille ton={d.demande.dans_tolerance ? "bon" : "alerte"}>{d.demande.dans_tolerance ? "Dans la tolérance" : "Au-dessus de la tolérance"}</Pastille></p>
+          <ul className="space-y-1 text-sm">{d.analyse.raisons.map((r) => <li key={r.code} className="border-l-2 border-marque pl-2">{troisiemePersonne(r.texte)}</li>)}</ul>
+          <p className="font-semibold">Décision proposée : {decisionProposee(d)}</p>
+          <Link href={`/console/dossiers/${d.id}`} target="_blank" className="text-sm text-marque underline underline-offset-4">Ouvrir la fiche</Link>
+        </article>
+      ))}
+    </div>
+  );
+}
 
 const MOTIF = "Saison creuse en janvier pour les tissus : prudence sur le montant.";
 
 async function idsDemo(): Promise<Ids> {
-  const f = await api<LigneDossier[]>("/dossiers");
-  return { dossier: f.find((d) => d.commercant_id === COMMERCANT_DEMO)?.id, alerte: f.find((d) => d.alertes.includes("circulaire"))?.id };
+  // Dossiers ouverts seulement : l'historique de démo (ADR 0019) contient aussi des dossiers passés des mêmes commerçants.
+  const tous = await api<LigneDossier[]>("/dossiers");
+  const f = tous.filter((d) => ["recu", "en_analyse", "complement"].includes(d.statut));
+  return { dossier: tous.find((d) => d.commercant_id === COMMERCANT_DEMO)?.id, alerte: f.find((d) => d.alertes.includes("circulaire"))?.id,
+    sain: f.find((d) => d.commercant_id === DOSSIER_SAIN)?.id, risque: f.find((d) => d.commercant_id === DOSSIER_RISQUE)?.id };
 }
 
 // Le scénario joue les deux côtés : commerçant et agent Lagune. Les commandes de la démo passent par le profil admin.
@@ -33,38 +77,42 @@ const TEMPS: Temps[] = [
   { titre: "Le problème", duree: 20, ecran: () => ({ telephone: "/app/activite" }),
     dire: "Afiavi Houngbo vend des tissus à Cotonou. Personnage fictif, flux simulés. Elle n'a pas de relevé bancaire, mais elle encaisse chaque jour par mobile money sur un compte marchand séparé." },
   { titre: "Estimation", duree: 30, ecran: () => ({ telephone: "/app" }),
-    dire: "Ses encaissements sont connectés. L'application affiche un montant, une durée, une échéance et trois raisons. La courbe montre la bande prudente : ce sur quoi elle peut compter même une mauvaise semaine." },
+    dire: "Ses encaissements sont connectés. L'application affiche un plafond avec ses conditions (chaque semaine pendant 6 mois, aux conditions de Caisse Lagune), son tableau selon la durée, une échéance et trois raisons. La courbe montre la bande prudente : ce sur quoi elle peut compter même une mauvaise semaine." },
   { titre: "Simulateur", duree: 20, ecran: () => ({ telephone: "/app/simulateur" }),
     dire: "Elle demande plus. L'application lui dit exactement ce qui manque, en chiffre d'affaires vérifié et en régularité, puis propose des conseils." },
   { titre: "Envoi", duree: 20, ecran: () => ({ telephone: "/app/dossier" }),
-    dire: "Elle choisit deux institutions fictives et donne son accord pour chacune. Elle peut le retirer à tout moment.",
-    action: { label: "Donner l'accord et envoyer", faire: async () => {
-      for (const i of ["inst-lagune", "inst-baobab"]) {
-        await api(`/commercants/${COMMERCANT_DEMO}/consentements`, { body: { institution_id: i, action: "accorde" } });
-        await api("/dossiers", { body: { commercant_id: COMMERCANT_DEMO, institution_id: i } });
+    dire: "Elle dépose son dossier : elle saisit le montant qu'elle veut, pas celui du moteur, et son objet (achat de stock avant les fêtes). Au-dessus du plafond, un avertissement non bloquant. Elle choisit l'institution, rembourse chaque semaine ou chaque mois selon ce que l'institution propose, voit l'échéance exacte, et signe son accord avec un code reçu par SMS. Elle peut le retirer à tout moment.",
+    action: { label: "Signer par code SMS et envoyer", faire: async () => {
+      const demande = { objet_categorie: "stock", objet: "Acheter des pagnes wax avant les fêtes de fin d'année." };
+      for (const [i, termes] of [["inst-lagune", { montant_demande: 600_000 }], ["inst-baobab", { frequence: "mensuelle", duree_mois: 6, montant_demande: 400_000 }]] as const) {
+        const { code } = await api<{ code: string }>(`/commercants/${COMMERCANT_DEMO}/code-sms`, { body: { institution_id: i } });
+        await api(`/commercants/${COMMERCANT_DEMO}/consentements`, { body: { institution_id: i, action: "accorde", code } });
+        await api("/dossiers", { body: { commercant_id: COMMERCANT_DEMO, institution_id: i, ...demande, ...termes } });
       }
     } } },
   { titre: "Côté prêteur", duree: 60, ecran: (ids) => ({ console: ids.dossier ? `/console/dossiers/${ids.dossier}` : "/console" }),
-    dire: "L'agent ouvre le dossier : courbe, indicateurs, montant proposé et raisons. Un autre dossier porte une alerte de manipulation : l'agent tranche, le commerçant n'est pas accusé. Ici, l'agent ajuste le montant avec un justificatif, enregistré au journal.",
-    action: { label: "Ajuster avec justificatif", faire: async (ids) => {
+    dire: "L'agent ouvre le dossier : en tête, le montant demandé, son objet et le risque de défaut pour CETTE demande, dans ou au-dessus de la tolérance de l'institution ; le plafond prudent sert de repère. La file se trie par risque. Ici, l'agent contre-propose un montant plus bas, risque recalculé, justificatif enregistré au journal.",
+    action: { label: "Contre-proposer avec justificatif", faire: async (ids) => {
       if (!ids.dossier) throw new Error("Envoyez d'abord le dossier (temps 4).");
-      const d = await api<{ analyse: { plafond: number } }>(`/dossiers/${ids.dossier}`);
-      await api(`/dossiers/${ids.dossier}/decisions`, { body: { type: "ajuste", montant_decide: Math.floor((d.analyse.plafond * 0.8) / 5000) * 5000, motif: MOTIF } });
+      const d = await api<{ analyse: { plafond: number }; montant_demande: number }>(`/dossiers/${ids.dossier}`);
+      await api(`/dossiers/${ids.dossier}/decisions`, { body: { type: "ajuste", montant_decide: Math.floor((Math.min(d.analyse.plafond, d.montant_demande) * 0.8) / 5000) * 5000, motif: MOTIF } });
     } } },
+  { titre: "Sain ou à risque", duree: 30, ecran: () => ({ comparer: true }),
+    dire: "Deux dossiers de la même file, côte à côte. À gauche, des ventes stables : la demande reste dans la tolérance, l'agent peut accorder. À droite, des ventes en baisse : la demande dépasse le plafond prudent et le risque calculé par le moteur passe au-dessus de la tolérance ; les raisons nomment la cause, l'agent contre-propose ou refuse." },
   { titre: "Offre et accord", duree: 20, ecran: (ids) => ({ telephone: ids.dossier ? `/app/offre/${ids.dossier}` : "/app/dossier" }),
-    dire: "Afiavi lit l'offre : montant, durée, échéance, coût total, zéro frais Kwedo. Elle accepte ; l'échéancier se crée et le décaissement simulé part.",
+    dire: "Afiavi lit l'offre, marquée « contre-proposition » avec l'écart à sa demande : montant, durée, échéance, coût total, zéro frais Kwedo. Elle accepte ; l'échéancier se crée et le décaissement simulé part.",
     action: { label: "Accepter l'offre", faire: async (ids) => { await api(`/dossiers/${ids.dossier}/offre`, { body: { reponse: "accepte" } }); } } },
-  { titre: "Remboursement", duree: 30, ecran: () => ({ telephone: "/app/credit", console: "/console/portefeuille" }),
-    dire: "Un paiement arrive. Puis on avance l'horloge simulée : une échéance n'est pas payée, un rappel respectueux part sur le canal choisi, le portefeuille se met à jour.",
+  { titre: "Remboursement", duree: 30, ecran: () => ({ telephone: "/app/credit", console: "/console/credits" }),
+    dire: "Un paiement arrive. Puis on avance l'horloge simulée : une échéance n'est pas payée, un rappel respectueux part sur le canal choisi, la page Crédits se met à jour.",
     action: { label: "Payer, puis avancer de 15 jours", faire: async (ids) => {
       const c = await api<{ credit: { id: string } | null }>(`/dossiers/${ids.dossier}`);
-      if (!c.credit) throw new Error("Acceptez d'abord l'offre (temps 6).");
+      if (!c.credit) throw new Error("Acceptez d'abord l'offre (temps 7).");
       const cr = await api<{ prochaine: { montant_attendu: number } }>(`/credits/${c.credit.id}`);
       await api(`/credits/${c.credit.id}/paiements`, { body: { montant: cr.prochaine.montant_attendu } });
       await enAdmin(() => api("/demo/avancer", { body: { jours: 15 } }));
     } } },
   { titre: "Test de résistance", duree: 20, ecran: () => ({ telephone: "/app/simulateur" }),
-    dire: "Le curseur baisse les ventes de 30 % : la courbe descend et le plafond diminue, en direct." },
+    dire: "Le curseur baisse les ventes de 30 % : la courbe descend et le plafond (même fréquence, même durée) diminue, en direct." },
   { titre: "Clôture", duree: 15, ecran: () => ({ telephone: "/app", console: "/console/journal" }),
     dire: "Tout ce que vous avez vu est simulé et étiqueté comme tel. Sur ces données, le moteur est stable, explicable et détecte les manipulations injectées ; il ne classe pas encore mieux qu'une règle simple. La suite : un pilote avec une institution de microfinance, sur de vrais remboursements." },
 ];
@@ -116,7 +164,7 @@ export default function Demo() {
       <Lisiere hauteur={10} />
       <div className="grid flex-1 gap-6 p-4 sm:p-6 lg:grid-cols-[380px_minmax(0,1fr)]">
         <aside className="space-y-5">
-          <ol className="grid grid-cols-9 gap-1" aria-label="Temps du scénario">
+          <ol className="grid grid-cols-10 gap-1" aria-label="Temps du scénario">
             {TEMPS.map((x, i) => (
               <li key={x.titre}>
                 <button onClick={() => setK(i)} aria-current={i === k ? "step" : undefined} title={x.titre}
@@ -125,7 +173,7 @@ export default function Demo() {
             ))}
           </ol>
           <div className="space-y-3">
-            <p className="text-sm text-encre-2">Temps {k + 1} sur 9 · {t.duree} s · total ≈ {Math.floor(total / 60)} min {total % 60} s</p>
+            <p className="text-sm text-encre-2">Temps {k + 1} sur {TEMPS.length} · {t.duree} s · total ≈ {Math.floor(total / 60)} min {total % 60} s</p>
             <h1 className="titre text-3xl">{t.titre}</h1>
             <p className="text-lg leading-relaxed">{t.dire}</p>
           </div>
@@ -138,6 +186,7 @@ export default function Demo() {
           <p className="text-xs text-encre-2">Clavier : ← et →. Les écrans à droite sont l'application réelle, branchée sur l'API locale.</p>
         </aside>
         <section className="flex min-w-0 flex-wrap items-start justify-center gap-6" aria-label="Écrans">
+          {pret && ecran.comparer && <Comparaison ids={ids} cle={cle} />}
           {pret && ecran.telephone && (
             <figure className="w-[380px] max-w-full space-y-2">
               <div className="h-[760px] w-full overflow-hidden rounded-[2.2rem] border-[10px] border-cadre bg-fond shadow-carte">

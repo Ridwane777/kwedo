@@ -123,3 +123,173 @@ leur état initial hors de la vue) ; les animations elles-mêmes se vérifient d
 | 5 | Vide à 1920 px | Admin : répartition des dossiers (à traiter, décidés sans crédit, crédit ouvert), par institution et au total, calculée uniquement depuis l'aperçu existant ; activité sur toute sa colonne. Commerçant : actions sous le sélecteur, colonne gauche collante. Défaut trouvé : débordement à 360 px dû à la grille parente, corrigé |
 | 6 | Téléphones de l'accueil | Cause : l'arrondi du cadre mangeait les bords de la barre du bas. Cadre à « menton », écran aux coins bas presque droits, image jamais recadrée ; « Estimation » et « Activité » entiers |
 | — | Vérification | build OK, `test:api` OK, `npx playwright test` **119/119** ; captures 360/768/1440/1920 clair et sombre dans `.captures/revue-finitions/`. Un blocage d'attente réseau sur la démo en fin de suite (test passé 4/4 seul) : attente bornée, vérification de fin de chargement conservée |
+
+## Mission ajustements (`docs/MISSION-AJUSTEMENTS.md`, branche `ajustements`)
+
+| # | Demande | Preuve |
+|---|---|---|
+| 1 | Admin équilibré | Page en colonne pleine hauteur ; en grand écran les deux colonnes s'étirent : à gauche institutions, répartition et « Activité par type » (décisions, accès, interventions, réglages publiés, consentements, et événements par institution), comptée sur le journal déjà servi ; à droite le journal entier avec défilement interne (zone focalisable), commandes de démo dessous. Aucune donnée ajoutée à l'API, aucune valeur de réglage |
+| 2 | Accueil | Sections « Où on en est. » et « Comment le plafond est calculé. » supprimées, lien « Le calcul » retiré, plus de mention de la formule dans « Un plafond prudent ». Alternance des fonds : problème, app, institutions, FAQ sur fond de surface. « Voir le calcul » et la fiche de la console inchangés |
+| 3 | Téléphone du héros en sombre | Non reproduit en local (capture correcte en sombre système, choix explicite, mouvement réduit). Cause probable : l'écran sombre du héros était chargé à la demande, donc absent tant qu'il n'était pas arrivé ; il est maintenant chargé d'emblée pour le téléphone prioritaire |
+| — | Vérification | build OK, `npx playwright test` **119/119** ; captures admin et accueil (par section), 360/768/1440/1920, clair et sombre, dans `apps/web/.captures/revue-ajustements/` (suite lancée depuis `apps/web`) ; téléphones de l'accueil vérifiés en sombre |
+
+## Mission Docker (`docs/MISSION-DOCKER.md`, branche `docker`)
+
+| # | Demande | Preuve |
+|---|---|---|
+| 1 | `docker/api.Dockerfile` | Python 3.12 slim, `requirements.txt` épinglé, moteur + modèles entraînés + démo figée copiés, base dans le volume `/data` initialisée si vide, écoute `0.0.0.0:3460` via `KWEDO_HOST` (défaut 127.0.0.1 inchangé) |
+| 2 | `docker/web.Dockerfile` | Node 22, trois étapes, sortie `standalone` (vérifiée : `next build` produit `.next/standalone/apps/web/server.js`), port 3461, `KWEDO_API` lu à l'exécution |
+| 3 | `docker-compose.yml` | `api` et `web`, `web` attend `api` saine (healthcheck `/auth/profils`), volume `kwedo-db`, ports 3460/3461 |
+| 4–6 | `.dockerignore`, README, ADR 0013 | faits ; index des ADR mis à jour |
+| — | Vérification | `npm run test:api` 16/16 OK, `npm run build:web` OK. **Les images n'ont pas été construites ni lancées : Docker est interdit sur le VPS.** Premier `docker compose up --build` à faire sur une autre machine. `next start` avec `output: "standalone"` peut afficher un avertissement de Next ; non relancé ici |
+
+## Mission échéances (`docs/MISSION-ECHEANCES.md`, branche `echeances`)
+
+| # | Demande | Preuve |
+|---|---|---|
+| 5 | Dossier simplifié | Interrupteurs « Qui peut voir » supprimés ; un bouton « Déposer mon dossier de crédit » → institution → modalités → confirmation (« J'accepte que <institution> consulte mon dossier de crédit ») → envoi. Suivi sous le bouton ; retrait de l'accord dans « Mon compte marchand ». Boutons « Envoyer mon dossier » de l'Estimation et des Conseils → ce parcours |
+| 1 | Moteur | Fréquence `hebdomadaire` / `quinzaine` / `mensuelle`, durée 3–12 mois ; C_p sur encaissements agrégés à la période (sommes glissantes), taux par période, contrôle à chaque échéance (2 000 avenirs à la semaine) ; risque hors hebdo = modèle appliqué au montant équivalent, `risque_valide: false`, pas de réentraînement. **Hebdomadaire identique** : 21 couples commerçant × institution comparés champ à champ avant/après (0 écart) ; Koffi 495 000 FCFA, risque 8,46 %. `test:engine` 24/24 |
+| 2 | Institutions | Modalités versionnées dans `parametres_moteur` (fréquences, durée min/max, délai de versement) ; Lagune semaine+mois 3–12 mois 48 h, Baobab mois 6–12 mois 72 h, Mutuelle semaine+quinzaine 3–6 mois 24 h ; éditables par le responsable (console Paramètres), absentes des vues admin (testé) |
+| 3 | Commerçant / agent | Choix fréquence + durée dans Estimation, Simuler, dépôt ; échéance exacte (« 151 961 FCFA chaque mois pendant 6 mois »), nombre d'échéances, coût total, délai de versement ; mention prudente hors hebdo ; accord signé par **code SMS simulé** (affiché en démo, empreinte seule en base, 10 min, usage unique, 5 essais, tracé au journal) ; offre/crédit/échéancier/rappels à la fréquence choisie ; fiche console : modalités demandées + ajustement dans les limites |
+| 4 | Documentation | ADR 0015, `docs/evaluation/perimetre-frequences.md`, section concurrence PNIF / Alafia III dans `docs/business/README.md` (sources, pnif.bj illisible : certificat invalide), `docs/legal/` (conformité, CGU, risques), `openapi.yaml`, `design.md` |
+| — | Vérification | `test:engine` 24/24, `test:api` 23/23, build OK, `npx playwright test` **132/132** (30 min) ; captures 6 écrans + paramètres, clair/sombre, 360/1440 dans `.captures/revue-echeances/` ; relecture → niveau prudent mensuel tracé sur la courbe hebdomadaire (hors échelle), ramené à la semaine ; specs concernées rejouées 46/46 |
+
+**Routes à ajouter à `attaque.py`** :
+- `POST /commercants/{id}/code-sms` (nouvelle ; règle : le commerçant lui-même).
+- `POST /commercants/{id}/consentements` : **règle changée**, `action: accorde` exige un `code` SMS valide (403 sinon) ; `retire` inchangé.
+- Paramètres nouveaux (règles d'accès inchangées) : `GET /commercants/{id}/estimation` (`frequence`, `duree_mois`), `POST /dossiers` (`frequence`, `duree_mois`), `POST /dossiers/{id}/decisions` (`frequence`, `duree_mois`), `POST /institutions/{id}/parametres` (`frequences`, `duree_min_mois`, `duree_max_mois`, `delai_versement_h`).
+
+**Limite** : le risque n'est validé que pour l'hebdomadaire ; quinzaine et mensuel sont des estimations prudentes non évaluées (ADR 0015).
+
+## Mission risque toutes fréquences (`docs/MISSION-RISQUE-FREQUENCES.md`, branche `risque-frequences`)
+
+| # | Demande | Preuve |
+|---|---|---|
+| 1 | Données simulées | `kwedo_gen.rembourser` (échéancier quelconque, paiement après dépenses, défaut = échéance manquée de plus de 0 jour, identique partout ; hebdo 26 = étiquette d'origine, testé) ; réglage a/b/v et test × 3 fréquences × {3, 6, 9, 12} mois |
+| 2 | Modèle | v3 unique (échéancier en entrée) contre un modèle par fréquence, comparés sur v seulement : Brier 0,06776 contre 0,06729 (< 1 %) → unique ; isotonique lissée par fréquence sur b ; moteur v3 pour toutes les fréquences, `risque_valide` vrai partout, `risque_eprouve` ajouté |
+| 3 | Évaluation | `protocole-frequences.md` et graines committés avant le run (3d343f6) ; run unique `runs/2026-11-24-frequences/` ; tableau 12 cellules dans `docs/evaluation/README.md`. C1/C2 ✅ partout sur le test complet ; ❌ sur les activités jamais vues ; C3 ❌ (ECE 0,089 / 0,064 / 0,052). Les 3 fréquences « éprouvées » → mention retirée de l'interface |
+| — | Non-régression | Hebdo 26 sur le jeu du run 1 : 0,84 % contre 0,93 %, montant total −1,7 %, ECE 0,091 contre 0,089. Koffi 495 000 FCFA, risque 7,85 % (8,46 % avant) |
+| 4 | Documentation | ADR 0016 (statut de 0015 mis à jour), rétrospective, README, note de dépassement dans `perimetre-frequences.md` |
+| — | Vérification | `test:engine` OK, `test:api` 23/23, `test:gen` OK, build OK, E2E `parcours.spec.ts` 3/3 (seul écran dont l'attendu change) |
+
+**Contrat** : champ `risque_eprouve` ajouté à l'analyse (console) ; `estimation_eprouvee` (commerçant) en dérive. Aucune route nouvelle.
+
+## Mission demande libre et décision par le risque (`docs/MISSION-DEMANDE.md`, branche `demande`)
+
+| # | Demande | Preuve |
+|---|---|---|
+| 1 | Commerçant : dépôt | Montant souhaité saisi librement (aucun pré-remplissage), repère « jusqu'à X reste prudent pour vos ventes » avec ses conditions ; objet obligatoire (catégorie + phrase ≤ 200 car.) ; au-dessus du plafond : avertissement non bloquant, échéance et coût total recalculés sur le montant demandé ; récapitulatif avant code SMS : montant, objet, fréquence, durée, échéance, coût total |
+| 2 | API / moteur | Migration `0005_demande.sql` ; validation serveur (5 000 à 50 000 000 FCFA, catégorie connue, objet non vide ≤ 200) ; risque v3 du montant demandé via `analyser(montant_souhaite=)` (modèle inchangé), `raisons_demande` (« représente 70 % d'une mauvaise semaine », écart au plafond) ; `rejouer` reste identique |
+| 3 | Console | Fiche : montant demandé, objet, modalités, risque de la demande, pastille dans / au-dessus de la tolérance ; plafond prudent et son risque en repère ; Accorder / Contre-proposer (risque recalculé à chaque changement) / Refuser, motif obligatoire, risque tracé au journal ; file avec montant demandé et risque, tri par risque ; offre commerçant « demande acceptée » ou « contre-proposition » avec l'écart ; admin sans objet ni montant (testé) |
+| 4 | « Plafond » partout | Formulation « Jusqu'à X, remboursés … pendant …, aux conditions de … » + définition (toucher/survol) sur Estimation, Activité (lien « voir selon la durée »), Simuler, Dossier, Conseils (fréquence/durée modifiables en haut, effets calculés pour elles), accueil et démo ; tableau plafond selon la durée (3/6/9/12 mois dans les modalités) avec échéance et coût total |
+| 5 | Démo et docs | Dossiers de démo avec montants (0,5 à 1,8 × plafond) et objets variés ; démo guidée mise à jour ; ADR 0017 ; `docs/legal/confidentialite.md` (objet du crédit, minimisation) |
+
+**Routes à ajouter à `attaque.py`** :
+- `GET /dossiers/{id}/risque?montant=&frequence=&duree_mois=` (nouvelle ; règle : équipe de l'institution du dossier, 404 sinon).
+- `GET /commercants/{id}/plafonds?institution_id=&frequence=` (nouvelle ; règle : le commerçant lui-même).
+- `POST /dossiers` : **champs obligatoires** `montant_demande`, `objet_categorie`, `objet` (422 sinon) ; règle d'accès inchangée.
+- `GET /dossiers?tri=risque` (nouvelle valeur) ; `GET /commercants/{id}/conseils` (`frequence`, `duree_mois`) ; `POST /dossiers/{id}/decisions` : `valide` accorde désormais le montant demandé, `ajuste` borné au montant demandé.
+
+## Mission diagnostic du risque (`docs/MISSION-DIAGNOSTIC.md`, branche `diagnostic`)
+
+| # | Demande | Preuve |
+|---|---|---|
+| 1 | Inventaire des écarts | 7 écarts de `Config` + caractéristiques des archétypes nouveaux (marge, crédit, saisonnalité), observabilité de chacun : `docs/evaluation/diagnostic/README.md` §1 ; assertion réglage + écarts = `TEST` |
+| 2 | Ablation | `ml/diagnostic_ablation.py` : 15 variantes (réglage, 7 seuls, 7 cumuls), 2 000 + 1 000 commerçants jamais vus chacune, graines neuves (`diagnostic/graines.json`), v3 inchangé, IC bootstrap. Le cumul reproduit le run publié (ECE hebdo 0,099 contre 0,089) |
+| 3 | Cause | Activités jamais vues : 50 / 64 / 75 % de (A), 100 % de (B). Profil → activité à 99 % ; extrapolation ticket élevé → sûr (quincaillerie 4,8 % annoncé, 30,8 % observé). Reste : dépenses personnelles et semaines vides, non observables. Pente b ≈ 0,61 |
+| 4 | Pistes | Plancher « risque simulé » pour activité inconnue (ECE 0,18 → 0,12, sans réglage sur le test) ; recalibration (0,079 → 0,012, mais réglage 0,007 → 0,084 : rejetée sans données réelles). Rien appliqué, pas d'ADR |
+| — | Règles | `docs/evaluation/runs` et `ml/artifacts` intacts ; intermédiaires supprimés ; `test:engine` vert |
+
+## Mission formule hors des écrans (`docs/MISSION-FORMULE.md`, branche `formule`)
+
+| # | Demande | Preuve |
+|---|---|---|
+| 1 | Fiche console | Plus de « formule X FCFA », « Plafond de la formule », « la formule reste le plafond ». Gardés : montant demandé, objet, risque de la demande et tolérance, plafond prudent et son risque en repère, raisons. Borne de la contre-proposition (`L_max`, toujours appliquée par le serveur) énoncée en mots : « Au-delà, les ventes ne permettent pas de rembourser prudemment. » Onglet « Chaîne de calcul » → « Comment c'est calculé », en mots (moteur + graine pour le rejeu). La raison moteur `formule` est reformulée à l'écran (commerçant et console) ; le dossier stocké, `rejouer` et le journal d'audit gardent la sortie moteur |
+| 2 | « Voir le calcul » | Remplacé par le bouton « Comment ce montant est calculé » : 3 phrases sans symbole (mauvaise période + marge de sécurité ; 2 000 scénarios ; l'institution décide) + échéances, durée, coût total. **Choix : pas de fusion avec « Pourquoi ce montant »** — les raisons disent ce qui pèse sur ce commerçant, ce bloc dit la méthode commune ; il reste sous les raisons, replié |
+| 3 | Paramètres | Ligne `R = C_p × m × s · L_max = …` retirée ; chaque réglage : nom en clair + phrase d'effet ; historique avec en-têtes en clair. Aperçu avant enregistrement (responsable seul) : plafond prudent moyen, risque moyen de la demande, demandes au-dessus de la tolérance, avant / après, recalculés par le moteur (graine de chaque dossier), rien n'est écrit |
+| 4 | Ailleurs | Vitrine : « Exemple, calcul simplifié », phrase en mots (plus de 20ᵉ centile × m × s). « seule formule de cette institution » → « seule option ». Recherche `L_max|C_p|formule|annuit` dans `apps/web` : ne restent que des commentaires de code et des noms de champs. `docs/design.md` : section « Ce qui est affiché du calcul ». Pas d'ADR (décision d'affichage, sans effet sur le moteur ni le contrat de données) |
+| 5 | Profils à risque | Voir ci-dessous |
+| — | Vérification | `test:api` 33/33 (4 nouveaux : palette, causes, profil à risque, aucune formule dans les raisons ; aperçu réservé et sans écriture), `test:engine` 25/25, `test:gen` 11/11, build OK. E2E : `formule.spec.ts` 3/3 (nouveau : aucune page `/app` et `/console` avec `L_max`, `C_p`, « formule », panneaux repliés compris ; fiche à risque ; aperçu des paramètres), `parcours` 3/3, `demande` 3/3, `demo` 1/1 (10 temps). `ecrans.spec.ts` adapté (10 temps) mais non relancé (captures complètes, hors écrans ciblés) |
+
+**Route à ajouter à `attaque.py`** :
+- `POST /institutions/{id}/parametres/apercu` (nouvelle ; corps : `m`, `s`, `n`, `i`, `percentile`, `seuil_risque` ; règle : responsable de cette institution, 403 pour l'agent, une autre institution ou l'admin ; 422 hors bornes ; n'écrit rien).
+- `GET /auth/profils` : champ `libelle` ajouté ; nouveau profil `commercant-risque` (`com-yaba`) pour `POST /auth/connexion`.
+
+### Données de démo : mesure avant (`scripts/mesure_demo.py`, file Lagune triée par risque)
+
+| Commerçant | Plafond prudent | Demandé | Risque demande | Tolérance | Régularité (CV) | Tendance / sem. | Plus gros payeur | Part pro | Semaines |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| Rachidi | 260 000 | 365 000 | 9,4 % | 10 % | 0,25 | −2,5 % | 15 % | 89 % | 52 |
+| Séna | 400 000 | 320 000 | 7,9 % | 10 % | 0,38 | −5,5 % | 20 % | 98 % | 52 |
+| Koffi | 495 000 | 495 000 | 7,8 % | 10 % | 0,69 | +29,3 % | 23 % | 95 % | 52 |
+| Edwige | 320 000 | 160 000 | 3,8 % | 10 % | 0,25 | +0,1 % | 11 % | 79 % | 52 |
+| Gildas | 480 000 | 290 000 | 3,3 % | 10 % | 0,40 | +1,9 % | 16 % | 98 % | 52 |
+| Nafissatou | 50 000 | 90 000 | 0,4 % | 10 % | 0,62 | +2,5 % | 23 % | 92 % | 10 |
+
+Constat : **aucune demande au-dessus de la tolérance**, aucun dossier chez Baobab ; le retour du propriétaire est fondé.
+
+### Après : deux profils à risque ajoutés par le générateur existant
+
+Graines cherchées avec `scripts/chercher_profils.py` (générateur `test`, réglages inchangés) puis vérifiées avec
+`scripts/raisons_profil.py` ; le risque est **celui du moteur**, seul le montant demandé (multiple du plafond, comme
+les autres dossiers de démo) est un choix de scénario. Rien d'écrit à la main, modèle inchangé.
+
+| Commerçant | Profil | Plafond prudent | Demandé | Risque demande | Tolérance | Cause lue dans le moteur |
+|---|---|---:|---:|---:|---:|---|
+| Hounkpè Dossou (tissus, graine 60025) | à risque (a) | 920 000 | 1 290 000 | **25,2 %** | 10 % | tendance −6,0 %/sem. (ventes −5,5 % sur les 8 dernières semaines contre les 8 précédentes), CV 0,42 ; raison moteur « Votre activité baisse ces dernières semaines, ce qui réduit le plafond » |
+| Yaba Agossou (cosmétique, graine 50007, concentration, compte non séparé) | à risque (b) | 355 000 | 530 000 | **17,9 %** | 10 % | un payeur = 52 % des encaissements (alerte moteur), CV 0,49 (raison « varient beaucoup ») ; conseils « Diversifiez… » |
+| Yaba Agossou chez Baobab | à risque (b) | 445 000 | 670 000 | **16,8 %** | 7 % | idem, mensuel |
+| Rachidi Akanni | limite | 260 000 | 365 000 | 9,4 % | 10 % | demande 40 % au-dessus du plafond, juste sous la tolérance |
+| Edwige, Gildas | sains | — | — | 3,8 % / 3,3 % | 10 % | — |
+
+Au-dessus du plafond : Hounkpè, Yaba, Rachidi, Nafissatou. (c) historique court : Nafissatou (10 semaines, décote
+d'ancienneté). Écarts honnêtes : la part pro de Yaba reste à 92 % malgré le compte non séparé (le générateur mêle
+peu de flux personnels) ; les raisons du moteur ne chiffrent pas la baisse (« vos ventes ont baissé de 35 % »)
+— le chiffre est dans les indicateurs de la fiche (tendance par semaine), pas inventé dans une raison. Écarté :
+téléphonie graine 40004 (plafond nul, mais raisons « réguliers » et « progresse » : cause illisible).
+
+- Console : file Lagune de 8 dossiers triable par risque (Hounkpè puis Yaba en tête), un dossier chez Baobab ;
+  fiche : pastille « Au-dessus de la tolérance » et raisons du moteur (testé : `test_raisons_nomment_la_cause`, E2E).
+- Commerçant : profil « Commerçant à risque » (Yaba Agossou) sur `/connexion` : plafond bas au regard de ses ventes,
+  Conseils « Diversifiez les clients » et régularité, avertissement au dépôt au-dessus du plafond.
+- Démo guidée : temps 6 « Sain ou à risque » (Edwige / Hounkpè côte à côte : risque, raisons, décision proposée).
+- Tests adaptés : `demo.spec.ts`, `ecrans.spec.ts` (10 temps), `parcours.spec.ts` (« seule option ») ; test API :
+  au moins un dossier au-dessus et un en dessous de la tolérance. Empreinte `data/demo/demo.json` : `f9d7c042…`
+  (les 7 commerçants existants sont inchangés, mêmes graines).
+
+## Mission console par objet (`docs/MISSION-CONSOLE.md`, branche `console`)
+
+Retour du propriétaire : « trop de choses au même endroit », « les dossiers déjà traités, je vais les trouver où ? ».
+Décision : ADR 0019 (console organisée par objet). Crédit progressif : retiré (ADR 0018), aucun palier nulle part.
+
+- **Navigation** : Aujourd'hui (`/console`), Demandes (`/console/demandes`), Crédits (`/console/credits`),
+  Recouvrement (`/console/recouvrement`), Commerçants (`/console/commercants`), Paramètres, Journal ; raccourcis 1–7
+  sur toutes les pages ; `/console/portefeuille` redirige vers `/console/credits`.
+- **Détails** : dossier à tout statut (bandeau de décision, réponse du commerçant, « Voir le crédit »), crédit
+  (`/console/credits/[id]`, nouveau), commerçant (`/console/commercants/[id]`, nouveau, cette institution seulement) ;
+  fil d'Ariane et liens croisés.
+- **Routes nouvelles** (pour `attaque.py`), toutes filtrées par l'institution de la session, 404 hors périmètre,
+  401 sans session ou en session commerçant, 403 pour l'admin, 422 sur paramètre invalide, taille de page ≤ 50 :
+  - `GET /console/aujourdhui`
+  - `GET /console/demandes` (onglet, q, statut, decision, tranche, hors_tolerance, alertes, du, au, tri, ordre, page, taille)
+  - `GET /console/credits` (onglet, q, du, au, tri, ordre, page, taille)
+  - `GET /console/credits/{id}`
+  - `GET /console/retards` (q, page, taille)
+  - `GET /console/relances` (commercant, q, du, au, page, taille)
+  - `GET /console/commercants` (q, tri, ordre, page, taille)
+  - `GET /console/commercants/{id}`
+- **Démo** : 12 dossiers passés rejoués par le parcours normal (`HISTORIQUE_DEMO`), échéances payées selon le
+  simulateur de remboursement `kwedo_gen.remboursement.rembourser` ; relances rejouées sur 30 jours. Lagune à
+  l'ouverture : 6 à décider, 1 complément, 1 offre en attente (6 jours sans réponse), 9 traitées ; crédits 2 en
+  cours, 1 en retard (Hounkpè, 70 j), 3 remboursés, 1 en défaut (Gildas, 189 j) ; 6 relances. Baobab : un crédit
+  en cours (Séna), invisible de Lagune.
+- **Preuves** : `npm run test:api` **38/38** (nouvelle classe `TestConsoleParObjet` : onglets remplis, pagination,
+  validation 422, filtres et tris, cloisonnement de chaque nouvelle route, Aujourd'hui) ; `next build` OK ;
+  E2E ciblés console : `console.spec.ts` 7/7 (Aujourd'hui, onglets, recherche, pagination serveur, bandeau →
+  crédit → commerçant, redirection, cloisonnement, 360 px clair/sombre sans débordement, cartes), `demande`,
+  `parcours`, `formule`, `demo` verts ; `qualite.spec.ts` console + fiche à 1440 px clair/sombre : 16/16
+  (0 violation axe grave). Démo guidée : temps « Remboursement » pointe vers `/console/credits`.
+- **Écarts** : réinitialisation de démo plus longue de quelques secondes (≈ 40 analyses moteur de plus ; délai des
+  hooks E2E porté à 120 s). L'audit axe des deux nouvelles pages de détail a été ajouté à `qualite.spec.ts` mais
+  **n'a pas pu tourner** : disque de la machine plein (387 Go, cause extérieure au projet). Listes calculées en
+  Python avant pagination (suffisant au prototype, cf. ADR 0019).

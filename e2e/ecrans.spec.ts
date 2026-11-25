@@ -6,13 +6,14 @@ import { connecter, reinitialiser } from "./session";
 const CAP = `${process.env.KWEDO_CAPTURES ?? ".captures"}/revue-finale`;
 const LARGEURS = [360, 1440] as const;
 const EQUIPE = ["agent-lagune", "responsable-lagune", "agent-baobab", "responsable-baobab"];
-const CONSOLE = ["/console", "/console/portefeuille", "/console/parametres", "/console/journal", "FICHE"];
+const CONSOLE = ["/console", "/console/demandes", "/console/credits", "/console/recouvrement", "/console/commercants", "/console/parametres", "/console/journal", "FICHE"];
 const COMMERCANT = ["/app", "/app/simulateur", "/app/dossier", "/app/credit", "/app/activite", "/app/conseils", "/app/flux", "/app/compte"];
 const THEMES = [["clair", "light"], ["sombre", "dark"]] as const;
 
 test.describe.configure({ mode: "default" });
 
 test.beforeAll(async ({ browser }) => {
+  test.setTimeout(120_000); // réinitialisation avec historique de démo (ADR 0019)
   const page = await browser.newPage();
   await reinitialiser(page.request);
   await page.close();
@@ -85,16 +86,16 @@ for (const [theme, colorScheme] of THEMES) {
         });
       }
 
-      test(`démo, 9 temps, offre et crédit @${largeur}`, async ({ page, browser }) => {
+      test(`démo, 10 temps, offre et crédit @${largeur}`, async ({ page, browser }) => {
         test.setTimeout(240_000);
         await page.setViewportSize({ width: largeur, height: hauteur(largeur) });
         await page.goto("/demo");
         await page.getByRole("button", { name: "Réinitialiser la démo" }).click();
         await expect(page.getByText("Démo réinitialisée")).toBeVisible({ timeout: 30_000 });
-        const actions: Record<number, string> = { 4: "Donner l'accord et envoyer", 5: "Ajuster avec justificatif", 6: "Accepter l'offre", 7: "Payer, puis avancer de 15 jours" };
-        for (let n = 1; n <= 9; n++) {
-          await expect(page.getByText(`Temps ${n} sur 9`)).toBeVisible();
-          if (n === 6) {
+        const actions: Record<number, string> = { 4: "Signer par code SMS et envoyer", 5: "Contre-proposer avec justificatif", 7: "Accepter l'offre", 8: "Payer, puis avancer de 15 jours" };
+        for (let n = 1; n <= 10; n++) {
+          await expect(page.getByText(`Temps ${n} sur 10`)).toBeVisible();
+          if (n === 7) {
             // Offre en attente, vue par le commerçant, avant de jouer « Accepter l'offre ».
             const com = await nouvellePage(browser, largeur);
             await connecter(com.request, "commercant");
@@ -120,7 +121,7 @@ for (const [theme, colorScheme] of THEMES) {
           await page.screenshot({ path: `${CAP}/${theme}-demo-${n}-${largeur}.png`, fullPage: true });
           const deborde = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
           expect.soft(deborde, `débordement horizontal : démo temps ${n} @${largeur}`).toBe(false);
-          if (n < 9) await page.getByRole("button", { name: "Suivant", exact: true }).click();
+          if (n < 10) await page.getByRole("button", { name: "Suivant", exact: true }).click();
         }
         // Crédit en cours, avec paiement et échéancier, une fois la démo jouée.
         const com = await nouvellePage(browser, largeur);

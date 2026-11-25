@@ -10,7 +10,7 @@ import { Chargement, Erreur, Simule } from "@/components/ui";
 import { connecter, useApi } from "@/lib/api";
 import { ROLES, type Utilisateur } from "@/lib/session";
 
-type Profil = { id: string; role: Utilisateur["role"]; nom: string; institution: string | null };
+type Profil = { id: string; role: Utilisateur["role"]; nom: string; institution: string | null; libelle?: string | null };
 
 const ACCUEIL: Record<Utilisateur["role"], string> = { commercant: "/app", agent: "/console", responsable: "/console", admin: "/admin" };
 const DROITS: Record<Utilisateur["role"], string> = {
@@ -59,7 +59,7 @@ function Choix() {
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block font-semibold">{p.role === "commercant" ? p.nom : ROLES[p.role]}</span>
-                    <span className="block text-sm text-encre-2">{DROITS[p.role]}</span>
+                    <span className="block text-sm text-encre-2">{p.libelle ? `${p.libelle} : plafond bas, conseils ciblés, avertissement au dépôt.` : DROITS[p.role]}</span>
                   </span>
                   {envoi === p.id
                     ? <span className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-marque border-t-transparent" aria-label="Connexion en cours" />

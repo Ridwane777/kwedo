@@ -1,0 +1,3956 @@
+{
+ "avertissement": "Données simulées. Diagnostic, pas un run final ; graines neuves (graines.json).",
+ "modele": "ml/artifacts/modeles-v3.json (inchangé)",
+ "commercants_par_variante": 2000,
+ "commercants_hors_reglage_par_variante": 1000,
+ "variantes": {
+  "reglage": {
+   "ecarts": [],
+   "A_calibration_ensemble": {
+    "hebdomadaire": {
+     "points": 46980,
+     "annonce": 0.1491,
+     "observe": 0.153,
+     "ecart_obs_moins_annonce": 0.0039,
+     "ic95_ecart": [
+      -0.0075,
+      0.0158
+     ],
+     "ece_10": 0.0149
+    },
+    "quinzaine": {
+     "points": 47970,
+     "annonce": 0.1544,
+     "observe": 0.1585,
+     "ecart_obs_moins_annonce": 0.0041,
+     "ic95_ecart": [
+      -0.0045,
+      0.0128
+     ],
+     "ece_10": 0.005
+    },
+    "mensuelle": {
+     "points": 48000,
+     "annonce": 0.1482,
+     "observe": 0.159,
+     "ecart_obs_moins_annonce": 0.0108,
+     "ic95_ecart": [
+      0.0026,
+      0.0188
+     ],
+     "ece_10": 0.011
+    }
+   },
+   "A_calibration_hors_reglage": {
+    "hebdomadaire": {
+     "points": 24000,
+     "annonce": 0.0498,
+     "observe": 0.218,
+     "ecart_obs_moins_annonce": 0.1682,
+     "ic95_ecart": [
+      0.1497,
+      0.1871
+     ],
+     "ece_10": 0.1682
+    },
+    "quinzaine": {
+     "points": 24000,
+     "annonce": 0.0305,
+     "observe": 0.1963,
+     "ecart_obs_moins_annonce": 0.1657,
+     "ic95_ecart": [
+      0.15,
+      0.1812
+     ],
+     "ece_10": 0.1657
+    },
+    "mensuelle": {
+     "points": 24000,
+     "annonce": 0.0282,
+     "observe": 0.1631,
+     "ecart_obs_moins_annonce": 0.1349,
+     "ic95_ecart": [
+      0.1224,
+      0.1485
+     ],
+     "ece_10": 0.135
+    }
+   },
+   "B_ensemble": {
+    "hebdomadaire": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00358,
+      "ic95": [
+       -0.00522,
+       -0.00206
+      ],
+      "moteur": 0.00395,
+      "regle": 0.00754,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.0036,
+      "ic95": [
+       -0.00523,
+       -0.00201
+      ],
+      "moteur": 0.00395,
+      "regle": 0.00755,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "quinzaine": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00502,
+      "ic95": [
+       -0.00667,
+       -0.00342
+      ],
+      "moteur": 0.00874,
+      "regle": 0.01376,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00498,
+      "ic95": [
+       -0.00657,
+       -0.00338
+      ],
+      "moteur": 0.00874,
+      "regle": 0.01372,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "mensuelle": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00632,
+      "ic95": [
+       -0.00853,
+       -0.00435
+      ],
+      "moteur": 0.01463,
+      "regle": 0.02095,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00637,
+      "ic95": [
+       -0.00865,
+       -0.00425
+      ],
+      "moteur": 0.01463,
+      "regle": 0.021,
+      "cellules_moteur_meilleur": 4
+     }
+    }
+   },
+   "B_archetypes_vus": {
+    "hebdomadaire": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00358,
+      "ic95": [
+       -0.00527,
+       -0.00214
+      ],
+      "moteur": 0.00395,
+      "regle": 0.00754,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.0036,
+      "ic95": [
+       -0.00522,
+       -0.00222
+      ],
+      "moteur": 0.00395,
+      "regle": 0.00755,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "quinzaine": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00502,
+      "ic95": [
+       -0.00655,
+       -0.00353
+      ],
+      "moteur": 0.00874,
+      "regle": 0.01376,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00498,
+      "ic95": [
+       -0.00653,
+       -0.0035
+      ],
+      "moteur": 0.00874,
+      "regle": 0.01372,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "mensuelle": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00632,
+      "ic95": [
+       -0.0085,
+       -0.0043
+      ],
+      "moteur": 0.01463,
+      "regle": 0.02095,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00637,
+      "ic95": [
+       -0.00867,
+       -0.00427
+      ],
+      "moteur": 0.01463,
+      "regle": 0.021,
+      "cellules_moteur_meilleur": 4
+     }
+    }
+   },
+   "B_hors_reglage": {
+    "hebdomadaire": {
+     "mediane": {
+      "diff_moteur_moins_regle": 0.00138,
+      "ic95": [
+       0.00069,
+       0.00215
+      ],
+      "moteur": 0.01112,
+      "regle": 0.00974,
+      "cellules_moteur_meilleur": 0
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": 0.00141,
+      "ic95": [
+       0.00064,
+       0.00226
+      ],
+      "moteur": 0.01112,
+      "regle": 0.00971,
+      "cellules_moteur_meilleur": 0
+     }
+    },
+    "quinzaine": {
+     "mediane": {
+      "diff_moteur_moins_regle": 0.00092,
+      "ic95": [
+       0.0,
+       0.00185
+      ],
+      "moteur": 0.0158,
+      "regle": 0.01488,
+      "cellules_moteur_meilleur": 0
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": 0.00076,
+      "ic95": [
+       -0.00018,
+       0.00176
+      ],
+      "moteur": 0.0158,
+      "regle": 0.01505,
+      "cellules_moteur_meilleur": 0
+     }
+    },
+    "mensuelle": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00077,
+      "ic95": [
+       -0.00207,
+       0.00053
+      ],
+      "moteur": 0.01963,
+      "regle": 0.0204,
+      "cellules_moteur_meilleur": 3
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00087,
+      "ic95": [
+       -0.00227,
+       0.0003
+      ],
+      "moteur": 0.01963,
+      "regle": 0.0205,
+      "cellules_moteur_meilleur": 4
+     }
+    }
+   },
+   "duree_s": 261.7
+  },
+  "seul:bruit_gamma": {
+   "ecarts": [
+    "bruit_gamma"
+   ],
+   "A_calibration_ensemble": {
+    "hebdomadaire": {
+     "points": 46992,
+     "annonce": 0.1492,
+     "observe": 0.1576,
+     "ecart_obs_moins_annonce": 0.0084,
+     "ic95_ecart": [
+      -0.0024,
+      0.0194
+     ],
+     "ece_10": 0.0165
+    },
+    "quinzaine": {
+     "points": 48000,
+     "annonce": 0.1554,
+     "observe": 0.1579,
+     "ecart_obs_moins_annonce": 0.0024,
+     "ic95_ecart": [
+      -0.007,
+      0.0115
+     ],
+     "ece_10": 0.0073
+    },
+    "mensuelle": {
+     "points": 48000,
+     "annonce": 0.1487,
+     "observe": 0.1549,
+     "ecart_obs_moins_annonce": 0.0062,
+     "ic95_ecart": [
+      -0.0022,
+      0.0144
+     ],
+     "ece_10": 0.0088
+    }
+   },
+   "A_calibration_hors_reglage": {
+    "hebdomadaire": {
+     "points": 24000,
+     "annonce": 0.0507,
+     "observe": 0.2233,
+     "ecart_obs_moins_annonce": 0.1725,
+     "ic95_ecart": [
+      0.1541,
+      0.19
+     ],
+     "ece_10": 0.1725
+    },
+    "quinzaine": {
+     "points": 24000,
+     "annonce": 0.0319,
+     "observe": 0.2019,
+     "ecart_obs_moins_annonce": 0.17,
+     "ic95_ecart": [
+      0.1554,
+      0.1864
+     ],
+     "ece_10": 0.17
+    },
+    "mensuelle": {
+     "points": 24000,
+     "annonce": 0.0299,
+     "observe": 0.169,
+     "ecart_obs_moins_annonce": 0.1391,
+     "ic95_ecart": [
+      0.1258,
+      0.1535
+     ],
+     "ece_10": 0.1391
+    }
+   },
+   "B_ensemble": {
+    "hebdomadaire": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00408,
+      "ic95": [
+       -0.00581,
+       -0.00253
+      ],
+      "moteur": 0.00472,
+      "regle": 0.0088,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00415,
+      "ic95": [
+       -0.00589,
+       -0.00258
+      ],
+      "moteur": 0.00472,
+      "regle": 0.00887,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "quinzaine": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00533,
+      "ic95": [
+       -0.00686,
+       -0.0039
+      ],
+      "moteur": 0.01065,
+      "regle": 0.01598,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.0053,
+      "ic95": [
+       -0.00692,
+       -0.00382
+      ],
+      "moteur": 0.01065,
+      "regle": 0.01595,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "mensuelle": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00527,
+      "ic95": [
+       -0.00733,
+       -0.0034
+      ],
+      "moteur": 0.01783,
+      "regle": 0.0231,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00542,
+      "ic95": [
+       -0.00742,
+       -0.00343
+      ],
+      "moteur": 0.01783,
+      "regle": 0.02325,
+      "cellules_moteur_meilleur": 4
+     }
+    }
+   },
+   "B_archetypes_vus": {
+    "hebdomadaire": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00408,
+      "ic95": [
+       -0.00575,
+       -0.00256
+      ],
+      "moteur": 0.00472,
+      "regle": 0.0088,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00415,
+      "ic95": [
+       -0.00576,
+       -0.00262
+      ],
+      "moteur": 0.00472,
+      "regle": 0.00887,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "quinzaine": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00533,
+      "ic95": [
+       -0.00683,
+       -0.00395
+      ],
+      "moteur": 0.01065,
+      "regle": 0.01598,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.0053,
+      "ic95": [
+       -0.00686,
+       -0.00383
+      ],
+      "moteur": 0.01065,
+      "regle": 0.01595,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "mensuelle": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00527,
+      "ic95": [
+       -0.00713,
+       -0.00335
+      ],
+      "moteur": 0.01783,
+      "regle": 0.0231,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00542,
+      "ic95": [
+       -0.00738,
+       -0.00342
+      ],
+      "moteur": 0.01783,
+      "regle": 0.02325,
+      "cellules_moteur_meilleur": 4
+     }
+    }
+   },
+   "B_hors_reglage": {
+    "hebdomadaire": {
+     "mediane": {
+      "diff_moteur_moins_regle": 0.00072,
+      "ic95": [
+       1e-05,
+       0.00141
+      ],
+      "moteur": 0.01112,
+      "regle": 0.01041,
+      "cellules_moteur_meilleur": 0
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": 0.00059,
+      "ic95": [
+       -0.00023,
+       0.00138
+      ],
+      "moteur": 0.01112,
+      "regle": 0.01053,
+      "cellules_moteur_meilleur": 0
+     }
+    },
+    "quinzaine": {
+     "mediane": {
+      "diff_moteur_moins_regle": 0.00098,
+      "ic95": [
+       0.00014,
+       0.00182
+      ],
+      "moteur": 0.01639,
+      "regle": 0.01541,
+      "cellules_moteur_meilleur": 0
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": 0.00109,
+      "ic95": [
+       6e-05,
+       0.00206
+      ],
+      "moteur": 0.01639,
+      "regle": 0.0153,
+      "cellules_moteur_meilleur": 0
+     }
+    },
+    "mensuelle": {
+     "mediane": {
+      "diff_moteur_moins_regle": 0.0003,
+      "ic95": [
+       -0.00083,
+       0.0015
+      ],
+      "moteur": 0.02057,
+      "regle": 0.02027,
+      "cellules_moteur_meilleur": 0
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00027,
+      "ic95": [
+       -0.0016,
+       0.00097
+      ],
+      "moteur": 0.02057,
+      "regle": 0.02083,
+      "cellules_moteur_meilleur": 3
+     }
+    }
+   },
+   "duree_s": 265.6
+  },
+  "seul:chocs_durables": {
+   "ecarts": [
+    "chocs_durables"
+   ],
+   "A_calibration_ensemble": {
+    "hebdomadaire": {
+     "points": 47100,
+     "annonce": 0.148,
+     "observe": 0.1565,
+     "ecart_obs_moins_annonce": 0.0085,
+     "ic95_ecart": [
+      -0.0028,
+      0.0211
+     ],
+     "ece_10": 0.0174
+    },
+    "quinzaine": {
+     "points": 47970,
+     "annonce": 0.152,
+     "observe": 0.1565,
+     "ecart_obs_moins_annonce": 0.0044,
+     "ic95_ecart": [
+      -0.0043,
+      0.0132
+     ],
+     "ece_10": 0.0047
+    },
+    "mensuelle": {
+     "points": 48000,
+     "annonce": 0.145,
+     "observe": 0.1573,
+     "ecart_obs_moins_annonce": 0.0123,
+     "ic95_ecart": [
+      0.0042,
+      0.0205
+     ],
+     "ece_10": 0.0123
+    }
+   },
+   "A_calibration_hors_reglage": {
+    "hebdomadaire": {
+     "points": 24000,
+     "annonce": 0.0495,
+     "observe": 0.2143,
+     "ecart_obs_moins_annonce": 0.1648,
+     "ic95_ecart": [
+      0.1463,
+      0.1837
+     ],
+     "ece_10": 0.1648
+    },
+    "quinzaine": {
+     "points": 24000,
+     "annonce": 0.0301,
+     "observe": 0.1949,
+     "ecart_obs_moins_annonce": 0.1647,
+     "ic95_ecart": [
+      0.1493,
+      0.1798
+     ],
+     "ece_10": 0.1647
+    },
+    "mensuelle": {
+     "points": 24000,
+     "annonce": 0.0276,
+     "observe": 0.1598,
+     "ecart_obs_moins_annonce": 0.1322,
+     "ic95_ecart": [
+      0.1194,
+      0.145
+     ],
+     "ece_10": 0.1323
+    }
+   },
+   "B_ensemble": {
+    "hebdomadaire": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00353,
+      "ic95": [
+       -0.00513,
+       -0.002
+      ],
+      "moteur": 0.00423,
+      "regle": 0.00777,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00369,
+      "ic95": [
+       -0.00525,
+       -0.00221
+      ],
+      "moteur": 0.00423,
+      "regle": 0.00792,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "quinzaine": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00461,
+      "ic95": [
+       -0.00617,
+       -0.00313
+      ],
+      "moteur": 0.00893,
+      "regle": 0.01354,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.0048,
+      "ic95": [
+       -0.00643,
+       -0.00331
+      ],
+      "moteur": 0.00893,
+      "regle": 0.01373,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "mensuelle": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00555,
+      "ic95": [
+       -0.00778,
+       -0.00368
+      ],
+      "moteur": 0.01538,
+      "regle": 0.02093,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.0053,
+      "ic95": [
+       -0.00748,
+       -0.00333
+      ],
+      "moteur": 0.01538,
+      "regle": 0.02068,
+      "cellules_moteur_meilleur": 4
+     }
+    }
+   },
+   "B_archetypes_vus": {
+    "hebdomadaire": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00353,
+      "ic95": [
+       -0.00519,
+       -0.00206
+      ],
+      "moteur": 0.00423,
+      "regle": 0.00777,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00369,
+      "ic95": [
+       -0.00528,
+       -0.00221
+      ],
+      "moteur": 0.00423,
+      "regle": 0.00792,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "quinzaine": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00461,
+      "ic95": [
+       -0.0061,
+       -0.0032
+      ],
+      "moteur": 0.00893,
+      "regle": 0.01354,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.0048,
+      "ic95": [
+       -0.00629,
+       -0.00329
+      ],
+      "moteur": 0.00893,
+      "regle": 0.01373,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "mensuelle": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00555,
+      "ic95": [
+       -0.0077,
+       -0.00365
+      ],
+      "moteur": 0.01538,
+      "regle": 0.02093,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.0053,
+      "ic95": [
+       -0.00752,
+       -0.00328
+      ],
+      "moteur": 0.01538,
+      "regle": 0.02068,
+      "cellules_moteur_meilleur": 4
+     }
+    }
+   },
+   "B_hors_reglage": {
+    "hebdomadaire": {
+     "mediane": {
+      "diff_moteur_moins_regle": 0.0011,
+      "ic95": [
+       0.00038,
+       0.00185
+      ],
+      "moteur": 0.01036,
+      "regle": 0.00926,
+      "cellules_moteur_meilleur": 0
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": 0.00103,
+      "ic95": [
+       0.00022,
+       0.00191
+      ],
+      "moteur": 0.01036,
+      "regle": 0.00933,
+      "cellules_moteur_meilleur": 0
+     }
+    },
+    "quinzaine": {
+     "mediane": {
+      "diff_moteur_moins_regle": 0.00059,
+      "ic95": [
+       -0.00032,
+       0.0015
+      ],
+      "moteur": 0.01503,
+      "regle": 0.01444,
+      "cellules_moteur_meilleur": 0
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": 0.00045,
+      "ic95": [
+       -0.00049,
+       0.00149
+      ],
+      "moteur": 0.01503,
+      "regle": 0.01458,
+      "cellules_moteur_meilleur": 0
+     }
+    },
+    "mensuelle": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00013,
+      "ic95": [
+       -0.0015,
+       0.00113
+      ],
+      "moteur": 0.0191,
+      "regle": 0.01923,
+      "cellules_moteur_meilleur": 3
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.0004,
+      "ic95": [
+       -0.0019,
+       0.0009
+      ],
+      "moteur": 0.0191,
+      "regle": 0.0195,
+      "cellules_moteur_meilleur": 3
+     }
+    }
+   },
+   "duree_s": 249.4
+  },
+  "seul:semaines_vides": {
+   "ecarts": [
+    "semaines_vides"
+   ],
+   "A_calibration_ensemble": {
+    "hebdomadaire": {
+     "points": 47088,
+     "annonce": 0.1494,
+     "observe": 0.1769,
+     "ecart_obs_moins_annonce": 0.0275,
+     "ic95_ecart": [
+      0.0154,
+      0.0403
+     ],
+     "ece_10": 0.031
+    },
+    "quinzaine": {
+     "points": 48000,
+     "annonce": 0.1509,
+     "observe": 0.1652,
+     "ecart_obs_moins_annonce": 0.0142,
+     "ic95_ecart": [
+      0.0055,
+      0.0237
+     ],
+     "ece_10": 0.0143
+    },
+    "mensuelle": {
+     "points": 48000,
+     "annonce": 0.1453,
+     "observe": 0.1604,
+     "ecart_obs_moins_annonce": 0.0151,
+     "ic95_ecart": [
+      0.0067,
+      0.0238
+     ],
+     "ece_10": 0.0151
+    }
+   },
+   "A_calibration_hors_reglage": {
+    "hebdomadaire": {
+     "points": 24000,
+     "annonce": 0.0503,
+     "observe": 0.2484,
+     "ecart_obs_moins_annonce": 0.1981,
+     "ic95_ecart": [
+      0.1779,
+      0.2206
+     ],
+     "ece_10": 0.1981
+    },
+    "quinzaine": {
+     "points": 24000,
+     "annonce": 0.0309,
+     "observe": 0.21,
+     "ecart_obs_moins_annonce": 0.1791,
+     "ic95_ecart": [
+      0.1636,
+      0.1959
+     ],
+     "ece_10": 0.1791
+    },
+    "mensuelle": {
+     "points": 24000,
+     "annonce": 0.0286,
+     "observe": 0.1709,
+     "ecart_obs_moins_annonce": 0.1423,
+     "ic95_ecart": [
+      0.1291,
+      0.1576
+     ],
+     "ece_10": 0.1423
+    }
+   },
+   "B_ensemble": {
+    "hebdomadaire": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00361,
+      "ic95": [
+       -0.00541,
+       -0.00199
+      ],
+      "moteur": 0.00574,
+      "regle": 0.00936,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.0038,
+      "ic95": [
+       -0.00559,
+       -0.00213
+      ],
+      "moteur": 0.00574,
+      "regle": 0.00955,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "quinzaine": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00467,
+      "ic95": [
+       -0.00644,
+       -0.00308
+      ],
+      "moteur": 0.01105,
+      "regle": 0.01571,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00456,
+      "ic95": [
+       -0.0063,
+       -0.00295
+      ],
+      "moteur": 0.01105,
+      "regle": 0.01561,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "mensuelle": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00498,
+      "ic95": [
+       -0.0071,
+       -0.00295
+      ],
+      "moteur": 0.0179,
+      "regle": 0.02288,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.005,
+      "ic95": [
+       -0.0073,
+       -0.00308
+      ],
+      "moteur": 0.0179,
+      "regle": 0.0229,
+      "cellules_moteur_meilleur": 4
+     }
+    }
+   },
+   "B_archetypes_vus": {
+    "hebdomadaire": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00361,
+      "ic95": [
+       -0.00525,
+       -0.00203
+      ],
+      "moteur": 0.00574,
+      "regle": 0.00936,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.0038,
+      "ic95": [
+       -0.0054,
+       -0.00219
+      ],
+      "moteur": 0.00574,
+      "regle": 0.00955,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "quinzaine": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00467,
+      "ic95": [
+       -0.00624,
+       -0.00309
+      ],
+      "moteur": 0.01105,
+      "regle": 0.01571,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00456,
+      "ic95": [
+       -0.00618,
+       -0.00305
+      ],
+      "moteur": 0.01105,
+      "regle": 0.01561,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "mensuelle": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00498,
+      "ic95": [
+       -0.0069,
+       -0.00298
+      ],
+      "moteur": 0.0179,
+      "regle": 0.02288,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.005,
+      "ic95": [
+       -0.00708,
+       -0.00297
+      ],
+      "moteur": 0.0179,
+      "regle": 0.0229,
+      "cellules_moteur_meilleur": 4
+     }
+    }
+   },
+   "B_hors_reglage": {
+    "hebdomadaire": {
+     "mediane": {
+      "diff_moteur_moins_regle": 0.00175,
+      "ic95": [
+       0.00085,
+       0.00262
+      ],
+      "moteur": 0.01465,
+      "regle": 0.0129,
+      "cellules_moteur_meilleur": 0
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": 0.00172,
+      "ic95": [
+       0.00072,
+       0.00264
+      ],
+      "moteur": 0.01465,
+      "regle": 0.01293,
+      "cellules_moteur_meilleur": 0
+     }
+    },
+    "quinzaine": {
+     "mediane": {
+      "diff_moteur_moins_regle": 0.00082,
+      "ic95": [
+       -0.0002,
+       0.00174
+      ],
+      "moteur": 0.01903,
+      "regle": 0.01821,
+      "cellules_moteur_meilleur": 0
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": 0.00052,
+      "ic95": [
+       -0.00056,
+       0.00153
+      ],
+      "moteur": 0.01903,
+      "regle": 0.01852,
+      "cellules_moteur_meilleur": 0
+     }
+    },
+    "mensuelle": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00123,
+      "ic95": [
+       -0.00257,
+       0.00017
+      ],
+      "moteur": 0.02377,
+      "regle": 0.025,
+      "cellules_moteur_meilleur": 3
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00087,
+      "ic95": [
+       -0.00237,
+       0.0006
+      ],
+      "moteur": 0.02377,
+      "regle": 0.02463,
+      "cellules_moteur_meilleur": 4
+     }
+    }
+   },
+   "duree_s": 265.7
+  },
+  "seul:perte_client": {
+   "ecarts": [
+    "perte_client"
+   ],
+   "A_calibration_ensemble": {
+    "hebdomadaire": {
+     "points": 46980,
+     "annonce": 0.1491,
+     "observe": 0.1538,
+     "ecart_obs_moins_annonce": 0.0046,
+     "ic95_ecart": [
+      -0.0069,
+      0.0164
+     ],
+     "ece_10": 0.0149
+    },
+    "quinzaine": {
+     "points": 47970,
+     "annonce": 0.1544,
+     "observe": 0.1591,
+     "ecart_obs_moins_annonce": 0.0047,
+     "ic95_ecart": [
+      -0.0039,
+      0.0134
+     ],
+     "ece_10": 0.0052
+    },
+    "mensuelle": {
+     "points": 48000,
+     "annonce": 0.1482,
+     "observe": 0.16,
+     "ecart_obs_moins_annonce": 0.0118,
+     "ic95_ecart": [
+      0.0035,
+      0.0198
+     ],
+     "ece_10": 0.0119
+    }
+   },
+   "A_calibration_hors_reglage": {
+    "hebdomadaire": {
+     "points": 24000,
+     "annonce": 0.0498,
+     "observe": 0.2186,
+     "ecart_obs_moins_annonce": 0.1687,
+     "ic95_ecart": [
+      0.1502,
+      0.1874
+     ],
+     "ece_10": 0.1687
+    },
+    "quinzaine": {
+     "points": 24000,
+     "annonce": 0.0305,
+     "observe": 0.1969,
+     "ecart_obs_moins_annonce": 0.1663,
+     "ic95_ecart": [
+      0.1506,
+      0.1817
+     ],
+     "ece_10": 0.1663
+    },
+    "mensuelle": {
+     "points": 24000,
+     "annonce": 0.0282,
+     "observe": 0.1645,
+     "ecart_obs_moins_annonce": 0.1362,
+     "ic95_ecart": [
+      0.1236,
+      0.1498
+     ],
+     "ece_10": 0.1363
+    }
+   },
+   "B_ensemble": {
+    "hebdomadaire": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00364,
+      "ic95": [
+       -0.00534,
+       -0.00207
+      ],
+      "moteur": 0.00404,
+      "regle": 0.00768,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00368,
+      "ic95": [
+       -0.00529,
+       -0.00207
+      ],
+      "moteur": 0.00404,
+      "regle": 0.00772,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "quinzaine": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00514,
+      "ic95": [
+       -0.00681,
+       -0.00354
+      ],
+      "moteur": 0.00884,
+      "regle": 0.01398,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00508,
+      "ic95": [
+       -0.0067,
+       -0.00344
+      ],
+      "moteur": 0.00884,
+      "regle": 0.01392,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "mensuelle": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00652,
+      "ic95": [
+       -0.0088,
+       -0.00445
+      ],
+      "moteur": 0.01482,
+      "regle": 0.02133,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00648,
+      "ic95": [
+       -0.00878,
+       -0.00437
+      ],
+      "moteur": 0.01482,
+      "regle": 0.0213,
+      "cellules_moteur_meilleur": 4
+     }
+    }
+   },
+   "B_archetypes_vus": {
+    "hebdomadaire": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00364,
+      "ic95": [
+       -0.00526,
+       -0.00219
+      ],
+      "moteur": 0.00404,
+      "regle": 0.00768,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00368,
+      "ic95": [
+       -0.00525,
+       -0.00231
+      ],
+      "moteur": 0.00404,
+      "regle": 0.00772,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "quinzaine": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00514,
+      "ic95": [
+       -0.00672,
+       -0.00368
+      ],
+      "moteur": 0.00884,
+      "regle": 0.01398,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00508,
+      "ic95": [
+       -0.00665,
+       -0.00359
+      ],
+      "moteur": 0.00884,
+      "regle": 0.01392,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "mensuelle": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00652,
+      "ic95": [
+       -0.00878,
+       -0.00447
+      ],
+      "moteur": 0.01482,
+      "regle": 0.02133,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00648,
+      "ic95": [
+       -0.00885,
+       -0.00437
+      ],
+      "moteur": 0.01482,
+      "regle": 0.0213,
+      "cellules_moteur_meilleur": 4
+     }
+    }
+   },
+   "B_hors_reglage": {
+    "hebdomadaire": {
+     "mediane": {
+      "diff_moteur_moins_regle": 0.00138,
+      "ic95": [
+       0.00069,
+       0.00215
+      ],
+      "moteur": 0.01114,
+      "regle": 0.00976,
+      "cellules_moteur_meilleur": 0
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": 0.00142,
+      "ic95": [
+       0.00064,
+       0.00228
+      ],
+      "moteur": 0.01114,
+      "regle": 0.00972,
+      "cellules_moteur_meilleur": 0
+     }
+    },
+    "quinzaine": {
+     "mediane": {
+      "diff_moteur_moins_regle": 0.00092,
+      "ic95": [
+       2e-05,
+       0.00185
+      ],
+      "moteur": 0.01582,
+      "regle": 0.01489,
+      "cellules_moteur_meilleur": 0
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": 0.00074,
+      "ic95": [
+       -0.00018,
+       0.00173
+      ],
+      "moteur": 0.01582,
+      "regle": 0.01508,
+      "cellules_moteur_meilleur": 0
+     }
+    },
+    "mensuelle": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00077,
+      "ic95": [
+       -0.00207,
+       0.00053
+      ],
+      "moteur": 0.01967,
+      "regle": 0.02043,
+      "cellules_moteur_meilleur": 3
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00093,
+      "ic95": [
+       -0.00233,
+       0.00023
+      ],
+      "moteur": 0.01967,
+      "regle": 0.0206,
+      "cellules_moteur_meilleur": 4
+     }
+    }
+   },
+   "duree_s": 270.7
+  },
+  "seul:depenses_perso": {
+   "ecarts": [
+    "depenses_perso"
+   ],
+   "A_calibration_ensemble": {
+    "hebdomadaire": {
+     "points": 46980,
+     "annonce": 0.1491,
+     "observe": 0.1731,
+     "ecart_obs_moins_annonce": 0.0239,
+     "ic95_ecart": [
+      0.0118,
+      0.0364
+     ],
+     "ece_10": 0.0249
+    },
+    "quinzaine": {
+     "points": 47970,
+     "annonce": 0.1544,
+     "observe": 0.1719,
+     "ecart_obs_moins_annonce": 0.0175,
+     "ic95_ecart": [
+      0.0087,
+      0.0271
+     ],
+     "ece_10": 0.0175
+    },
+    "mensuelle": {
+     "points": 48000,
+     "annonce": 0.1482,
+     "observe": 0.1672,
+     "ecart_obs_moins_annonce": 0.019,
+     "ic95_ecart": [
+      0.0108,
+      0.0274
+     ],
+     "ece_10": 0.019
+    }
+   },
+   "A_calibration_hors_reglage": {
+    "hebdomadaire": {
+     "points": 24000,
+     "annonce": 0.0498,
+     "observe": 0.2387,
+     "ecart_obs_moins_annonce": 0.1889,
+     "ic95_ecart": [
+      0.1692,
+      0.2086
+     ],
+     "ece_10": 0.1889
+    },
+    "quinzaine": {
+     "points": 24000,
+     "annonce": 0.0305,
+     "observe": 0.2142,
+     "ecart_obs_moins_annonce": 0.1836,
+     "ic95_ecart": [
+      0.1678,
+      0.1994
+     ],
+     "ece_10": 0.1836
+    },
+    "mensuelle": {
+     "points": 24000,
+     "annonce": 0.0282,
+     "observe": 0.1738,
+     "ecart_obs_moins_annonce": 0.1456,
+     "ic95_ecart": [
+      0.1327,
+      0.1599
+     ],
+     "ece_10": 0.1457
+    }
+   },
+   "B_ensemble": {
+    "hebdomadaire": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00366,
+      "ic95": [
+       -0.00538,
+       -0.00208
+      ],
+      "moteur": 0.00494,
+      "regle": 0.0086,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00362,
+      "ic95": [
+       -0.0053,
+       -0.002
+      ],
+      "moteur": 0.00494,
+      "regle": 0.00856,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "quinzaine": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00513,
+      "ic95": [
+       -0.00684,
+       -0.00354
+      ],
+      "moteur": 0.01014,
+      "regle": 0.01527,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00529,
+      "ic95": [
+       -0.00694,
+       -0.0037
+      ],
+      "moteur": 0.01014,
+      "regle": 0.01544,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "mensuelle": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00617,
+      "ic95": [
+       -0.00838,
+       -0.0041
+      ],
+      "moteur": 0.01662,
+      "regle": 0.02278,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00632,
+      "ic95": [
+       -0.00868,
+       -0.00408
+      ],
+      "moteur": 0.01662,
+      "regle": 0.02293,
+      "cellules_moteur_meilleur": 4
+     }
+    }
+   },
+   "B_archetypes_vus": {
+    "hebdomadaire": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00366,
+      "ic95": [
+       -0.00538,
+       -0.00214
+      ],
+      "moteur": 0.00494,
+      "regle": 0.0086,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00362,
+      "ic95": [
+       -0.00523,
+       -0.00222
+      ],
+      "moteur": 0.00494,
+      "regle": 0.00856,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "quinzaine": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00513,
+      "ic95": [
+       -0.00666,
+       -0.00366
+      ],
+      "moteur": 0.01014,
+      "regle": 0.01527,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00529,
+      "ic95": [
+       -0.00687,
+       -0.00373
+      ],
+      "moteur": 0.01014,
+      "regle": 0.01544,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "mensuelle": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00617,
+      "ic95": [
+       -0.0083,
+       -0.00417
+      ],
+      "moteur": 0.01662,
+      "regle": 0.02278,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00632,
+      "ic95": [
+       -0.00858,
+       -0.00423
+      ],
+      "moteur": 0.01662,
+      "regle": 0.02293,
+      "cellules_moteur_meilleur": 4
+     }
+    }
+   },
+   "B_hors_reglage": {
+    "hebdomadaire": {
+     "mediane": {
+      "diff_moteur_moins_regle": 0.00144,
+      "ic95": [
+       0.00068,
+       0.00227
+      ],
+      "moteur": 0.01233,
+      "regle": 0.01089,
+      "cellules_moteur_meilleur": 0
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": 0.00143,
+      "ic95": [
+       0.0006,
+       0.00234
+      ],
+      "moteur": 0.01233,
+      "regle": 0.0109,
+      "cellules_moteur_meilleur": 0
+     }
+    },
+    "quinzaine": {
+     "mediane": {
+      "diff_moteur_moins_regle": 0.00089,
+      "ic95": [
+       -0.00012,
+       0.00186
+      ],
+      "moteur": 0.01742,
+      "regle": 0.01653,
+      "cellules_moteur_meilleur": 0
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": 0.00062,
+      "ic95": [
+       -0.00052,
+       0.00162
+      ],
+      "moteur": 0.01742,
+      "regle": 0.0168,
+      "cellules_moteur_meilleur": 0
+     }
+    },
+    "mensuelle": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00077,
+      "ic95": [
+       -0.0022,
+       0.00053
+      ],
+      "moteur": 0.02177,
+      "regle": 0.02253,
+      "cellules_moteur_meilleur": 3
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00093,
+      "ic95": [
+       -0.00253,
+       0.00037
+      ],
+      "moteur": 0.02177,
+      "regle": 0.0227,
+      "cellules_moteur_meilleur": 4
+     }
+    }
+   },
+   "duree_s": 266.9
+  },
+  "seul:tendance": {
+   "ecarts": [
+    "tendance"
+   ],
+   "A_calibration_ensemble": {
+    "hebdomadaire": {
+     "points": 46848,
+     "annonce": 0.1487,
+     "observe": 0.1481,
+     "ecart_obs_moins_annonce": -0.0006,
+     "ic95_ecart": [
+      -0.0115,
+      0.0104
+     ],
+     "ece_10": 0.0182
+    },
+    "quinzaine": {
+     "points": 47964,
+     "annonce": 0.1537,
+     "observe": 0.1485,
+     "ecart_obs_moins_annonce": -0.0052,
+     "ic95_ecart": [
+      -0.0138,
+      0.0043
+     ],
+     "ece_10": 0.007
+    },
+    "mensuelle": {
+     "points": 48000,
+     "annonce": 0.1467,
+     "observe": 0.147,
+     "ecart_obs_moins_annonce": 0.0002,
+     "ic95_ecart": [
+      -0.0075,
+      0.0089
+     ],
+     "ece_10": 0.0058
+    }
+   },
+   "A_calibration_hors_reglage": {
+    "hebdomadaire": {
+     "points": 24000,
+     "annonce": 0.0498,
+     "observe": 0.2235,
+     "ecart_obs_moins_annonce": 0.1737,
+     "ic95_ecart": [
+      0.1548,
+      0.192
+     ],
+     "ece_10": 0.1738
+    },
+    "quinzaine": {
+     "points": 24000,
+     "annonce": 0.0307,
+     "observe": 0.2049,
+     "ecart_obs_moins_annonce": 0.1742,
+     "ic95_ecart": [
+      0.1586,
+      0.19
+     ],
+     "ece_10": 0.1742
+    },
+    "mensuelle": {
+     "points": 24000,
+     "annonce": 0.0285,
+     "observe": 0.1733,
+     "ecart_obs_moins_annonce": 0.1449,
+     "ic95_ecart": [
+      0.1304,
+      0.1597
+     ],
+     "ece_10": 0.1449
+    }
+   },
+   "B_ensemble": {
+    "hebdomadaire": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00281,
+      "ic95": [
+       -0.00413,
+       -0.00159
+      ],
+      "moteur": 0.00481,
+      "regle": 0.00762,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00299,
+      "ic95": [
+       -0.0043,
+       -0.00181
+      ],
+      "moteur": 0.00481,
+      "regle": 0.0078,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "quinzaine": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.0051,
+      "ic95": [
+       -0.00667,
+       -0.00374
+      ],
+      "moteur": 0.00852,
+      "regle": 0.01362,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00544,
+      "ic95": [
+       -0.00703,
+       -0.00401
+      ],
+      "moteur": 0.00852,
+      "regle": 0.01396,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "mensuelle": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.0056,
+      "ic95": [
+       -0.00752,
+       -0.00377
+      ],
+      "moteur": 0.015,
+      "regle": 0.0206,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00572,
+      "ic95": [
+       -0.00773,
+       -0.00388
+      ],
+      "moteur": 0.015,
+      "regle": 0.02072,
+      "cellules_moteur_meilleur": 4
+     }
+    }
+   },
+   "B_archetypes_vus": {
+    "hebdomadaire": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00281,
+      "ic95": [
+       -0.00415,
+       -0.00159
+      ],
+      "moteur": 0.00481,
+      "regle": 0.00762,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00299,
+      "ic95": [
+       -0.00436,
+       -0.00178
+      ],
+      "moteur": 0.00481,
+      "regle": 0.0078,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "quinzaine": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.0051,
+      "ic95": [
+       -0.0066,
+       -0.00375
+      ],
+      "moteur": 0.00852,
+      "regle": 0.01362,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00544,
+      "ic95": [
+       -0.00702,
+       -0.00405
+      ],
+      "moteur": 0.00852,
+      "regle": 0.01396,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "mensuelle": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.0056,
+      "ic95": [
+       -0.0076,
+       -0.00375
+      ],
+      "moteur": 0.015,
+      "regle": 0.0206,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00572,
+      "ic95": [
+       -0.00777,
+       -0.00392
+      ],
+      "moteur": 0.015,
+      "regle": 0.02072,
+      "cellules_moteur_meilleur": 4
+     }
+    }
+   },
+   "B_hors_reglage": {
+    "hebdomadaire": {
+     "mediane": {
+      "diff_moteur_moins_regle": 0.00039,
+      "ic95": [
+       -0.00042,
+       0.00116
+      ],
+      "moteur": 0.01053,
+      "regle": 0.01014,
+      "cellules_moteur_meilleur": 0
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": 0.00015,
+      "ic95": [
+       -0.0007,
+       0.00099
+      ],
+      "moteur": 0.01053,
+      "regle": 0.01038,
+      "cellules_moteur_meilleur": 0
+     }
+    },
+    "quinzaine": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00014,
+      "ic95": [
+       -0.00094,
+       0.00074
+      ],
+      "moteur": 0.01529,
+      "regle": 0.01542,
+      "cellules_moteur_meilleur": 3
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00032,
+      "ic95": [
+       -0.00133,
+       0.00062
+      ],
+      "moteur": 0.01529,
+      "regle": 0.01561,
+      "cellules_moteur_meilleur": 3
+     }
+    },
+    "mensuelle": {
+     "mediane": {
+      "diff_moteur_moins_regle": 3e-05,
+      "ic95": [
+       -0.00127,
+       0.00123
+      ],
+      "moteur": 0.02043,
+      "regle": 0.0204,
+      "cellules_moteur_meilleur": 1
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00017,
+      "ic95": [
+       -0.0015,
+       0.00117
+      ],
+      "moteur": 0.02043,
+      "regle": 0.0206,
+      "cellules_moteur_meilleur": 2
+     }
+    }
+   },
+   "duree_s": 253.6
+  },
+  "seul:archetypes": {
+   "ecarts": [
+    "archetypes"
+   ],
+   "A_calibration_ensemble": {
+    "hebdomadaire": {
+     "points": 46992,
+     "annonce": 0.1188,
+     "observe": 0.1693,
+     "ecart_obs_moins_annonce": 0.0506,
+     "ic95_ecart": [
+      0.0392,
+      0.0637
+     ],
+     "ece_10": 0.0577
+    },
+    "quinzaine": {
+     "points": 47982,
+     "annonce": 0.1188,
+     "observe": 0.1666,
+     "ecart_obs_moins_annonce": 0.0478,
+     "ic95_ecart": [
+      0.0379,
+      0.059
+     ],
+     "ece_10": 0.0514
+    },
+    "mensuelle": {
+     "points": 48000,
+     "annonce": 0.1132,
+     "observe": 0.1605,
+     "ecart_obs_moins_annonce": 0.0473,
+     "ic95_ecart": [
+      0.0382,
+      0.0571
+     ],
+     "ece_10": 0.0477
+    }
+   },
+   "A_calibration_hors_reglage": {
+    "hebdomadaire": {
+     "points": 24000,
+     "annonce": 0.0498,
+     "observe": 0.218,
+     "ecart_obs_moins_annonce": 0.1682,
+     "ic95_ecart": [
+      0.1497,
+      0.1871
+     ],
+     "ece_10": 0.1682
+    },
+    "quinzaine": {
+     "points": 24000,
+     "annonce": 0.0305,
+     "observe": 0.1963,
+     "ecart_obs_moins_annonce": 0.1657,
+     "ic95_ecart": [
+      0.15,
+      0.1812
+     ],
+     "ece_10": 0.1657
+    },
+    "mensuelle": {
+     "points": 24000,
+     "annonce": 0.0282,
+     "observe": 0.1631,
+     "ecart_obs_moins_annonce": 0.1349,
+     "ic95_ecart": [
+      0.1224,
+      0.1485
+     ],
+     "ece_10": 0.135
+    }
+   },
+   "B_ensemble": {
+    "hebdomadaire": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00201,
+      "ic95": [
+       -0.00347,
+       -0.00073
+      ],
+      "moteur": 0.00651,
+      "regle": 0.00852,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00175,
+      "ic95": [
+       -0.00309,
+       -0.00054
+      ],
+      "moteur": 0.00651,
+      "regle": 0.00826,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "quinzaine": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00381,
+      "ic95": [
+       -0.00555,
+       -0.00226
+      ],
+      "moteur": 0.01155,
+      "regle": 0.01536,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00353,
+      "ic95": [
+       -0.00527,
+       -0.00204
+      ],
+      "moteur": 0.01155,
+      "regle": 0.01508,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "mensuelle": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00467,
+      "ic95": [
+       -0.0068,
+       -0.0027
+      ],
+      "moteur": 0.01775,
+      "regle": 0.02242,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.0047,
+      "ic95": [
+       -0.0068,
+       -0.00273
+      ],
+      "moteur": 0.01775,
+      "regle": 0.02245,
+      "cellules_moteur_meilleur": 4
+     }
+    }
+   },
+   "B_archetypes_vus": {
+    "hebdomadaire": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00364,
+      "ic95": [
+       -0.00541,
+       -0.00214
+      ],
+      "moteur": 0.0041,
+      "regle": 0.00774,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00345,
+      "ic95": [
+       -0.00511,
+       -0.00195
+      ],
+      "moteur": 0.0041,
+      "regle": 0.00755,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "quinzaine": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00608,
+      "ic95": [
+       -0.00813,
+       -0.0042
+      ],
+      "moteur": 0.009,
+      "regle": 0.01508,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00558,
+      "ic95": [
+       -0.00776,
+       -0.00361
+      ],
+      "moteur": 0.009,
+      "regle": 0.01458,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "mensuelle": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00726,
+      "ic95": [
+       -0.01008,
+       -0.00466
+      ],
+      "moteur": 0.01548,
+      "regle": 0.02273,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00681,
+      "ic95": [
+       -0.00982,
+       -0.00419
+      ],
+      "moteur": 0.01548,
+      "regle": 0.02229,
+      "cellules_moteur_meilleur": 4
+     }
+    }
+   },
+   "B_hors_reglage": {
+    "hebdomadaire": {
+     "mediane": {
+      "diff_moteur_moins_regle": 0.00138,
+      "ic95": [
+       0.00062,
+       0.00222
+      ],
+      "moteur": 0.01112,
+      "regle": 0.00974,
+      "cellules_moteur_meilleur": 0
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": 0.00141,
+      "ic95": [
+       0.00064,
+       0.00239
+      ],
+      "moteur": 0.01112,
+      "regle": 0.00971,
+      "cellules_moteur_meilleur": 0
+     }
+    },
+    "quinzaine": {
+     "mediane": {
+      "diff_moteur_moins_regle": 0.00092,
+      "ic95": [
+       1e-05,
+       0.00183
+      ],
+      "moteur": 0.0158,
+      "regle": 0.01488,
+      "cellules_moteur_meilleur": 0
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": 0.00076,
+      "ic95": [
+       -0.00021,
+       0.00179
+      ],
+      "moteur": 0.0158,
+      "regle": 0.01505,
+      "cellules_moteur_meilleur": 0
+     }
+    },
+    "mensuelle": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00077,
+      "ic95": [
+       -0.00207,
+       0.00043
+      ],
+      "moteur": 0.01963,
+      "regle": 0.0204,
+      "cellules_moteur_meilleur": 3
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00087,
+      "ic95": [
+       -0.00227,
+       0.00033
+      ],
+      "moteur": 0.01963,
+      "regle": 0.0205,
+      "cellules_moteur_meilleur": 4
+     }
+    }
+   },
+   "duree_s": 263.6
+  },
+  "cumul:2": {
+   "ecarts": [
+    "archetypes",
+    "semaines_vides"
+   ],
+   "A_calibration_ensemble": {
+    "hebdomadaire": {
+     "points": 47064,
+     "annonce": 0.1185,
+     "observe": 0.1819,
+     "ecart_obs_moins_annonce": 0.0634,
+     "ic95_ecart": [
+      0.0512,
+      0.0774
+     ],
+     "ece_10": 0.0698
+    },
+    "quinzaine": {
+     "points": 48000,
+     "annonce": 0.1164,
+     "observe": 0.1725,
+     "ecart_obs_moins_annonce": 0.0561,
+     "ic95_ecart": [
+      0.0459,
+      0.0675
+     ],
+     "ece_10": 0.0569
+    },
+    "mensuelle": {
+     "points": 48000,
+     "annonce": 0.1115,
+     "observe": 0.1604,
+     "ecart_obs_moins_annonce": 0.0489,
+     "ic95_ecart": [
+      0.0401,
+      0.0581
+     ],
+     "ece_10": 0.0497
+    }
+   },
+   "A_calibration_hors_reglage": {
+    "hebdomadaire": {
+     "points": 24000,
+     "annonce": 0.0503,
+     "observe": 0.2484,
+     "ecart_obs_moins_annonce": 0.1981,
+     "ic95_ecart": [
+      0.1779,
+      0.2206
+     ],
+     "ece_10": 0.1981
+    },
+    "quinzaine": {
+     "points": 24000,
+     "annonce": 0.0309,
+     "observe": 0.21,
+     "ecart_obs_moins_annonce": 0.1791,
+     "ic95_ecart": [
+      0.1636,
+      0.1959
+     ],
+     "ece_10": 0.1791
+    },
+    "mensuelle": {
+     "points": 24000,
+     "annonce": 0.0286,
+     "observe": 0.1709,
+     "ecart_obs_moins_annonce": 0.1423,
+     "ic95_ecart": [
+      0.1291,
+      0.1576
+     ],
+     "ece_10": 0.1423
+    }
+   },
+   "B_ensemble": {
+    "hebdomadaire": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00214,
+      "ic95": [
+       -0.00381,
+       -0.00064
+      ],
+      "moteur": 0.00768,
+      "regle": 0.00982,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00187,
+      "ic95": [
+       -0.00349,
+       -0.00041
+      ],
+      "moteur": 0.00768,
+      "regle": 0.00955,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "quinzaine": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00334,
+      "ic95": [
+       -0.00513,
+       -0.00189
+      ],
+      "moteur": 0.01289,
+      "regle": 0.01623,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00314,
+      "ic95": [
+       -0.00489,
+       -0.0018
+      ],
+      "moteur": 0.01289,
+      "regle": 0.01603,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "mensuelle": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.0047,
+      "ic95": [
+       -0.00682,
+       -0.00273
+      ],
+      "moteur": 0.01818,
+      "regle": 0.02288,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00388,
+      "ic95": [
+       -0.00593,
+       -0.00197
+      ],
+      "moteur": 0.01818,
+      "regle": 0.02207,
+      "cellules_moteur_meilleur": 4
+     }
+    }
+   },
+   "B_archetypes_vus": {
+    "hebdomadaire": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00367,
+      "ic95": [
+       -0.00573,
+       -0.0019
+      ],
+      "moteur": 0.00544,
+      "regle": 0.00911,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.0035,
+      "ic95": [
+       -0.00542,
+       -0.00173
+      ],
+      "moteur": 0.00544,
+      "regle": 0.00893,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "quinzaine": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00548,
+      "ic95": [
+       -0.00776,
+       -0.00362
+      ],
+      "moteur": 0.01046,
+      "regle": 0.01594,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00495,
+      "ic95": [
+       -0.0071,
+       -0.00309
+      ],
+      "moteur": 0.01046,
+      "regle": 0.01541,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "mensuelle": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00688,
+      "ic95": [
+       -0.00973,
+       -0.00441
+      ],
+      "moteur": 0.01658,
+      "regle": 0.02346,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.0053,
+      "ic95": [
+       -0.00806,
+       -0.00283
+      ],
+      "moteur": 0.01658,
+      "regle": 0.02188,
+      "cellules_moteur_meilleur": 4
+     }
+    }
+   },
+   "B_hors_reglage": {
+    "hebdomadaire": {
+     "mediane": {
+      "diff_moteur_moins_regle": 0.00175,
+      "ic95": [
+       0.00078,
+       0.00278
+      ],
+      "moteur": 0.01465,
+      "regle": 0.0129,
+      "cellules_moteur_meilleur": 0
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": 0.00172,
+      "ic95": [
+       0.00067,
+       0.00277
+      ],
+      "moteur": 0.01465,
+      "regle": 0.01293,
+      "cellules_moteur_meilleur": 0
+     }
+    },
+    "quinzaine": {
+     "mediane": {
+      "diff_moteur_moins_regle": 0.00082,
+      "ic95": [
+       -0.00023,
+       0.00177
+      ],
+      "moteur": 0.01903,
+      "regle": 0.01821,
+      "cellules_moteur_meilleur": 0
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": 0.00052,
+      "ic95": [
+       -0.00056,
+       0.00156
+      ],
+      "moteur": 0.01903,
+      "regle": 0.01852,
+      "cellules_moteur_meilleur": 0
+     }
+    },
+    "mensuelle": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00123,
+      "ic95": [
+       -0.00253,
+       0.0001
+      ],
+      "moteur": 0.02377,
+      "regle": 0.025,
+      "cellules_moteur_meilleur": 3
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00087,
+      "ic95": [
+       -0.00237,
+       0.0007
+      ],
+      "moteur": 0.02377,
+      "regle": 0.02463,
+      "cellules_moteur_meilleur": 4
+     }
+    }
+   },
+   "duree_s": 240.5
+  },
+  "cumul:3": {
+   "ecarts": [
+    "archetypes",
+    "semaines_vides",
+    "depenses_perso"
+   ],
+   "A_calibration_ensemble": {
+    "hebdomadaire": {
+     "points": 47064,
+     "annonce": 0.1185,
+     "observe": 0.2052,
+     "ecart_obs_moins_annonce": 0.0867,
+     "ic95_ecart": [
+      0.0737,
+      0.1017
+     ],
+     "ece_10": 0.0901
+    },
+    "quinzaine": {
+     "points": 48000,
+     "annonce": 0.1164,
+     "observe": 0.1861,
+     "ecart_obs_moins_annonce": 0.0697,
+     "ic95_ecart": [
+      0.0596,
+      0.0814
+     ],
+     "ece_10": 0.0697
+    },
+    "mensuelle": {
+     "points": 48000,
+     "annonce": 0.1115,
+     "observe": 0.1686,
+     "ecart_obs_moins_annonce": 0.0571,
+     "ic95_ecart": [
+      0.0481,
+      0.0669
+     ],
+     "ece_10": 0.0576
+    }
+   },
+   "A_calibration_hors_reglage": {
+    "hebdomadaire": {
+     "points": 24000,
+     "annonce": 0.0503,
+     "observe": 0.2619,
+     "ecart_obs_moins_annonce": 0.2116,
+     "ic95_ecart": [
+      0.1907,
+      0.2337
+     ],
+     "ece_10": 0.2116
+    },
+    "quinzaine": {
+     "points": 24000,
+     "annonce": 0.0309,
+     "observe": 0.224,
+     "ecart_obs_moins_annonce": 0.1931,
+     "ic95_ecart": [
+      0.1768,
+      0.2105
+     ],
+     "ece_10": 0.1931
+    },
+    "mensuelle": {
+     "points": 24000,
+     "annonce": 0.0286,
+     "observe": 0.1807,
+     "ecart_obs_moins_annonce": 0.1521,
+     "ic95_ecart": [
+      0.1385,
+      0.1674
+     ],
+     "ece_10": 0.1521
+    }
+   },
+   "B_ensemble": {
+    "hebdomadaire": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00214,
+      "ic95": [
+       -0.00386,
+       -0.00062
+      ],
+      "moteur": 0.00895,
+      "regle": 0.01109,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00181,
+      "ic95": [
+       -0.00345,
+       -0.00037
+      ],
+      "moteur": 0.00895,
+      "regle": 0.01076,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "quinzaine": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00356,
+      "ic95": [
+       -0.00547,
+       -0.00212
+      ],
+      "moteur": 0.01414,
+      "regle": 0.0177,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00336,
+      "ic95": [
+       -0.00516,
+       -0.00198
+      ],
+      "moteur": 0.01414,
+      "regle": 0.01751,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "mensuelle": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00463,
+      "ic95": [
+       -0.00682,
+       -0.00257
+      ],
+      "moteur": 0.0198,
+      "regle": 0.02443,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00395,
+      "ic95": [
+       -0.00617,
+       -0.00205
+      ],
+      "moteur": 0.0198,
+      "regle": 0.02375,
+      "cellules_moteur_meilleur": 4
+     }
+    }
+   },
+   "B_archetypes_vus": {
+    "hebdomadaire": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00367,
+      "ic95": [
+       -0.00573,
+       -0.00187
+      ],
+      "moteur": 0.00659,
+      "regle": 0.01026,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00342,
+      "ic95": [
+       -0.00536,
+       -0.00164
+      ],
+      "moteur": 0.00659,
+      "regle": 0.01001,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "quinzaine": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.0057,
+      "ic95": [
+       -0.00801,
+       -0.00372
+      ],
+      "moteur": 0.01167,
+      "regle": 0.01737,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00512,
+      "ic95": [
+       -0.00735,
+       -0.00319
+      ],
+      "moteur": 0.01167,
+      "regle": 0.01679,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "mensuelle": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00662,
+      "ic95": [
+       -0.00938,
+       -0.0041
+      ],
+      "moteur": 0.01809,
+      "regle": 0.02471,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00539,
+      "ic95": [
+       -0.0082,
+       -0.00292
+      ],
+      "moteur": 0.01809,
+      "regle": 0.02349,
+      "cellules_moteur_meilleur": 4
+     }
+    }
+   },
+   "B_hors_reglage": {
+    "hebdomadaire": {
+     "mediane": {
+      "diff_moteur_moins_regle": 0.00169,
+      "ic95": [
+       0.00071,
+       0.00272
+      ],
+      "moteur": 0.01558,
+      "regle": 0.01388,
+      "cellules_moteur_meilleur": 0
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": 0.00169,
+      "ic95": [
+       0.00063,
+       0.00277
+      ],
+      "moteur": 0.01558,
+      "regle": 0.01388,
+      "cellules_moteur_meilleur": 0
+     }
+    },
+    "quinzaine": {
+     "mediane": {
+      "diff_moteur_moins_regle": 0.00021,
+      "ic95": [
+       -0.00085,
+       0.00121
+      ],
+      "moteur": 0.02059,
+      "regle": 0.02038,
+      "cellules_moteur_meilleur": 1
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": 0.00017,
+      "ic95": [
+       -0.00094,
+       0.00123
+      ],
+      "moteur": 0.02059,
+      "regle": 0.02042,
+      "cellules_moteur_meilleur": 2
+     }
+    },
+    "mensuelle": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.0015,
+      "ic95": [
+       -0.003,
+       -7e-05
+      ],
+      "moteur": 0.02597,
+      "regle": 0.02747,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00123,
+      "ic95": [
+       -0.00283,
+       0.00047
+      ],
+      "moteur": 0.02597,
+      "regle": 0.0272,
+      "cellules_moteur_meilleur": 4
+     }
+    }
+   },
+   "duree_s": 233.0
+  },
+  "cumul:4": {
+   "ecarts": [
+    "archetypes",
+    "semaines_vides",
+    "depenses_perso",
+    "chocs_durables"
+   ],
+   "A_calibration_ensemble": {
+    "hebdomadaire": {
+     "points": 47208,
+     "annonce": 0.1175,
+     "observe": 0.2103,
+     "ecart_obs_moins_annonce": 0.0928,
+     "ic95_ecart": [
+      0.0785,
+      0.1077
+     ],
+     "ece_10": 0.0952
+    },
+    "quinzaine": {
+     "points": 48000,
+     "annonce": 0.1146,
+     "observe": 0.1868,
+     "ecart_obs_moins_annonce": 0.0721,
+     "ic95_ecart": [
+      0.0611,
+      0.0838
+     ],
+     "ece_10": 0.0721
+    },
+    "mensuelle": {
+     "points": 48000,
+     "annonce": 0.1092,
+     "observe": 0.1682,
+     "ecart_obs_moins_annonce": 0.059,
+     "ic95_ecart": [
+      0.0501,
+      0.0683
+     ],
+     "ece_10": 0.0591
+    }
+   },
+   "A_calibration_hors_reglage": {
+    "hebdomadaire": {
+     "points": 24000,
+     "annonce": 0.0498,
+     "observe": 0.2628,
+     "ecart_obs_moins_annonce": 0.213,
+     "ic95_ecart": [
+      0.192,
+      0.2353
+     ],
+     "ece_10": 0.213
+    },
+    "quinzaine": {
+     "points": 24000,
+     "annonce": 0.0302,
+     "observe": 0.2201,
+     "ecart_obs_moins_annonce": 0.1899,
+     "ic95_ecart": [
+      0.173,
+      0.2068
+     ],
+     "ece_10": 0.1899
+    },
+    "mensuelle": {
+     "points": 24000,
+     "annonce": 0.0279,
+     "observe": 0.1764,
+     "ecart_obs_moins_annonce": 0.1484,
+     "ic95_ecart": [
+      0.1349,
+      0.1632
+     ],
+     "ece_10": 0.1484
+    }
+   },
+   "B_ensemble": {
+    "hebdomadaire": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00175,
+      "ic95": [
+       -0.00332,
+       -0.0004
+      ],
+      "moteur": 0.00919,
+      "regle": 0.01094,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00153,
+      "ic95": [
+       -0.0031,
+       -0.00023
+      ],
+      "moteur": 0.00919,
+      "regle": 0.01072,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "quinzaine": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00327,
+      "ic95": [
+       -0.00494,
+       -0.00189
+      ],
+      "moteur": 0.01412,
+      "regle": 0.01739,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00303,
+      "ic95": [
+       -0.00459,
+       -0.00168
+      ],
+      "moteur": 0.01412,
+      "regle": 0.01715,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "mensuelle": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00452,
+      "ic95": [
+       -0.00667,
+       -0.00267
+      ],
+      "moteur": 0.01982,
+      "regle": 0.02433,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00372,
+      "ic95": [
+       -0.00578,
+       -0.00192
+      ],
+      "moteur": 0.01982,
+      "regle": 0.02353,
+      "cellules_moteur_meilleur": 4
+     }
+    }
+   },
+   "B_archetypes_vus": {
+    "hebdomadaire": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.0033,
+      "ic95": [
+       -0.00513,
+       -0.00158
+      ],
+      "moteur": 0.00681,
+      "regle": 0.0101,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00299,
+      "ic95": [
+       -0.00471,
+       -0.00129
+      ],
+      "moteur": 0.00681,
+      "regle": 0.0098,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "quinzaine": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00508,
+      "ic95": [
+       -0.00715,
+       -0.00329
+      ],
+      "moteur": 0.0116,
+      "regle": 0.01667,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00459,
+      "ic95": [
+       -0.00671,
+       -0.00277
+      ],
+      "moteur": 0.0116,
+      "regle": 0.01619,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "mensuelle": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00622,
+      "ic95": [
+       -0.00886,
+       -0.00389
+      ],
+      "moteur": 0.01788,
+      "regle": 0.0241,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00481,
+      "ic95": [
+       -0.00728,
+       -0.00252
+      ],
+      "moteur": 0.01788,
+      "regle": 0.02269,
+      "cellules_moteur_meilleur": 4
+     }
+    }
+   },
+   "B_hors_reglage": {
+    "hebdomadaire": {
+     "mediane": {
+      "diff_moteur_moins_regle": 0.00158,
+      "ic95": [
+       0.00059,
+       0.00265
+      ],
+      "moteur": 0.01572,
+      "regle": 0.01413,
+      "cellules_moteur_meilleur": 0
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": 0.00159,
+      "ic95": [
+       0.00055,
+       0.0027
+      ],
+      "moteur": 0.01572,
+      "regle": 0.01412,
+      "cellules_moteur_meilleur": 0
+     }
+    },
+    "quinzaine": {
+     "mediane": {
+      "diff_moteur_moins_regle": 0.00036,
+      "ic95": [
+       -0.00068,
+       0.0013
+      ],
+      "moteur": 0.02048,
+      "regle": 0.02012,
+      "cellules_moteur_meilleur": 1
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": 0.00024,
+      "ic95": [
+       -0.00082,
+       0.00127
+      ],
+      "moteur": 0.02048,
+      "regle": 0.02024,
+      "cellules_moteur_meilleur": 2
+     }
+    },
+    "mensuelle": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00057,
+      "ic95": [
+       -0.00193,
+       0.00083
+      ],
+      "moteur": 0.02583,
+      "regle": 0.0264,
+      "cellules_moteur_meilleur": 3
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00057,
+      "ic95": [
+       -0.0022,
+       0.00123
+      ],
+      "moteur": 0.02583,
+      "regle": 0.0264,
+      "cellules_moteur_meilleur": 3
+     }
+    }
+   },
+   "duree_s": 227.1
+  },
+  "cumul:5": {
+   "ecarts": [
+    "archetypes",
+    "semaines_vides",
+    "depenses_perso",
+    "chocs_durables",
+    "bruit_gamma"
+   ],
+   "A_calibration_ensemble": {
+    "hebdomadaire": {
+     "points": 47208,
+     "annonce": 0.1185,
+     "observe": 0.2198,
+     "ecart_obs_moins_annonce": 0.1013,
+     "ic95_ecart": [
+      0.0872,
+      0.115
+     ],
+     "ece_10": 0.1013
+    },
+    "quinzaine": {
+     "points": 48000,
+     "annonce": 0.1152,
+     "observe": 0.1888,
+     "ecart_obs_moins_annonce": 0.0736,
+     "ic95_ecart": [
+      0.0626,
+      0.084
+     ],
+     "ece_10": 0.0736
+    },
+    "mensuelle": {
+     "points": 48000,
+     "annonce": 0.1098,
+     "observe": 0.1674,
+     "ecart_obs_moins_annonce": 0.0577,
+     "ic95_ecart": [
+      0.0485,
+      0.0667
+     ],
+     "ece_10": 0.0577
+    }
+   },
+   "A_calibration_hors_reglage": {
+    "hebdomadaire": {
+     "points": 24000,
+     "annonce": 0.0504,
+     "observe": 0.271,
+     "ecart_obs_moins_annonce": 0.2206,
+     "ic95_ecart": [
+      0.1991,
+      0.242
+     ],
+     "ece_10": 0.2206
+    },
+    "quinzaine": {
+     "points": 24000,
+     "annonce": 0.0314,
+     "observe": 0.2293,
+     "ecart_obs_moins_annonce": 0.1979,
+     "ic95_ecart": [
+      0.1809,
+      0.2143
+     ],
+     "ece_10": 0.1979
+    },
+    "mensuelle": {
+     "points": 24000,
+     "annonce": 0.0294,
+     "observe": 0.1825,
+     "ecart_obs_moins_annonce": 0.1532,
+     "ic95_ecart": [
+      0.1391,
+      0.1683
+     ],
+     "ece_10": 0.1532
+    }
+   },
+   "B_ensemble": {
+    "hebdomadaire": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00232,
+      "ic95": [
+       -0.00391,
+       -0.00088
+      ],
+      "moteur": 0.00877,
+      "regle": 0.01108,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00242,
+      "ic95": [
+       -0.00397,
+       -0.00106
+      ],
+      "moteur": 0.00877,
+      "regle": 0.01118,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "quinzaine": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00411,
+      "ic95": [
+       -0.00574,
+       -0.00261
+      ],
+      "moteur": 0.01358,
+      "regle": 0.01768,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00423,
+      "ic95": [
+       -0.00589,
+       -0.00276
+      ],
+      "moteur": 0.01358,
+      "regle": 0.01781,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "mensuelle": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00367,
+      "ic95": [
+       -0.00558,
+       -0.00175
+      ],
+      "moteur": 0.02,
+      "regle": 0.02367,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00368,
+      "ic95": [
+       -0.00572,
+       -0.00178
+      ],
+      "moteur": 0.02,
+      "regle": 0.02368,
+      "cellules_moteur_meilleur": 4
+     }
+    }
+   },
+   "B_archetypes_vus": {
+    "hebdomadaire": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00409,
+      "ic95": [
+       -0.00595,
+       -0.00248
+      ],
+      "moteur": 0.00658,
+      "regle": 0.01067,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00394,
+      "ic95": [
+       -0.00573,
+       -0.00232
+      ],
+      "moteur": 0.00658,
+      "regle": 0.01052,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "quinzaine": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00624,
+      "ic95": [
+       -0.00836,
+       -0.00438
+      ],
+      "moteur": 0.0116,
+      "regle": 0.01784,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00618,
+      "ic95": [
+       -0.00826,
+       -0.00422
+      ],
+      "moteur": 0.0116,
+      "regle": 0.01777,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "mensuelle": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00605,
+      "ic95": [
+       -0.00879,
+       -0.00365
+      ],
+      "moteur": 0.01764,
+      "regle": 0.0237,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00572,
+      "ic95": [
+       -0.0082,
+       -0.00344
+      ],
+      "moteur": 0.01764,
+      "regle": 0.02337,
+      "cellules_moteur_meilleur": 4
+     }
+    }
+   },
+   "B_hors_reglage": {
+    "hebdomadaire": {
+     "mediane": {
+      "diff_moteur_moins_regle": 0.00136,
+      "ic95": [
+       0.00056,
+       0.00214
+      ],
+      "moteur": 0.01439,
+      "regle": 0.01303,
+      "cellules_moteur_meilleur": 0
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": 0.00105,
+      "ic95": [
+       0.00014,
+       0.00198
+      ],
+      "moteur": 0.01439,
+      "regle": 0.01334,
+      "cellules_moteur_meilleur": 0
+     }
+    },
+    "quinzaine": {
+     "mediane": {
+      "diff_moteur_moins_regle": 0.00088,
+      "ic95": [
+       -0.00011,
+       0.00192
+      ],
+      "moteur": 0.02006,
+      "regle": 0.01918,
+      "cellules_moteur_meilleur": 0
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": 0.00064,
+      "ic95": [
+       -0.00055,
+       0.0018
+      ],
+      "moteur": 0.02006,
+      "regle": 0.01942,
+      "cellules_moteur_meilleur": 0
+     }
+    },
+    "mensuelle": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00087,
+      "ic95": [
+       -0.00213,
+       0.0004
+      ],
+      "moteur": 0.0244,
+      "regle": 0.02527,
+      "cellules_moteur_meilleur": 3
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00153,
+      "ic95": [
+       -0.0031,
+       3e-05
+      ],
+      "moteur": 0.0244,
+      "regle": 0.02593,
+      "cellules_moteur_meilleur": 4
+     }
+    }
+   },
+   "duree_s": 257.9
+  },
+  "cumul:6": {
+   "ecarts": [
+    "archetypes",
+    "semaines_vides",
+    "depenses_perso",
+    "chocs_durables",
+    "bruit_gamma",
+    "perte_client"
+   ],
+   "A_calibration_ensemble": {
+    "hebdomadaire": {
+     "points": 47208,
+     "annonce": 0.1185,
+     "observe": 0.2203,
+     "ecart_obs_moins_annonce": 0.1018,
+     "ic95_ecart": [
+      0.0877,
+      0.1155
+     ],
+     "ece_10": 0.1018
+    },
+    "quinzaine": {
+     "points": 48000,
+     "annonce": 0.1152,
+     "observe": 0.1889,
+     "ecart_obs_moins_annonce": 0.0736,
+     "ic95_ecart": [
+      0.0626,
+      0.0837
+     ],
+     "ece_10": 0.0737
+    },
+    "mensuelle": {
+     "points": 48000,
+     "annonce": 0.1098,
+     "observe": 0.1683,
+     "ecart_obs_moins_annonce": 0.0585,
+     "ic95_ecart": [
+      0.0494,
+      0.0677
+     ],
+     "ece_10": 0.0585
+    }
+   },
+   "A_calibration_hors_reglage": {
+    "hebdomadaire": {
+     "points": 24000,
+     "annonce": 0.0504,
+     "observe": 0.2702,
+     "ecart_obs_moins_annonce": 0.2198,
+     "ic95_ecart": [
+      0.1984,
+      0.2415
+     ],
+     "ece_10": 0.2198
+    },
+    "quinzaine": {
+     "points": 24000,
+     "annonce": 0.0314,
+     "observe": 0.2293,
+     "ecart_obs_moins_annonce": 0.1979,
+     "ic95_ecart": [
+      0.1814,
+      0.2146
+     ],
+     "ece_10": 0.1979
+    },
+    "mensuelle": {
+     "points": 24000,
+     "annonce": 0.0294,
+     "observe": 0.1836,
+     "ecart_obs_moins_annonce": 0.1542,
+     "ic95_ecart": [
+      0.1403,
+      0.1695
+     ],
+     "ece_10": 0.1542
+    }
+   },
+   "B_ensemble": {
+    "hebdomadaire": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00249,
+      "ic95": [
+       -0.00418,
+       -0.00099
+      ],
+      "moteur": 0.0088,
+      "regle": 0.0113,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00255,
+      "ic95": [
+       -0.00412,
+       -0.00115
+      ],
+      "moteur": 0.0088,
+      "regle": 0.01136,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "quinzaine": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00414,
+      "ic95": [
+       -0.00577,
+       -0.00262
+      ],
+      "moteur": 0.01379,
+      "regle": 0.01793,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00423,
+      "ic95": [
+       -0.00586,
+       -0.00275
+      ],
+      "moteur": 0.01379,
+      "regle": 0.01802,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "mensuelle": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.0037,
+      "ic95": [
+       -0.00572,
+       -0.00177
+      ],
+      "moteur": 0.0203,
+      "regle": 0.024,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00363,
+      "ic95": [
+       -0.00572,
+       -0.0017
+      ],
+      "moteur": 0.0203,
+      "regle": 0.02393,
+      "cellules_moteur_meilleur": 4
+     }
+    }
+   },
+   "B_archetypes_vus": {
+    "hebdomadaire": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.0043,
+      "ic95": [
+       -0.00626,
+       -0.00264
+      ],
+      "moteur": 0.00661,
+      "regle": 0.01092,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00415,
+      "ic95": [
+       -0.00611,
+       -0.00245
+      ],
+      "moteur": 0.00661,
+      "regle": 0.01077,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "quinzaine": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.0063,
+      "ic95": [
+       -0.00851,
+       -0.00439
+      ],
+      "moteur": 0.01191,
+      "regle": 0.0182,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00618,
+      "ic95": [
+       -0.00833,
+       -0.00418
+      ],
+      "moteur": 0.01191,
+      "regle": 0.01809,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "mensuelle": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00603,
+      "ic95": [
+       -0.00869,
+       -0.0036
+      ],
+      "moteur": 0.01802,
+      "regle": 0.02405,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00563,
+      "ic95": [
+       -0.00803,
+       -0.00335
+      ],
+      "moteur": 0.01802,
+      "regle": 0.02365,
+      "cellules_moteur_meilleur": 4
+     }
+    }
+   },
+   "B_hors_reglage": {
+    "hebdomadaire": {
+     "mediane": {
+      "diff_moteur_moins_regle": 0.00128,
+      "ic95": [
+       0.00046,
+       0.00212
+      ],
+      "moteur": 0.01453,
+      "regle": 0.01325,
+      "cellules_moteur_meilleur": 0
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": 0.00105,
+      "ic95": [
+       0.00012,
+       0.00197
+      ],
+      "moteur": 0.01453,
+      "regle": 0.01348,
+      "cellules_moteur_meilleur": 0
+     }
+    },
+    "quinzaine": {
+     "mediane": {
+      "diff_moteur_moins_regle": 0.00073,
+      "ic95": [
+       -0.00027,
+       0.0018
+      ],
+      "moteur": 0.02029,
+      "regle": 0.01956,
+      "cellules_moteur_meilleur": 0
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": 0.00059,
+      "ic95": [
+       -0.00059,
+       0.00176
+      ],
+      "moteur": 0.02029,
+      "regle": 0.0197,
+      "cellules_moteur_meilleur": 0
+     }
+    },
+    "mensuelle": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00093,
+      "ic95": [
+       -0.00217,
+       0.00037
+      ],
+      "moteur": 0.02487,
+      "regle": 0.0258,
+      "cellules_moteur_meilleur": 3
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00143,
+      "ic95": [
+       -0.00303,
+       0.0002
+      ],
+      "moteur": 0.02487,
+      "regle": 0.0263,
+      "cellules_moteur_meilleur": 4
+     }
+    }
+   },
+   "duree_s": 240.0
+  },
+  "cumul:7": {
+   "ecarts": [
+    "archetypes",
+    "semaines_vides",
+    "depenses_perso",
+    "chocs_durables",
+    "bruit_gamma",
+    "perte_client",
+    "tendance"
+   ],
+   "A_calibration_ensemble": {
+    "hebdomadaire": {
+     "points": 47106,
+     "annonce": 0.1181,
+     "observe": 0.2163,
+     "ecart_obs_moins_annonce": 0.0983,
+     "ic95_ecart": [
+      0.0848,
+      0.1125
+     ],
+     "ece_10": 0.0986
+    },
+    "quinzaine": {
+     "points": 47994,
+     "annonce": 0.1145,
+     "observe": 0.1869,
+     "ecart_obs_moins_annonce": 0.0724,
+     "ic95_ecart": [
+      0.0619,
+      0.0838
+     ],
+     "ece_10": 0.0729
+    },
+    "mensuelle": {
+     "points": 48000,
+     "annonce": 0.109,
+     "observe": 0.1684,
+     "ecart_obs_moins_annonce": 0.0594,
+     "ic95_ecart": [
+      0.0501,
+      0.0695
+     ],
+     "ece_10": 0.0594
+    }
+   },
+   "A_calibration_hors_reglage": {
+    "hebdomadaire": {
+     "points": 24000,
+     "annonce": 0.0502,
+     "observe": 0.2569,
+     "ecart_obs_moins_annonce": 0.2068,
+     "ic95_ecart": [
+      0.1871,
+      0.2259
+     ],
+     "ece_10": 0.2068
+    },
+    "quinzaine": {
+     "points": 24000,
+     "annonce": 0.0308,
+     "observe": 0.2196,
+     "ecart_obs_moins_annonce": 0.1887,
+     "ic95_ecart": [
+      0.1729,
+      0.2046
+     ],
+     "ece_10": 0.1887
+    },
+    "mensuelle": {
+     "points": 24000,
+     "annonce": 0.029,
+     "observe": 0.1799,
+     "ecart_obs_moins_annonce": 0.1509,
+     "ic95_ecart": [
+      0.1366,
+      0.1645
+     ],
+     "ece_10": 0.1509
+    }
+   },
+   "B_ensemble": {
+    "hebdomadaire": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.0031,
+      "ic95": [
+       -0.00472,
+       -0.00162
+      ],
+      "moteur": 0.00858,
+      "regle": 0.01168,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00305,
+      "ic95": [
+       -0.00467,
+       -0.00154
+      ],
+      "moteur": 0.00858,
+      "regle": 0.01163,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "quinzaine": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00457,
+      "ic95": [
+       -0.00626,
+       -0.00293
+      ],
+      "moteur": 0.01358,
+      "regle": 0.01815,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00452,
+      "ic95": [
+       -0.00623,
+       -0.00279
+      ],
+      "moteur": 0.01358,
+      "regle": 0.0181,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "mensuelle": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00453,
+      "ic95": [
+       -0.00647,
+       -0.00253
+      ],
+      "moteur": 0.01985,
+      "regle": 0.02438,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00425,
+      "ic95": [
+       -0.00617,
+       -0.00223
+      ],
+      "moteur": 0.01985,
+      "regle": 0.0241,
+      "cellules_moteur_meilleur": 4
+     }
+    }
+   },
+   "B_archetypes_vus": {
+    "hebdomadaire": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00499,
+      "ic95": [
+       -0.00717,
+       -0.00303
+      ],
+      "moteur": 0.00657,
+      "regle": 0.01156,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00494,
+      "ic95": [
+       -0.00714,
+       -0.00276
+      ],
+      "moteur": 0.00657,
+      "regle": 0.01151,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "quinzaine": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00666,
+      "ic95": [
+       -0.00898,
+       -0.00454
+      ],
+      "moteur": 0.01169,
+      "regle": 0.01835,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00668,
+      "ic95": [
+       -0.00905,
+       -0.00429
+      ],
+      "moteur": 0.01169,
+      "regle": 0.01837,
+      "cellules_moteur_meilleur": 4
+     }
+    },
+    "mensuelle": {
+     "mediane": {
+      "diff_moteur_moins_regle": -0.00596,
+      "ic95": [
+       -0.00883,
+       -0.00327
+      ],
+      "moteur": 0.01906,
+      "regle": 0.02502,
+      "cellules_moteur_meilleur": 4
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": -0.00622,
+      "ic95": [
+       -0.00914,
+       -0.00342
+      ],
+      "moteur": 0.01906,
+      "regle": 0.02528,
+      "cellules_moteur_meilleur": 4
+     }
+    }
+   },
+   "B_hors_reglage": {
+    "hebdomadaire": {
+     "mediane": {
+      "diff_moteur_moins_regle": 0.00108,
+      "ic95": [
+       0.00019,
+       0.00209
+      ],
+      "moteur": 0.01476,
+      "regle": 0.01368,
+      "cellules_moteur_meilleur": 0
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": 0.00078,
+      "ic95": [
+       -0.00029,
+       0.00193
+      ],
+      "moteur": 0.01476,
+      "regle": 0.01398,
+      "cellules_moteur_meilleur": 0
+     }
+    },
+    "quinzaine": {
+     "mediane": {
+      "diff_moteur_moins_regle": 0.00029,
+      "ic95": [
+       -0.0007,
+       0.00133
+      ],
+      "moteur": 0.0213,
+      "regle": 0.02102,
+      "cellules_moteur_meilleur": 1
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": 0.0002,
+      "ic95": [
+       -0.00103,
+       0.00149
+      ],
+      "moteur": 0.0213,
+      "regle": 0.02111,
+      "cellules_moteur_meilleur": 1
+     }
+    },
+    "mensuelle": {
+     "mediane": {
+      "diff_moteur_moins_regle": 3e-05,
+      "ic95": [
+       -0.00097,
+       0.00117
+      ],
+      "moteur": 0.0261,
+      "regle": 0.02607,
+      "cellules_moteur_meilleur": 1
+     },
+     "moyenne": {
+      "diff_moteur_moins_regle": 0.00047,
+      "ic95": [
+       -0.00107,
+       0.002
+      ],
+      "moteur": 0.0261,
+      "regle": 0.02563,
+      "cellules_moteur_meilleur": 1
+     }
+    }
+   },
+   "duree_s": 266.6
+  }
+ },
+ "ordre_cumul": [
+  "archetypes",
+  "semaines_vides",
+  "depenses_perso",
+  "chocs_durables",
+  "bruit_gamma",
+  "perte_client",
+  "tendance"
+ ]
+}

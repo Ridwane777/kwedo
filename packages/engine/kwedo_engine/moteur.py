@@ -3,10 +3,15 @@
 R     = C_p × m × s
 L_max = R × (1 − (1 + i)^−n) / i
 Plafond proposé = plus grand montant ≤ L_max dont le risque simulé reste ≤ seuil de l'institution.
+
+Fréquence de remboursement (ADR 0015) : hebdomadaire (défaut, seule fréquence sur laquelle le risque a été évalué),
+quinzaine ou mensuelle. C_p est alors le percentile des encaissements agrégés à la période, i le taux équivalent par
+période et n le nombre d'échéances ; la simulation reste à la semaine, le contrôle se fait à chaque échéance.
 """
 
 from __future__ import annotations
 
+import math
 from dataclasses import asdict, dataclass
 
 import numpy as np
@@ -22,6 +27,14 @@ SEMAINES_PLEINES = 26      # au-delà : pas de décote d'ancienneté
 PLAFOND_MIN = 25_000
 REF_CV = 0.25              # régularité de référence pour neutraliser un facteur
 SEUIL_CONCENTRATION = 0.40
+SEMAINES_PAR_MOIS = 52 / 12
+FREQUENCES = {"hebdomadaire": 1.0, "quinzaine": 2.0, "mensuelle": SEMAINES_PAR_MOIS}
+PERIODE = {"hebdomadaire": "semaine", "quinzaine": "quinzaine", "mensuelle": "mois"}
+MAUVAISE = {"hebdomadaire": "une mauvaise semaine", "quinzaine": "une mauvaise quinzaine", "mensuelle": "un mauvais mois"}
+DUREE_MOIS_MIN, DUREE_MOIS_MAX = 3, 12
+# Fréquences dont le risque a passé le run final (docs/evaluation/protocole-frequences.md, critère « éprouvée ») ;
+# hors de cette liste, l'interface garde la mention « estimation moins éprouvée ».
+FREQUENCES_EPROUVEES = frozenset({"hebdomadaire", "quinzaine", "mensuelle"})  # run 2026-11-24-frequences
 
 
 @dataclass(frozen=True)
@@ -37,11 +50,47 @@ class Parametres:
     p_choc_durable: float = 0.15
     p_semaine_vide: float = 0.03
     gamma_modele: float = 4.0   # modulation par la probabilité de défaut (0 = désactivée), choisie par balayage sur le réglage
+    frequence: str = "hebdomadaire"   # hebdomadaire | quinzaine | mensuelle (ADR 0015)
+    duree_mois: int | None = None     # 3 à 12 ; None : durée de l'institution (n semaines)
+
+    def __post_init__(self):
+        if self.frequence not in FREQUENCES:
+            raise ValueError(f"fréquence inconnue : {self.frequence}")
+        if self.duree_mois is not None and not DUREE_MOIS_MIN <= self.duree_mois <= DUREE_MOIS_MAX:
+            raise ValueError(f"durée entre {DUREE_MOIS_MIN} et {DUREE_MOIS_MAX} mois")
 
     @classmethod
     def depuis(cls, d: dict | None) -> "Parametres":
         d = d or {}
         return cls(**{k: v for k, v in d.items() if k in cls.__dataclass_fields__})
+
+    @property
+    def w(self) -> float:
+        """Semaines par période de remboursement."""
+        return FREQUENCES[self.frequence]
+
+    @property
+    def nb(self) -> int:
+        """Nombre d'échéances. Hebdomadaire sans durée en mois : n, exactement comme avant."""
+        semaines = self.duree_mois * SEMAINES_PAR_MOIS if self.duree_mois else self.n
+        return max(1, int(math.floor(semaines / self.w + 0.5)))  # 6,5 quinzaines → 7 (pas d'arrondi bancaire)
+
+    @property
+    def ip(self) -> float:
+        """Taux par période, équivalent au taux hebdomadaire i."""
+        return self.i if self.frequence == "hebdomadaire" else (1 + self.i) ** self.w - 1
+
+    @property
+    def horizon(self) -> int:
+        """Semaines simulées : jusqu'à la dernière échéance."""
+        return self.nb if self.frequence == "hebdomadaire" else int(math.ceil(self.nb * self.w - 1e-9))
+
+    @property
+    def rangs_semaine(self) -> np.ndarray:
+        """Indice de la semaine (0 = première) où tombe chaque échéance."""
+        if self.frequence == "hebdomadaire":
+            return np.arange(self.nb)
+        return np.ceil(np.arange(1, self.nb + 1) * self.w - 1e-9).astype(int) - 1
 
 
 def annuite(i: float, n: int) -> float:
@@ -49,11 +98,22 @@ def annuite(i: float, n: int) -> float:
 
 
 def l_max(c_p: float, p: Parametres) -> float:
-    return c_p * p.m * p.s * annuite(p.i, p.n)
+    return c_p * p.m * p.s * annuite(p.ip, p.nb)
 
 
 def echeance(montant: float, p: Parametres) -> float:
-    return montant / annuite(p.i, p.n)
+    return montant / annuite(p.ip, p.nb)
+
+
+def serie_periode(hebdo: np.ndarray, p: Parametres) -> np.ndarray:
+    """Encaissements agrégés à la période : semaines telles quelles, ou sommes glissantes de 2 (quinzaine) ou
+    4 semaines ramenées à 52/12 semaines (mois). Glissantes : toutes les « mauvaises quinzaines / mois » comptent."""
+    if p.frequence == "hebdomadaire" or len(hebdo) == 0:
+        return hebdo
+    k = int(round(p.w))
+    if len(hebdo) < k:
+        return np.array([hebdo.sum() * p.w / len(hebdo)])
+    return np.convolve(hebdo, np.ones(k), mode="valid") * (p.w / k)
 
 
 def _xp(backend: str):
@@ -69,12 +129,12 @@ def simuler_seuils(hebdo: np.ndarray, p: Parametres, graine: int, choc_ventes: f
 
     Avenir = blocs de semaines réelles rééchantillonnés + chocs (baisse durable, semaine sans vente).
     Disponible par semaine = flux × m × min(1, 2s), avec report du surplus. Une échéance E est
-    manquée à la semaine t si la somme disponible jusqu'à t est < (t+1)·E ; le seuil de la
-    trajectoire est donc min_t cumul[t] / (t+1).
+    manquée à l'échéance k (semaine t_k) si la somme disponible jusqu'à t_k est < k·E ; le seuil de la
+    trajectoire est donc min_k cumul[t_k] / k. Hebdomadaire : t_k = k − 1 (contrôle chaque semaine).
     """
     xp = _xp(backend)
     rng = np.random.default_rng(graine)
-    N, n, b = p.trajectoires, p.n, max(1, min(p.bloc, len(hebdo)))
+    N, n, b = p.trajectoires, p.horizon, max(1, min(p.bloc, len(hebdo)))
     nb_blocs = -(-n // b)
     debuts = rng.integers(0, len(hebdo) - b + 1, size=(N, nb_blocs))
     idx = (debuts[:, :, None] + np.arange(b)).reshape(N, -1)[:, :n]
@@ -87,7 +147,10 @@ def simuler_seuils(hebdo: np.ndarray, p: Parametres, graine: int, choc_ventes: f
     traj = np.where(rng.random((N, n)) < p.p_semaine_vide, 0.0, traj)
     traj = xp.asarray(traj)
     dispo = traj * p.m * min(1.0, 2 * p.s)
-    seuils = (xp.cumsum(dispo, axis=1) / xp.arange(1, n + 1)).min(axis=1)
+    cumul = xp.cumsum(dispo, axis=1)
+    if p.frequence != "hebdomadaire":
+        cumul = cumul[:, xp.asarray(p.rangs_semaine)]
+    seuils = (cumul / xp.arange(1, p.nb + 1)).min(axis=1)
     return np.asarray(seuils.get() if hasattr(seuils, "get") else seuils)
 
 
@@ -99,11 +162,11 @@ def _plafond(hebdo, p, graine, choc=0.0, decote=1.0):
     """v0.1 : formule + simulation seule (sans modèle). Conservé comme repli et comme référence d'évaluation."""
     if len(hebdo) == 0 or hebdo.max() <= 0:
         return 0, 0.0, 0.0, 0.0, np.zeros(p.trajectoires)
-    c_p = float(np.percentile(hebdo, p.percentile)) * (1 + choc)
+    c_p = float(np.percentile(serie_periode(hebdo, p), p.percentile)) * (1 + choc)
     lmax = l_max(c_p, p)
     seuils = simuler_seuils(hebdo, p, graine, choc)
     e_sim = float(np.quantile(seuils, p.seuil_risque, method="lower"))  # E max au risque ≤ seuil
-    l_sim = e_sim * annuite(p.i, p.n)
+    l_sim = e_sim * annuite(p.ip, p.nb)
     brut = max(0.0, min(lmax, l_sim)) * decote
     plafond = int(brut // PAS * PAS)
     return plafond, c_p, lmax, l_sim, seuils
@@ -122,21 +185,45 @@ def ind_depuis_hebdo(ind: dict, hebdo: np.ndarray) -> dict:
             "saisonnalite": round(float(top.mean() / med - 1), 3) if med else 0.0}
 
 
+def _median_periode(hebdo: np.ndarray, p: Parametres) -> float:
+    return float(np.median(serie_periode(hebdo, p))) if len(hebdo) else 0.0
+
+
+def risque_frequence_montant(mod, p: Parametres, base, hebdo, seuils, prudent, median, montant, choc=0.0) -> float:
+    """v3 : risque calibré d'au moins une échéance manquée pour ce montant, à la fréquence et la durée de `p`."""
+    X = decision.lignes_frequence(base, hebdo, seuils, [echeance(montant, p)], prudent, median, p.w, p.nb, choc)
+    return float(decision.risque_frequence(mod, p.frequence, X)[0])
+
+
 def plafond_complet(hebdo, p, graine, ind, fv, choc=0.0, decote=1.0, mod="auto"):
     """v0.2 : plus grand montant ≤ L_max × décote dont le risque CALIBRÉ reste ≤ seuil (ADR 0008).
 
     Renvoie (plafond, c_p, lmax, l_risque, seuils, risque_au_plafond, calibre). Sans modèle : v0.1.
+
+    Modèle v3 (ADR 0016) : risque appris et calibré par fréquence, pour chaque fréquence et durée.
+    Repli v2 (modèle hebdomadaire seul) : hors hebdomadaire, appliqué au montant équivalent (échéance et seuils
+    ramenés à la semaine) ; `analyser` marque alors le résultat `risque_valide: false`.
     """
     mod = decision.charger() if mod == "auto" else mod
     plafond, c_p, lmax, l_sim, seuils = _plafond(hebdo, p, graine, choc, decote)
     if mod is None or not c_p:
         return plafond, c_p, lmax, l_sim, seuils, (risque_pour_montant(seuils, plafond, p) if plafond else 0.0), False
     base = decision.profil(ind_depuis_hebdo(ind, hebdo), hebdo, fv)
-    p20 = c_p / (1 + choc)
-    a = annuite(p.i, p.n)
-    l_risque, _ = decision.montant_max(mod, base, hebdo, seuils, p20, 2 * lmax, p.seuil_risque, a, PAS, choc)
+    if "frequences" in mod:  # v3 (ADR 0016) : risque appris et calibré pour la fréquence et la durée choisies
+        prudent, median = c_p / (1 + choc), _median_periode(hebdo, p)
+        a = annuite(p.ip, p.nb)
+        l_risque, _ = decision.montant_max_frequence(mod, p.frequence, base, hebdo, seuils, prudent, median, p.w, p.nb,
+                                                     2 * lmax, p.seuil_risque, a, PAS, choc)
+        plafond = int(max(0.0, min(lmax, l_risque)) * decote // PAS * PAS)
+        r = risque_frequence_montant(mod, p, base, hebdo, seuils, prudent, median, plafond, choc) if plafond else 0.0
+        return plafond, c_p, lmax, float(l_risque), seuils, r, True
+    hebdo_seul = p.frequence == "hebdomadaire"
+    p20 = c_p / (1 + choc) if hebdo_seul else float(np.percentile(hebdo, p.percentile))
+    a = annuite(p.ip, p.nb) * p.w  # montant → échéance équivalente par semaine (w = 1 : inchangé)
+    s_eq = seuils if hebdo_seul else seuils / p.w
+    l_risque, _ = decision.montant_max(mod, base, hebdo, s_eq, p20, 2 * lmax, p.seuil_risque, a, PAS, choc)
     plafond = int(max(0.0, min(lmax, l_risque)) * decote // PAS * PAS)
-    r = float(decision.risque(mod, decision.lignes_montant(base, hebdo, seuils, [plafond / a], p20, choc))[0]) if plafond else 0.0
+    r = float(decision.risque(mod, decision.lignes_montant(base, hebdo, s_eq, [plafond / a], p20, choc))[0]) if plafond else 0.0
     return plafond, c_p, lmax, float(l_risque), seuils, r, True
 
 
@@ -241,6 +328,10 @@ def analyser(transactions: list[dict], parametres: dict | Parametres | None = No
     raisons = _raisons(hebdo, p, graine, choc_ventes, decote, plafond, ind, fv, c_p, lmax, l_sim, mod) if avec_raisons else []
     effet_modele = 0
     facteur_modele = 1.0
+    hebdo_seul = p.frequence == "hebdomadaire"
+    v3 = bool(mod and "frequences" in mod)
+    per = PERIODE[p.frequence]
+    e_plafond = echeance(plafond, p) if plafond else 0.0
     res = {
         "version_moteur": VERSION,
         "graine": int(graine),
@@ -249,14 +340,21 @@ def analyser(transactions: list[dict], parametres: dict | Parametres | None = No
         "provisoire": provisoire,
         "indicateurs": ind,
         "encaissement_prudent": round(c_p),
-        "echeance_hebdo": round(echeance(plafond, p)) if plafond else 0,
+        "echeance_hebdo": round(e_plafond / p.w) if plafond else 0,
         "echeance_supportable": round(c_p * p.m * p.s),
         "l_max": round(lmax),
         "l_simulation": round(l_sim),
         "decote_anciennete": round(decote, 3),
         "plafond": plafond,
-        "duree_semaines": p.n,
-        "cout_total": round(echeance(plafond, p) * p.n - plafond) if plafond else 0,
+        "duree_semaines": p.horizon,
+        "cout_total": round(e_plafond * p.nb - plafond) if plafond else 0,
+        "frequence": p.frequence,
+        "nb_echeances": p.nb,
+        "duree_mois": p.duree_mois or round(p.horizon / SEMAINES_PAR_MOIS, 1),
+        "echeance": round(e_plafond),
+        "taux_periode": p.ip,
+        "risque_valide": bool(calibre and (v3 or hebdo_seul)),
+        "risque_eprouve": bool(calibre and (v3 or hebdo_seul) and p.frequence in FREQUENCES_EPROUVEES),
         "risque": round(risque, 4),
         "recommandation": reco,
         "raisons": raisons,
@@ -264,9 +362,13 @@ def analyser(transactions: list[dict], parametres: dict | Parametres | None = No
         "modeles": ml,
         "serie_hebdo": [int(round(x)) for x in hebdo],
         "chaine_calcul": [
-            f"Encaissement prudent (percentile {p.percentile:g}) : {_fcfa(c_p)} par semaine",
+            (f"Encaissement prudent (percentile {p.percentile:g}) : {_fcfa(c_p)} par semaine" if hebdo_seul else
+             f"Encaissement prudent (percentile {p.percentile:g}, périodes glissantes) : {_fcfa(c_p)} par {per}"),
             f"× part restant après coûts m = {p.m:g} × part prélevable s = {p.s:g} → échéance supportable {_fcfa(c_p * p.m * p.s)}",
-            f"Sur {p.n} semaines au taux {p.i:.2%} par semaine → plafond théorique {_fcfa(lmax)}",
+            (f"Sur {p.n} semaines au taux {p.i:.2%} par semaine → plafond théorique {_fcfa(lmax)}" if hebdo_seul else
+             f"{p.nb} échéances ({p.frequence}) au taux {p.ip:.2%} par {per} → plafond théorique {_fcfa(lmax)}"),
+            *([] if hebdo_seul or v3 else [f"Risque : modèle hebdomadaire appliqué à l'échéance équivalente par semaine "
+                                     f"({_fcfa(e_plafond / p.w)}) — non validé pour cette fréquence"]),
             (f"Simulation de {p.trajectoires} avenirs + modèle de risque calibré (entraîné sur données simulées) : "
              f"montant au risque ≤ {_pc(p.seuil_risque)} → {_fcfa(l_sim)}" if calibre else
              f"Simulation de {p.trajectoires} avenirs : montant au risque ≤ {_pc(p.seuil_risque)} → {_fcfa(l_sim)}"),
@@ -277,14 +379,48 @@ def analyser(transactions: list[dict], parametres: dict | Parametres | None = No
     }
     res["conseils"] = conseils(res, p)
     if montant_souhaite:
-        if calibre:
+        if calibre and v3:
+            r_souhait = risque_frequence_montant(mod, p, decision.profil(ind_depuis_hebdo(ind, hebdo), hebdo, fv), hebdo,
+                                                 seuils, c_p / (1 + choc_ventes), _median_periode(hebdo, p),
+                                                 montant_souhaite, choc_ventes)
+        elif calibre:
             base = decision.profil(ind, hebdo, fv)
-            r_souhait = float(decision.risque(mod, decision.lignes_montant(
-                base, hebdo, seuils, [montant_souhaite / annuite(p.i, p.n)], c_p / (1 + choc_ventes), choc_ventes))[0])
+            if hebdo_seul:
+                r_souhait = float(decision.risque(mod, decision.lignes_montant(
+                    base, hebdo, seuils, [montant_souhaite / annuite(p.i, p.n)], c_p / (1 + choc_ventes), choc_ventes))[0])
+            else:  # montant équivalent, comme dans plafond_complet
+                r_souhait = float(decision.risque(mod, decision.lignes_montant(
+                    base, hebdo, seuils / p.w, [echeance(montant_souhaite, p) / p.w],
+                    float(np.percentile(hebdo, p.percentile)), choc_ventes))[0])
         else:
             r_souhait = risque_pour_montant(seuils, montant_souhaite, p)
         res["souhait"] = souhait(montant_souhaite, hebdo, r_souhait, c_p, p, decote * facteur_modele)
+        res["souhait"].update(raisons_demande(montant_souhaite, c_p, plafond, p))
     return res
+
+
+def raisons_demande(montant: int, c_p: float, plafond: int, p: Parametres) -> dict:
+    """Raisons rédigées pour un montant demandé librement (pas celui du moteur) : poids de l'échéance sur une
+    mauvaise période et écart au plafond prudent. Aucune valeur de réglage de l'institution n'y figure."""
+    e = echeance(montant, p)
+    part = e / c_p if c_p > 0 else None
+    per, mauvaise = PERIODE[p.frequence], MAUVAISE[p.frequence]
+    raisons = []
+    if part is not None:
+        poids = ("elle laisse une marge confortable" if part <= 0.25 else "elle reste supportable" if part <= 0.5
+                 else "elle pèse lourd" if part <= 1 else "elle dépasse ce qui est encaissé")
+        raisons.append({"code": "part_mauvaise_periode", "texte": f"L'échéance demandée ({_fcfa(e)} par {per}) représente "
+                        f"{_pc(part)} de {mauvaise} ({_fcfa(c_p)} encaissés au moins) : {poids}."})
+    if plafond and montant > plafond:
+        raisons.append({"code": "au_dessus_du_plafond", "texte": f"Le montant demandé dépasse de {_pc(montant / plafond - 1)} "
+                        f"le plafond prudent ({_fcfa(plafond)}) pour ces modalités."})
+    elif plafond:
+        raisons.append({"code": "sous_le_plafond", "texte": f"Le montant demandé reste sous le plafond prudent ({_fcfa(plafond)}) "
+                        "pour ces modalités."})
+    else:
+        raisons.append({"code": "sans_plafond", "texte": "Aucun montant n'est jugé prudent pour ces modalités à ce jour."})
+    return {"part_mauvaise_periode": round(part, 4) if part is not None else None, "nb_echeances": p.nb,
+            "cout_total": round(e * p.nb - montant), "raisons": raisons}
 
 
 def _raisons(hebdo, p, graine, choc, decote, plafond, ind, fv, c_p, lmax, l_sim, mod=None):
@@ -317,7 +453,7 @@ def _raisons(hebdo, p, graine, choc, decote, plafond, ind, fv, c_p, lmax, l_sim,
         "tendance": lambda e: ("Votre activité baisse ces dernières semaines, ce qui réduit le plafond." if e > 0
                                else "Votre activité progresse ces dernières semaines, ce qui soutient le plafond."),
         "anciennete": lambda e: f"Votre historique est encore court ({len(hebdo)} semaines) : le plafond est réduit tant qu'il n'atteint pas {SEMAINES_PLEINES} semaines.",
-        "encaissements": lambda e: f"Même une mauvaise semaine, vous encaissez au moins {_fcfa(c_p)} : c'est la base du calcul, pas la moyenne.",
+        "encaissements": lambda e: f"Même {MAUVAISE[p.frequence]}, vous encaissez au moins {_fcfa(c_p)} : c'est la base du calcul, pas la moyenne.",
     }
     effets.sort(key=lambda x: -abs(x[1]) if x[0] != "encaissements" else 0)
     base = [e for e in effets if e[0] == "encaissements"]
@@ -351,11 +487,13 @@ def conseils(res: dict, p: Parametres) -> list[str]:
 
 def souhait(montant: int, hebdo, risque: float, c_p, p: Parametres, decote: float) -> dict:
     """Ce qui manque pour obtenir le montant souhaité (risque : celui annoncé par le moteur pour ce montant)."""
-    c_p_requis = montant / (p.m * p.s * annuite(p.i, p.n) * max(decote, 1e-9))
+    c_p_requis = montant / (p.m * p.s * annuite(p.ip, p.nb) * max(decote, 1e-9))
+    per = PERIODE[p.frequence]
     manque = []
     if c_p_requis > c_p:
-        manque.append(f"Un encaissement prudent de {_fcfa(c_p_requis)} par semaine (aujourd'hui {_fcfa(c_p)}), "
-                      f"soit +{_pc((c_p_requis / c_p - 1) if c_p else 0)} de chiffre d'affaires vérifié sur les mauvaises semaines.")
+        manque.append(f"Un encaissement prudent de {_fcfa(c_p_requis)} par {per} (aujourd'hui {_fcfa(c_p)}), "
+                      f"soit +{_pc((c_p_requis / c_p - 1) if c_p else 0)} de chiffre d'affaires vérifié sur les mauvaises "
+                      f"{'périodes' if per != 'semaine' else 'semaines'}.")
     if risque > p.seuil_risque:
         manque.append(f"Des encaissements plus réguliers : à ce montant, le risque d'au moins une échéance manquée est estimé à {_pc(risque)} "
                       f"(limite de l'institution : {_pc(p.seuil_risque)}).")

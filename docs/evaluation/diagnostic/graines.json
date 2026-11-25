@@ -1,0 +1,8 @@
+{
+ "note": "Graines neuves tirées au hasard (module secrets) pour la mission diagnostic. Distinctes de graines-finales.json et graines-frequences.json, jamais utilisées pour un run final. Mêmes graines pour toutes les variantes (nombres aléatoires communs).",
+ "graine_population": 2029174543,
+ "graine_hors_reglage": 1030602776,
+ "graine_bootstrap": 2124126401,
+ "commercants_par_variante": 2000,
+ "commercants_hors_reglage_par_variante": 1000
+}

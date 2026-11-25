@@ -1,79 +1,225 @@
 "use client";
 
-import { Send } from "lucide-react";
+import { ArrowLeft, ArrowRight, FileText, MessageSquareText, Send } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
-import { Bouton, Chargement, Erreur, Pastille, Vide } from "@/components/ui";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { ChoixModalites, DefinitionPlafond, MentionPrudente, requeteModalites } from "@/components/estimation";
+import { Bouton, Chargement, Erreur, Pastille, Simule, Vide } from "@/components/ui";
 import { api, useApi } from "@/lib/api";
 import { useCommercant } from "@/lib/commercant";
-import { date, fcfa, STATUTS } from "@/lib/format";
-import type { TableauDeBord } from "@/lib/types";
-
-type Consentement = { id: string; nom: string; actif: boolean; historique: { action: string; horodatage: string }[] };
+import { CATEGORIES_OBJET, date, delai, duree, fcfa, FREQ, nombre, OBJET_MAX, phraseEcheance, STATUTS, type Frequence } from "@/lib/format";
+import type { Estimation, InstitutionPublique, TableauDeBord } from "@/lib/types";
 
 const SUIVI = ["recu", "en_analyse", "accorde"];
+const ACTIFS = ["recu", "en_analyse", "complement", "accorde"];
+type Etape = "institution" | "modalites" | "confirmation";
+type Choix = { frequence: Frequence; duree: number } | null;
 
-export default function Dossier() {
+/** Dépôt du dossier : choix de l'institution → fréquence et durée → confirmation signée par code SMS → envoi. */
+function Depot({ institutions, dejaEnvoye, initial, onEnvoye, onFermer }: {
+  institutions: InstitutionPublique[]; dejaEnvoye: Set<string>;
+  initial: { inst: string | null; choix: Choix }; onEnvoye: (nom: string) => Promise<void>; onFermer: () => void;
+}) {
   const { id } = useCommercant();
-  const cons = useApi<Consentement[]>(`/commercants/${id}/consentements`);
-  const tdb = useApi<TableauDeBord>(`/commercants/${id}`);
-  const [occupe, setOccupe] = useState<string | null>(null);
+  const [etape, setEtape] = useState<Etape>(initial.inst ? "modalites" : "institution");
+  const [inst, setInst] = useState<string | null>(initial.inst);
+  const [choix, setChoix] = useState<Choix>(initial.choix);
+  // Montant souhaité saisi librement (ADR 0017) : le plafond reste un repère, jamais un pré-remplissage forcé.
+  const [montant, setMontant] = useState<number | null>(null);
+  const [categorie, setCategorie] = useState<string>("");
+  const [objet, setObjet] = useState("");
+  const est = useApi<Estimation>(inst ? `/commercants/${id}/estimation?institution_id=${inst}${requeteModalites(choix)}${montant ? `&montant_souhaite=${montant}` : ""}` : null);
+  const [code, setCode] = useState<string | null>(null);   // code « reçu par SMS » (affiché : démo)
+  const [saisie, setSaisie] = useState("");
+  const [occupe, setOccupe] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
+  const nom = institutions.find((i) => i.id === inst)?.nom ?? "";
+  const a = est.donnees && est.donnees.institution_id === inst ? est.donnees : null;
+  const s = a?.souhait && a.souhait.montant === montant ? a.souhait : null;
 
-  async function basculer(inst: string, actif: boolean) {
-    setOccupe(inst); setErreur(null);
-    try {
-      await api(`/commercants/${id}/consentements`, { body: { institution_id: inst, action: actif ? "retire" : "accorde" } });
-      await cons.recharger();
-    } catch (e) { setErreur(e instanceof Error ? e.message : "Erreur"); } finally { setOccupe(null); }
+  async function demanderCode() {
+    setOccupe(true); setErreur(null); setSaisie("");
+    try { setCode((await api<{ code: string }>(`/commercants/${id}/code-sms`, { body: { institution_id: inst } })).code); }
+    catch (e) { setErreur(e instanceof Error ? e.message : "Erreur"); } finally { setOccupe(false); }
   }
+
   async function envoyer() {
-    setOccupe("envoi"); setErreur(null);
+    if (!a || !inst) return;
+    setOccupe(true); setErreur(null);
     try {
-      for (const c of cons.donnees ?? []) {
-        const deja = tdb.donnees?.dossiers.some((d) => d.institution_id === c.id && !["refuse", "offre_refusee"].includes(d.statut));
-        if (c.actif && !deja) await api("/dossiers", { body: { commercant_id: id, institution_id: c.id } });
-      }
-      await tdb.recharger();
-    } catch (e) { setErreur(e instanceof Error ? e.message : "Erreur"); } finally { setOccupe(null); }
+      // 1. Accord pour cette seule institution, signé par le code ; 2. envoi avec les modalités choisies.
+      await api(`/commercants/${id}/consentements`, { body: { institution_id: inst, action: "accorde", code: saisie } });
+      await api("/dossiers", { body: { commercant_id: id, institution_id: inst, frequence: a.frequence, duree_mois: a.parametres.duree_mois ?? undefined,
+        montant_demande: montant, objet_categorie: categorie, objet: objet.trim() } });
+      await onEnvoye(nom);
+    } catch (e) {
+      setErreur(e instanceof Error ? e.message : "Erreur");
+      setOccupe(false);
+    }
   }
 
-  if (cons.erreur || tdb.erreur) return <Erreur message={(cons.erreur ?? tdb.erreur)!} reessayer={() => { void cons.recharger(); void tdb.recharger(); }} />;
-  if (!cons.donnees || !tdb.donnees) return <Chargement lignes={5} />;
+  const titre = { institution: "1. Choisissez l'institution", modalites: "2. Montant, objet et remboursement", confirmation: "3. Vérifiez et signez" }[etape];
+  return (
+    <div className="apparait space-y-5 rounded-3xl bg-surface p-5 shadow-carte" aria-labelledby="titre-depot">
+      <div className="flex items-center justify-between gap-3">
+        <h2 id="titre-depot" className="titre text-xl">{titre}</h2>
+        <button className="min-h-10 px-2 text-sm text-encre-2 underline-offset-4 hover:underline" onClick={onFermer}>Annuler</button>
+      </div>
+
+      {etape === "institution" && (
+        <fieldset className="space-y-2">
+          <legend className="sr-only">Institution</legend>
+          {institutions.map((i) => {
+            const deja = dejaEnvoye.has(i.id);
+            return (
+              <label key={i.id} className={`flex min-h-14 items-center gap-3 rounded-xl border px-3 py-2 ${deja ? "border-trait opacity-60" : inst === i.id ? "border-marque bg-marque-doux" : "border-trait bg-surface-2"} ${deja ? "" : "cursor-pointer"}`}>
+                <input type="radio" name="institution" disabled={deja} checked={inst === i.id} onChange={() => { setInst(i.id); setChoix(null); }} className="h-5 w-5 accent-[var(--marque)]" />
+                <span className="flex-1 font-medium">{i.nom}</span>
+                {deja && <span className="text-xs text-encre-2">Déjà envoyé</span>}
+              </label>
+            );
+          })}
+          <Bouton grand icone={ArrowRight} className="mt-2 w-full" disabled={!inst} onClick={() => setEtape("modalites")}>Continuer</Bouton>
+        </fieldset>
+      )}
+
+      {etape === "modalites" && (
+        est.erreur ? <Erreur message={est.erreur} reessayer={est.recharger} /> : !a ? <Chargement lignes={3} /> : (
+          <div className="space-y-4">
+            <p className="text-encre-2">{nom}</p>
+            <ChoixModalites a={a} desactive={est.charge} onChange={(frequence, d) => setChoix({ frequence, duree: d })} />
+            <div className="space-y-3 rounded-2xl bg-fond p-4">
+              <label className="block">
+                <span className="font-medium">Montant souhaité (FCFA)</span>
+                <input inputMode="numeric" value={montant ? nombre(montant) : ""} placeholder="Ex. 300 000" data-testid="montant-souhaite"
+                  onChange={(e) => setMontant(Number(e.target.value.replace(/\D/g, "")) || null)}
+                  className="montant mt-1 block min-h-14 w-full rounded-xl border border-trait bg-surface-2 px-4 text-2xl" />
+              </label>
+              <p className="text-sm text-encre-2" data-testid="plafond-conditions">Repère : jusqu'à {fcfa(a.plafond)} reste prudent pour vos ventes, remboursés {FREQ[a.frequence].chaque} pendant {duree({ duree_mois: a.parametres.duree_mois, duree_semaines: a.duree_semaines })}, aux conditions de {nom}. <DefinitionPlafond /></p>
+              {s && (
+                <>
+                  <p className="text-[15px]" data-testid="phrase-echeance">{phraseEcheance(s.echeance, a.frequence, { duree_mois: a.parametres.duree_mois, duree_semaines: a.duree_semaines })} · coût total {fcfa(s.cout_total)}</p>
+                  {s.montant > a.plafond && (
+                    <p role="note" className="rounded-xl border-l-4 border-ambre bg-ambre-doux px-3 py-2 text-ambre-encre" data-testid="avertissement-plafond">
+                      Ce montant dépasse ce qui reste prudent pour vos ventes ({fcfa(a.plafond)}). Vous pouvez l'envoyer : l'institution décidera, elle peut accepter, proposer moins ou refuser.
+                    </p>
+                  )}
+                </>
+              )}
+              <MentionPrudente a={a} />
+            </div>
+            <fieldset className="space-y-2">
+              <legend className="font-medium">Objet du crédit</legend>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                {Object.entries(CATEGORIES_OBJET).map(([k, v]) => (
+                  <label key={k} className={`flex min-h-12 cursor-pointer items-center justify-center rounded-xl border px-2 text-center text-sm ${categorie === k ? "border-marque bg-marque-doux font-semibold text-marque" : "border-trait bg-surface-2"}`}>
+                    <input type="radio" name="categorie" className="sr-only" checked={categorie === k} onChange={() => setCategorie(k)} />{v}
+                  </label>
+                ))}
+              </div>
+              <label className="block text-sm">
+                En une phrase, à quoi servira-t-il ?
+                <input value={objet} maxLength={OBJET_MAX} onChange={(e) => setObjet(e.target.value)} placeholder="Ex. : acheter des pagnes avant les fêtes"
+                  className="mt-1 block min-h-12 w-full rounded-xl border border-trait bg-surface-2 px-3 text-base" />
+                <span className="text-xs text-encre-2">{objet.length}/{OBJET_MAX} caractères. Lu seulement par l'institution choisie ; inutile d'y parler de santé ou de famille.</span>
+              </label>
+            </fieldset>
+            <div className="flex gap-2">
+              <Bouton variante="trait" icone={ArrowLeft} onClick={() => setEtape("institution")}>Retour</Bouton>
+              <Bouton grand icone={ArrowRight} className="flex-1" disabled={!montant || montant < 5000 || !categorie || !objet.trim() || est.charge || !s} onClick={() => { setCode(null); setSaisie(""); setEtape("confirmation"); }}>Continuer</Bouton>
+            </div>
+            {(!montant || !categorie || !objet.trim()) && <p className="text-sm text-encre-2">Indiquez le montant souhaité et l'objet du crédit pour continuer.</p>}
+          </div>
+        )
+      )}
+
+      {etape === "confirmation" && a && s && (
+        <div className="space-y-4">
+          <dl className="divide-y divide-trait border-y border-trait text-[15px]">
+            <div className="flex justify-between gap-3 py-2.5"><dt className="text-encre-2">Institution</dt><dd className="text-right font-medium">{nom}</dd></div>
+            <div className="flex justify-between gap-3 py-2.5"><dt className="text-encre-2">Montant demandé</dt><dd className="chiffres font-semibold" data-testid="recap-montant">{fcfa(s.montant)}</dd></div>
+            <div className="flex justify-between gap-3 py-2.5"><dt className="text-encre-2">Objet</dt><dd className="text-right">{CATEGORIES_OBJET[categorie]} : {objet.trim()}</dd></div>
+            <div className="flex justify-between gap-3 py-2.5"><dt className="text-encre-2">Fréquence</dt><dd>{FREQ[a.frequence].nom}</dd></div>
+            <div className="flex justify-between gap-3 py-2.5"><dt className="text-encre-2">Durée</dt><dd>{duree({ duree_mois: a.parametres.duree_mois, duree_semaines: a.duree_semaines })} · {s.nb_echeances} échéances</dd></div>
+            <div className="flex justify-between gap-3 py-2.5"><dt className="text-encre-2">{FREQ[a.frequence].echeance}</dt><dd className="chiffres font-semibold">{fcfa(s.echeance)}</dd></div>
+            <div className="flex justify-between gap-3 py-2.5"><dt className="text-encre-2">Coût total du crédit</dt><dd className="chiffres">{fcfa(s.cout_total)}</dd></div>
+            <div className="flex justify-between gap-3 py-2.5"><dt className="text-encre-2">Versement annoncé</dt><dd>{delai(a.modalites.delai_versement_h)} après accord</dd></div>
+          </dl>
+          {s.montant > a.plafond && <p className="text-sm text-ambre-encre">Au-dessus de ce qui reste prudent pour vos ventes ({fcfa(a.plafond)}) : l'institution décidera.</p>}
+          <MentionPrudente a={a} />
+          <p className="text-xs text-encre-2">L'institution décide de son côté et peut ajuster le montant, la fréquence ou la durée dans ses limites.</p>
+
+          <div className="space-y-3 rounded-2xl border border-trait bg-fond p-4">
+            <p className="font-medium" id="phrase-accord">J'accepte que {nom} consulte mon dossier de crédit.</p>
+            <p className="text-sm text-encre-2">Pour donner cet accord, signez avec le code reçu par SMS. Vous pourrez le retirer dans « Mon compte marchand ».</p>
+            {!code ? (
+              <Bouton variante="trait" icone={MessageSquareText} disabled={occupe} onClick={demanderCode}>Recevoir mon code par SMS</Bouton>
+            ) : (
+              <>
+                <div className="rounded-xl rounded-tl-none bg-surface px-3 py-2 text-sm" role="status">
+                  Kwedo : votre code de signature est <strong className="chiffres tracking-widest" data-testid="code-sms">{code}</strong>.
+                  <Simule quoi="SMS simulé : code affiché pour la démo" className="ml-1 align-middle" />
+                </div>
+                <label className="block text-sm">
+                  Code reçu par SMS
+                  <input inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={saisie} aria-describedby="phrase-accord"
+                    onChange={(e) => setSaisie(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                    className="chiffres mt-1 block min-h-12 w-full rounded-xl border border-trait bg-surface-2 px-3 text-center text-2xl tracking-[0.4em]" />
+                </label>
+                <button className="text-sm text-marque underline-offset-4 hover:underline" disabled={occupe} onClick={demanderCode}>Renvoyer un code</button>
+              </>
+            )}
+          </div>
+
+          {erreur && <p role="alert" className="text-alerte">{erreur}</p>}
+          <div className="flex gap-2">
+            <Bouton variante="trait" icone={ArrowLeft} disabled={occupe} onClick={() => setEtape("modalites")}>Retour</Bouton>
+            <Bouton grand icone={Send} className="flex-1" disabled={occupe || saisie.length !== 6} onClick={envoyer}>{occupe ? "Envoi…" : "Signer et envoyer"}</Bouton>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PageDossier() {
+  const { id } = useCommercant();
+  const params = useSearchParams();
+  const tdb = useApi<TableauDeBord>(`/commercants/${id}`);
+  const insts = useApi<InstitutionPublique[]>("/institutions");
+  const [ouvert, setOuvert] = useState(false);
+  const [envoye, setEnvoye] = useState<string | null>(null);
+  const instUrl = params.get("institution");
+  // Arrivée depuis l'estimation ou les conseils : le parcours s'ouvre avec l'institution et les modalités déjà choisies.
+  useEffect(() => { if (instUrl) setOuvert(true); }, [instUrl]);
+
+  if (tdb.erreur || insts.erreur) return <Erreur message={(tdb.erreur ?? insts.erreur)!} reessayer={() => { void tdb.recharger(); void insts.recharger(); }} />;
+  if (!tdb.donnees || !insts.donnees) return <Chargement lignes={5} />;
   const dossiers = tdb.donnees.dossiers;
-  const aEnvoyer = cons.donnees.filter((c) => c.actif && !dossiers.some((d) => d.institution_id === c.id && !["refuse", "offre_refusee"].includes(d.statut)));
+  const dejaEnvoye = new Set(dossiers.filter((d) => ACTIFS.includes(d.statut)).map((d) => d.institution_id));
   const offres = dossiers.filter((d) => d.statut === "accorde");
+  const freqUrl = params.get("frequence") as Frequence | null;
+  const dureeUrl = Number(params.get("duree"));
+  const initial = instUrl && !dejaEnvoye.has(instUrl)
+    ? { inst: instUrl, choix: freqUrl && FREQ[freqUrl] && dureeUrl ? { frequence: freqUrl, duree: dureeUrl } : null }
+    : { inst: null, choix: null };
 
   return (
     <section className="space-y-7">
       <div>
         <h1 className="titre text-3xl">Mon dossier</h1>
-        <p className="text-encre-2">Vous choisissez qui voit votre dossier. Chaque institution décide de son côté.</p>
+        <p className="text-encre-2">Vous choisissez l'institution et la façon de rembourser. Elle décide de son côté.</p>
       </div>
 
-      <div className="space-y-2">
-        <h2 className="titre text-xl">Qui peut voir mon dossier</h2>
-        <ul className="divide-y divide-trait border-y border-trait">
-          {cons.donnees.map((c) => (
-            <li key={c.id} className="flex items-center justify-between gap-3 py-3">
-              <div>
-                <p className="font-medium">{c.nom}</p>
-                <p className="text-xs text-encre-2">{c.actif ? `Accord donné le ${date(c.historique.at(-1)?.horodatage, true)}` : c.historique.length ? "Accord retiré" : "Pas d'accord"}</p>
-              </div>
-              <button role="switch" aria-checked={c.actif} aria-label={`Accord pour ${c.nom}`} disabled={occupe === c.id} onClick={() => basculer(c.id, c.actif)}
-                className={`relative h-8 w-14 shrink-0 rounded-full transition ${c.actif ? "bg-bon" : "bg-surface-3"}`}>
-                <span className={`absolute top-1 h-6 w-6 rounded-full bg-fond shadow transition-all ${c.actif ? "left-7" : "left-1"}`} />
-              </button>
-            </li>
-          ))}
-        </ul>
-        <p className="text-xs text-encre-2">Retirer l'accord coupe l'accès aux nouvelles données. L'historique d'un crédit en cours reste chez le prêteur, comme la loi l'y oblige.</p>
-      </div>
-
-      {erreur && <p role="alert" className="text-alerte">{erreur}</p>}
-      <Bouton grand icone={Send} className="w-full" disabled={!aEnvoyer.length || occupe === "envoi"} onClick={envoyer}>
-        {occupe === "envoi" ? "Envoi…" : aEnvoyer.length ? `Envoyer à ${aEnvoyer.length} institution${aEnvoyer.length > 1 ? "s" : ""}` : "Donnez votre accord pour envoyer"}
-      </Bouton>
+      {envoye && <p role="status" className="rounded-xl bg-bon-doux p-3 text-bon">Dossier envoyé à {envoye}. Suivez sa réponse ci-dessous.</p>}
+      {ouvert ? (
+        <Depot institutions={insts.donnees} dejaEnvoye={dejaEnvoye} initial={initial} onFermer={() => setOuvert(false)}
+          onEnvoye={async (nom) => { await tdb.recharger(); setOuvert(false); setEnvoye(nom); }} />
+      ) : (
+        <Bouton grand icone={FileText} className="w-full" disabled={!tdb.donnees.commercant.nb_transactions}
+          onClick={() => { setEnvoye(null); setOuvert(true); }}>Déposer mon dossier de crédit</Bouton>
+      )}
 
       <div className="space-y-3">
         <h2 className="titre text-xl">Suivi</h2>
@@ -91,7 +237,8 @@ export default function Dossier() {
                     return <li key={s} className={`h-1.5 flex-1 rounded ${fait ? "bg-marque" : "bg-surface-3"}`} title={STATUTS[s]} />;
                   })}
                 </ol>
-                <p className="mt-1 text-xs text-encre-2">Envoyé le {date(d.cree_le, true)}</p>
+                {d.montant_demande && <p className="mt-1 text-sm">Demandé : <span className="chiffres font-medium">{fcfa(d.montant_demande)}</span>{d.objet_categorie ? ` · ${CATEGORIES_OBJET[d.objet_categorie]}` : ""}</p>}
+                <p className="mt-1 text-xs text-encre-2">Envoyé le {date(d.cree_le, true)}{d.frequence ? ` · ${FREQ[d.frequence].chaque}${d.duree_mois ? `, ${d.duree_mois} mois` : ""}` : ""}</p>
                 {["accorde", "refuse", "offre_acceptee", "complement"].includes(d.statut) && (
                   <Link href={`/app/offre/${d.id}`} className="mt-1 inline-block min-h-10 py-2 font-medium text-marque underline-offset-4 hover:underline">
                     {d.statut === "accorde" ? `Voir l'offre : ${fcfa(d.montant_offre)}` : "Voir la réponse"}
@@ -105,4 +252,8 @@ export default function Dossier() {
       </div>
     </section>
   );
+}
+
+export default function Dossier() {
+  return <Suspense fallback={<Chargement lignes={5} />}><PageDossier /></Suspense>;
 }

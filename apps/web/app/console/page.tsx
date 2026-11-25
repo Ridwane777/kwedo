@@ -1,145 +1,97 @@
 "use client";
 
-import { ArrowDownWideNarrow, CalendarArrowUp, TriangleAlert } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { BoutonIcone } from "@/components/bouton-icone";
-import { useMemo, useState } from "react";
-import { Chargement, Erreur, Pastille, Vide } from "@/components/ui";
+import { ArrowRight, TriangleAlert } from "lucide-react";
+import Link from "next/link";
+import type { ReactNode } from "react";
+import { Chargement, Erreur, Pastille, Simule } from "@/components/ui";
 import { useApi } from "@/lib/api";
-import { useRaccourcis } from "@/lib/clavier";
-import { ACTIVITES, date, fcfa, pct, RECO, STATUTS } from "@/lib/format";
-import type { LigneDossier } from "@/lib/types";
+import { date, fcfa, pct, STATUTS } from "@/lib/format";
+import { IndicateursCredits, TON_STATUT, type Indicateurs } from "./commun";
+import type { LigneDemande } from "./demandes/page";
 
-const TON_STATUT: Record<string, "info" | "attention" | "bon" | "alerte" | "neutre"> = {
-  recu: "info", en_analyse: "attention", complement: "attention", accorde: "bon", offre_acceptee: "bon", refuse: "alerte", offre_refusee: "neutre",
+type Aujourdhui = {
+  maintenant: string; nb_a_decider: number; avec_alertes: number; a_decider: LigneDemande[];
+  nb_retards: number; nouveaux_retards: number; retards: { id: number; rang: number; date_due: string; montant_attendu: number; montant_recu: number; credit_id: string; nom: string; jours_retard: number }[];
+  nb_offres_sans_reponse: number; delai_sans_reponse_jours: number; offres_sans_reponse: (LigneDemande & { jours_sans_reponse: number })[];
+  indicateurs: Indicateurs;
 };
 
-export default function File() {
-  const router = useRouter();
-  const [tri, setTri] = useState<"priorite" | "anciennete">("priorite");
-  const [filtre, setFiltre] = useState<"a_traiter" | "tous">("a_traiter");
-  const { donnees, erreur, charge, recharger } = useApi<LigneDossier[]>(`/dossiers?tri=${tri}`);
-  const [sel, setSel] = useState(0);
-  const lignes = useMemo(
-    () => (donnees ?? []).filter((d) => filtre === "tous" || ["recu", "en_analyse", "complement"].includes(d.statut)),
-    [donnees, filtre],
+function Carte({ titre, n, href, lien, children, vide }: { titre: string; n: number; href: string; lien: string; children: ReactNode; vide: string }) {
+  return (
+    <section aria-label={titre} className="flex flex-col rounded-2xl border border-trait bg-surface">
+      <header className="flex items-baseline justify-between gap-3 border-b border-trait px-4 py-3">
+        <h2 className="font-semibold">{titre}</h2>
+        <span className="montant text-2xl">{n}</span>
+      </header>
+      <div className="flex-1">{n ? children : <p className="px-4 py-3 text-encre-2">{vide}</p>}</div>
+      <Link href={href} className="flex min-h-11 items-center justify-between border-t border-trait px-4 py-2 font-medium text-marque hover:bg-surface-2">
+        {lien}<ArrowRight aria-hidden="true" size={18} />
+      </Link>
+    </section>
   );
-  const raccourcis = useMemo(() => ({
-    j: () => setSel((s) => Math.min(s + 1, lignes.length - 1)),
-    k: () => setSel((s) => Math.max(s - 1, 0)),
-    Enter: () => lignes[sel] && router.push(`/console/dossiers/${lignes[sel]!.id}`),
-    t: () => setTri((t) => (t === "priorite" ? "anciennete" : "priorite")),
-    f: () => setFiltre((f) => (f === "tous" ? "a_traiter" : "tous")),
-    "2": () => router.push("/console/portefeuille"), "3": () => router.push("/console/parametres"), "4": () => router.push("/console/journal"),
-  }), [lignes, sel, router]);
-  useRaccourcis(raccourcis);
+}
+
+export default function Aujourdhui() {
+  const { donnees: a, erreur, recharger } = useApi<Aujourdhui>("/console/aujourdhui");
+  if (erreur) return <Erreur message={erreur} reessayer={recharger} />;
+  if (!a) return <Chargement lignes={6} />;
 
   return (
     <section className="space-y-5">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="titre text-[1.75rem] leading-tight">File de dossiers</h1>
-          <p className="text-encre-2">{lignes.length} dossier{lignes.length > 1 ? "s" : ""}, {tri === "priorite" ? "alertes d'abord" : "les plus anciens d'abord"}</p>
+          <h1 className="titre text-[1.75rem] leading-tight">Aujourd'hui</h1>
+          <p className="text-encre-2">Ce qui demande une action maintenant · date simulée : {date(a.maintenant, true)}</p>
         </div>
-        <div className="flex flex-wrap gap-2" role="group" aria-label="Filtres">
-          <div className="inline-flex rounded-xl border border-trait bg-surface p-1">
-            {(["a_traiter", "tous"] as const).map((f) => (
-              <button key={f} onClick={() => setFiltre(f)} aria-pressed={filtre === f}
-                className={`min-h-9 rounded-lg px-3 font-medium ${filtre === f ? "bg-encre text-fond" : "text-encre-2 hover:text-encre"}`}>
-                {f === "tous" ? "Tous" : "À traiter"}
-              </button>
-            ))}
-            <kbd className="hidden self-center px-2 text-[11px] text-encre-2 md:inline" title="Raccourci clavier">f</kbd>
-          </div>
-          <BoutonIcone icone={tri === "priorite" ? ArrowDownWideNarrow : CalendarArrowUp} onClick={() => setTri(tri === "priorite" ? "anciennete" : "priorite")}
-            label={`Trier par ${tri === "priorite" ? "ancienneté" : "priorité"} (t)`} className="border border-trait bg-surface" />
-        </div>
+        <Simule quoi="Horloge simulée" />
       </header>
-
-      {donnees && (
-        <dl className="grid grid-cols-3 gap-2 sm:max-w-xl">
-          {[
-            ["À décider", donnees.filter((d) => ["recu", "en_analyse", "complement"].includes(d.statut)).length, ""],
-            ["Avec alertes", donnees.filter((d) => d.alertes.length && ["recu", "en_analyse", "complement"].includes(d.statut)).length, "ambre"],
-            ["Accord retiré", donnees.filter((d) => !d.consentement_actif).length, "alerte"],
-          ].map(([l, n, ton]) => (
-            <div key={l as string} className="rounded-2xl border border-trait bg-surface p-3">
-              <dt className="flex items-center gap-1.5 text-xs text-encre-2">
-                {ton && <span aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${ton === "ambre" ? "bg-ambre" : "bg-alerte"}`} />}{l}
-              </dt>
-              <dd className="montant text-2xl">{n}</dd>
-            </div>
-          ))}
-        </dl>
-      )}
-
-      {erreur ? <Erreur message={erreur} reessayer={recharger} /> : charge && !donnees ? <Chargement lignes={6} /> : !lignes.length ? (
-        <Vide titre="Aucun dossier à traiter">Les nouveaux dossiers arrivent ici dès qu'un commerçant donne son accord à votre institution.</Vide>
-      ) : (
-        <>
-        {/* Téléphone : une carte par dossier, l'essentiel visible sans défilement horizontal. */}
-        <ul className="divide-y divide-trait overflow-hidden rounded-2xl border border-trait bg-surface md:hidden">
-          {lignes.map((d) => (
-            <li key={d.id} className={d.alertes.length ? "border-l-4 border-l-ambre" : ""}>
-              <a href={`/console/dossiers/${d.id}`} className="block min-h-12 space-y-1.5 px-4 py-3">
-                <span className="flex items-baseline justify-between gap-3">
-                  <span className="font-semibold">{d.nom}</span>
-                  <span className="chiffres font-semibold">{fcfa(d.plafond)}</span>
-                </span>
-                <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-encre-2">
-                  <Pastille ton={TON_STATUT[d.statut]}>{STATUTS[d.statut]}</Pastille>
-                  <span>{RECO[d.recommandation]} · risque {pct(d.risque, 1)}</span>
-                  {d.alertes.length > 0 && <span className="inline-flex items-center gap-1 font-medium text-encre"><TriangleAlert aria-hidden="true" size={16} strokeWidth={1.75} className="text-ambre-encre" />{d.alertes.length} alerte{d.alertes.length > 1 ? "s" : ""}</span>}
-                  {!d.consentement_actif && <span className="text-alerte">accord retiré</span>}
-                </span>
-              </a>
-            </li>
-          ))}
-        </ul>
-        <div className="hidden overflow-x-auto rounded-2xl border border-trait bg-surface md:block">
-        <table className="w-full min-w-[900px] border-collapse text-left [&_th]:whitespace-nowrap [&_th]:py-2.5 [&_td]:px-3 [&_td]:py-2.5">
-          <thead className="border-b border-trait bg-surface-2/60 text-xs font-semibold text-encre-2 [&_th]:px-3 [&_th]:font-semibold">
-            <tr>
-              <th className="py-2 pr-3 font-medium">Commerçant</th>
-              <th className="py-2 pr-3 font-medium">Activité</th>
-              <th className="py-2 pr-3 text-right font-medium">Plafond proposé</th>
-              <th className="py-2 pr-3 text-right font-medium">Risque</th>
-              <th className="py-2 pr-3 font-medium">Recommandation</th>
-              <th className="py-2 pr-3 font-medium">Contrôles</th>
-              <th className="py-2 pr-3 font-medium">Statut</th>
-              <th className="py-2 font-medium">Reçu le</th>
-            </tr>
-          </thead>
-          <tbody>
-            {lignes.map((d, k) => (
-              <tr key={d.id} onClick={() => router.push(`/console/dossiers/${d.id}`)} aria-selected={k === sel}
-                className={`cursor-pointer border-b border-trait last:border-b-0 ${k === sel ? "bg-marque-doux shadow-[inset_3px_0_0_var(--marque)]" : "hover:bg-surface-2"}`}>
-                <td className="py-2 pr-3">
-                  <a href={`/console/dossiers/${d.id}`} className="font-semibold hover:underline" onClick={(e) => e.stopPropagation()}>{d.nom}</a>
-                  {!d.consentement_actif && <span className="ml-2 text-xs text-alerte">accord retiré</span>}
-                </td>
-                <td className="py-2 pr-3 text-encre-2">{ACTIVITES[d.type_activite] ?? d.type_activite} · {d.semaines} sem.</td>
-                <td className="chiffres py-2 pr-3 text-right">{fcfa(d.plafond)}</td>
-                <td className="chiffres py-2 pr-3 text-right">{pct(d.risque, 1)}</td>
-                <td className="py-2 pr-3">{RECO[d.recommandation]}{d.provisoire && <span className="text-encre-2"> · provisoire</span>}</td>
-                <td className="py-2 pr-3">
-                  {d.alertes.length ? (
-                    <span className="inline-flex items-center gap-1 font-medium text-encre">
-                      <TriangleAlert aria-hidden="true" size={16} strokeWidth={1.75} className="text-ambre-encre" />
-                      {d.alertes.length} alerte{d.alertes.length > 1 ? "s" : ""}
-                    </span>
-                  ) : <span className="text-encre-2">—</span>}
-                </td>
-                <td className="py-2 pr-3"><Pastille ton={TON_STATUT[d.statut]}>{STATUTS[d.statut]}</Pastille></td>
-                <td className="chiffres py-2 text-encre-2">{date(d.cree_le, true)}</td>
-              </tr>
+      <IndicateursCredits i={a.indicateurs} liens />
+      <div className="grid gap-4 xl:grid-cols-3">
+        <Carte titre="Dossiers à décider" n={a.nb_a_decider} href="/console/demandes" lien="Toutes les demandes à décider" vide="Aucun dossier en attente de décision.">
+          {a.avec_alertes > 0 && (
+            <Link href="/console/demandes?alertes=1" className="flex items-center gap-2 bg-ambre-doux px-4 py-2 text-sm font-medium text-ambre-encre">
+              <TriangleAlert aria-hidden="true" size={16} />{a.avec_alertes} avec alertes de cohérence
+            </Link>
+          )}
+          <ul className="divide-y divide-trait">
+            {a.a_decider.map((d) => (
+              <li key={d.id}>
+                <Link href={`/console/dossiers/${d.id}`} className="flex items-baseline justify-between gap-3 px-4 py-2.5 hover:bg-surface-2">
+                  <span className="min-w-0"><span className="font-semibold">{d.nom}</span>
+                    <span className="block text-sm text-encre-2"><Pastille ton={TON_STATUT[d.statut]}>{STATUTS[d.statut]}</Pastille> <span className={d.dans_tolerance ? "" : "text-alerte"}>risque {pct(d.risque_demande, 1)}</span>{d.alertes.length > 0 && ` · ${d.alertes.length} alerte${d.alertes.length > 1 ? "s" : ""}`}</span>
+                  </span>
+                  <span className="chiffres shrink-0">{fcfa(d.montant_demande)}</span>
+                </Link>
+              </li>
             ))}
-          </tbody>
-        </table>
-        </div>
-        </>
-      )}
-      <p className="text-xs text-encre-2">Clavier : <kbd>j</kbd>/<kbd>k</kbd> pour se déplacer, <kbd>Entrée</kbd> pour ouvrir.</p>
+          </ul>
+        </Carte>
+        <Carte titre="Échéances en retard" n={a.nb_retards} href="/console/recouvrement" lien="Aller au recouvrement" vide="Aucune échéance en retard.">
+          {a.nouveaux_retards > 0 && <p className="bg-alerte-doux px-4 py-2 text-sm font-medium text-alerte">{a.nouveaux_retards} nouvelle{a.nouveaux_retards > 1 ? "s" : ""} depuis hier</p>}
+          <ul className="divide-y divide-trait">
+            {a.retards.map((e) => (
+              <li key={e.id}>
+                <Link href={`/console/credits/${e.credit_id}`} className="flex items-baseline justify-between gap-3 px-4 py-2.5 hover:bg-surface-2">
+                  <span><span className="font-semibold">{e.nom}</span><span className="block text-sm text-encre-2">échéance {e.rang} du {date(e.date_due)} · <span className="text-alerte">{e.jours_retard} j</span></span></span>
+                  <span className="chiffres shrink-0">{fcfa(e.montant_attendu - e.montant_recu)}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </Carte>
+        <Carte titre={`Offres sans réponse depuis ${a.delai_sans_reponse_jours} jours`} n={a.nb_offres_sans_reponse} href="/console/demandes?onglet=attente" lien="Offres en attente du commerçant" vide="Aucune offre ne traîne.">
+          <ul className="divide-y divide-trait">
+            {a.offres_sans_reponse.map((d) => (
+              <li key={d.id}>
+                <Link href={`/console/dossiers/${d.id}`} className="flex items-baseline justify-between gap-3 px-4 py-2.5 hover:bg-surface-2">
+                  <span><span className="font-semibold">{d.nom}</span><span className="block text-sm text-encre-2">offre du {date(d.decide_le)} · sans réponse depuis {d.jours_sans_reponse} j</span></span>
+                  <span className="chiffres shrink-0">{fcfa(d.montant_decide)}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </Carte>
+      </div>
     </section>
   );
 }
