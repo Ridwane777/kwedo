@@ -76,7 +76,10 @@ Diagnostic : [`evaluation/diagnostic/README.md`](evaluation/diagnostic/README.md
   ni la définition de ses taux ; ses prêts sont plus petits et ses clients différents. Kwedo ne prétend donc **pas**
   faire mieux que MTN : il propose une autre façon de décider, sur un autre segment.
 - **Les mesures de Kwedo sont simulées.** Le repère réel disponible, la dégradation du portefeuille des institutions
-  de microfinance béninoises (**9,4 %** fin 2024, BCEAO), n'est pas mesuré à définition égale.
+  de microfinance béninoises (**9,4 %** fin 2024, BCEAO), porte sur une autre population. Mesuré à définition égale
+  sur un portefeuille simulé (encours en souffrance de plus de 90 jours ÷ encours brut), le simulateur donne 0 à 6 %
+  aux montants du moteur et 10 à 20 % au plafond (`docs/evaluation/bceao/README.md`). Ce n'est pas une preuve que
+  Kwedo ferait mieux.
 - Le **pourcentage de risque** est indicatif hors des profils connus.
 - **Rien n'est mesuré sur le terrain** : ni remboursements réels, ni temps humain de traitement.
 - **Prochaine étape** : un pilote avec une institution, mesuré avec les mêmes définitions que les acteurs du marché

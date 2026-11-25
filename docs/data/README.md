@@ -76,3 +76,11 @@ calage. La population « réalisme » fait apparaître un défaut simulé très 
 ~250 000 FCFA) sont petits devant les ventes simulées des archétypes (dizaines de milliers de FCFA par jour). Soit
 les emprunteurs Kiva vendent bien moins que nos archétypes, soit le futur caché du simulateur est trop optimiste ;
 les sources publiques ne permettent pas de trancher. **Rien n'est réglé sur 9,4 %** : à mesurer au pilote.
+
+**Mesure à définition égale** ([`docs/evaluation/bceao/README.md`](../evaluation/bceao/README.md)). On a construit un
+portefeuille simulé à une date d'arrêté : tout l'encours d'un prêt est déclassé dès qu'une échéance reste impayée
+plus de 90 jours, selon le Référentiel comptable des SFD. Résultat avec les montants Kiva plafonnés par le moteur :
+**3 à 6 %** en remboursement hebdomadaire, **0 à 3 %** en mensuel. Avec des prêts au plafond, **10 à 20 %**.
+L'écart avec 9,4 % **disparaît en grande partie** : le 0,3 % venait de la mesure (défaut compté par prêt) et des
+petits montants en mensuel sur 12 mois, pas d'un simulateur uniformément trop optimiste. Les deux populations
+restent différentes, donc la comparaison ne prouve rien sur la qualité du moteur.

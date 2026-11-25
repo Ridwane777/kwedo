@@ -1,0 +1,8 @@
+{
+ "note": "Graines neuves tirées au hasard (module secrets) le 25/11/2026 pour la mesure à définition égale BCEAO (scripts/mesure_bceao.py). Distinctes des graines des runs finaux (graines-finales.json, graines-frequences.json) et du diagnostic.",
+ "graines_test": [626987351],
+ "graines_realisme": [525626585],
+ "commercants_par_graine": 500,
+ "graine_bootstrap": 569098779,
+ "tirages_bootstrap": 1000
+}
