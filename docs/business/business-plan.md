@@ -19,6 +19,22 @@ Toutes les variables se mesurent en pilote (protocole de temps : `docs/evaluatio
 **Ce que l'évaluation simulée permet de dire** : Δp n'est pas démontré à ce stade (`docs/evaluation/README.md` §1).
 La valeur à défendre en premier est donc le **temps** et la **traçabilité**, pas la réduction d'impayés.
 
+## Contexte de marché : risque de portefeuille au Bénin
+Selon la BCEAO, le taux brut de dégradation du portefeuille des SFD du Bénin est de **9,4 %** au 31/12/2024
+(53 SFD, 20 dans l'échantillon), contre **8,9 %** pour l'UMOA et une norme prudentielle **≤ 3 %**. C'est une part
+d'encours en souffrance, pas un taux de défaut par prêt (`docs/data/README.md`). Le secteur est donc loin de sa norme :
+un outil qui aide à dimensionner les crédits sur les ventes observées répond à un besoin réel. Kwedo ne prétend pas,
+à ce stade, faire baisser ce taux (Δp non démontré).
+
+## Stratégie de données
+1. **Prototype (actuel)** : simulation + sources publiques pour le seul réalisme de la démo (agrégats Kiva Bénin pour
+   montants, fréquences et durées ; repère BCEAO ; Field & Pande pour la fréquence). Aucun modèle entraîné ni évalué
+   sur ces sources ; usage non commercial (conditions Kiva). Inventaire : `docs/data/README.md`.
+2. **Pilote** : collecte réelle, avec consentement, auprès d'une IMF : flux du compte marchand **et** remboursements
+   observés des mêmes commerçants, seule donnée qui permette d'entraîner et d'évaluer le risque.
+3. **Partenariats** : opérateur mobile money (accès autorisé aux flux), institutions (historiques de remboursement),
+   éventuellement BCEAO / centrales de risques ; les données Kiva ne sont pas réutilisables en exploitation commerciale.
+
 ## Mise sur le marché
 1. Hackathon : démontrer le parcours. 2. Pilote : une IMF, quelques dizaines de commerçants, mesure des gains.
 3. Extension : 3 à 5 institutions, accord opérateur. 4. Régional : UEMOA.

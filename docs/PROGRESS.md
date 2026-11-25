@@ -293,3 +293,21 @@ Décision : ADR 0019 (console organisée par objet). Crédit progressif : retir�
   hooks E2E porté à 120 s). L'audit axe des deux nouvelles pages de détail a été ajouté à `qualite.spec.ts` mais
   **n'a pas pu tourner** : disque de la machine plein (387 Go, cause extérieure au projet). Listes calculées en
   Python avant pagination (suffisant au prototype, cf. ADR 0019).
+
+## Mission données réelles de calage (`docs/MISSION-DONNEES.md`, branche `donnees`)
+
+- **Profil « réalisme »** (`packages/generator/kwedo_gen/realisme.py`, nouveau) pour la démo seulement : `REALISME`
+  (dynamique du réglage, archétypes aux parts Kiva Bénin), `demande_demo` (montant entre p10 et p90 Kiva du secteur à
+  1 USD ≈ 555 FCFA, fréquence et durée Kiva bornées à 12 mois), `generer_population`. `reglage`/`test`, `ml/`,
+  `packages/engine`, `docs/evaluation/runs` inchangés.
+- **Démo régénérée** (`scripts/regenerer_demo.py`) : mêmes personnes et transactions, champ `demande_demo` et
+  `calage` ; la file de la console dépose ces demandes (montant, fréquence, durée), sauf Hounkpè et Yaba (à risque).
+- **Contrôle de niveau** (`scripts/controle_niveau.py`) : 19 dossiers de démo, 6 au-dessus de la tolérance (31,6 %),
+  risque moyen 10,4 % ; population réalisme (300) : défaut simulé 0,3 % ; repère BCEAO Bénin 9,4 % (dégradation de
+  portefeuille, autre mesure). Écart expliqué dans `docs/data/README.md`, rien réglé dessus.
+- **Docs** : `docs/data/README.md` (inventaire, licences, attribution Kiva), ADR 0020 (Field & Pande),
+  business plan (stratégie de données, contexte BCEAO), `docs/legal/sources-donnees.md`, rétrospective.
+- **Preuves** : `npm run test:gen` 14/14 (3 nouveaux : réglage intact, parts Kiva, demandes dans les quantiles),
+  `test:engine` 25/25 (non-régression Koffi intacte), `test:api` 38/38, build web OK. Pas d'E2E : aucun écran modifié.
+- **Écarts** : composition des 9 personnes non alignée sur Kiva (6/2/1 contre 52/34/10 %, voir rétrospective) ;
+  PaySim non appliqué aux flux (non pertinent pour des encaissements de commerçants) ; licence PaySim non vérifiée.
